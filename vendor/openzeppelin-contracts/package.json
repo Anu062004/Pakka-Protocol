@@ -1,0 +1,6 @@
+{
+  "name": "@openzeppelin/contracts",
+  "version": "5.1.0",
+  "description": "Required Solidity sources from OpenZeppelin Contracts v5.1.0, with documentation normalization",
+  "license": "MIT"
+}

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pakka · Fixed-rate USDC</title><link rel="stylesheet" href="/app.css"><script type="module" src="/app.mjs"></script></head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="shell">
+  <aside class="rail"><a class="brand" href="#rates">Pakka<span>USDC, with a date.</span></a>
+    <nav aria-label="Main"><a href="#rates">Rates</a><a href="#lock">Lock</a><a href="#positions">Positions</a><a href="#tijori">Tijori</a></nav>
+    <p class="network">Arc Testnet<br><span>Faucet funds only</span></p>
+  </aside>
+  <div class="workspace"><header class="topbar"><span id="network-status">Waiting for deployment</span><button id="connect">Connect wallet</button></header>
+    <main id="main">
+      <p id="notice" role="status" aria-live="polite">Loading testnet configuration…</p>
+      <div id="transaction" aria-live="polite"></div>
+      <section id="rates" class="page"><h1>Choose your date.</h1><p>Buy a principal ticket today. Redeem it at maturity. Rates include the current pool quote.</p>
+        <div class="variable"><div><h2>Morpho variable rate</h2><p id="variable-rate">— · Live vault feed not configured</p></div><p>Fixed quotes below are simple annualized rates, not APY. Vault losses and withdrawal limits still apply.</p></div>
+        <div id="rates-list" class="list"><p>No rates loaded yet.</p></div>
+        <button id="refresh-rates" class="text-button">Refresh rates</button>
+      </section>
+      <section id="lock" class="page" hidden><h1>Lock a future payout.</h1><p>Your ticket’s face value is measured in USDC. The amount you pay today comes from a fresh quote.</p>
+        <div class="split"><form id="lock-form"><label for="face">Face value at maturity · USDC</label><input id="face" inputmode="decimal" value="1" required pattern="[0-9]+(\.[0-9]{1,6})?">
+          <label for="maturity">Maturity</label><select id="maturity" required><option value="">Choose a date</option></select>
+          <button id="get-quote" type="button">Get quote</button><button id="lock-submit" type="submit" disabled>Lock USDC</button>
+          <p id="approval-note" class="helper">Compatible wallets batch approval and purchase. Other wallets confirm two transactions.</p>
+        </form><div class="quote" id="quote-details"><h2>Your quote</h2><p>Choose a maturity and amount to see the cost, payout and rate.</p></div></div>
+      </section>
+      <section id="positions" class="page" hidden><h1>Your dated tickets.</h1><p>Early sales depend on pool liquidity. Mature tickets can be cashed out in USDC or vault shares.</p><div id="positions-list" class="list"><p>Connect your wallet to see your positions.</p></div><button id="refresh-positions" class="text-button">Refresh positions</button></section>
+      <section id="tijori" class="page" hidden><h1>A treasury with limits.</h1><p>You own the funds. Your agent can buy tickets and pay only approved payees within your limits.</p>
+        <div id="treasury-status">Connect your wallet to open your Tijori.</div>
+        <form id="create-form" hidden><h2>Create your Tijori</h2><label for="initial-agent">Agent address</label><input id="initial-agent" placeholder="0x…" required>
+          <label for="initial-daily">Daily payment limit · USDC</label><input id="initial-daily" value="5" inputmode="decimal" required><button>Create Tijori</button></form>
+        <div id="treasury-controls" hidden>
+          <div class="owner-grid"><form id="deposit-form"><h2>Add funds</h2><label for="deposit-amount">USDC</label><input id="deposit-amount" inputmode="decimal" value="1" required><button>Deposit USDC</button></form>
+            <form id="payee-form"><h2>Approve a payee</h2><label for="payee-address">Payee address</label><input id="payee-address" placeholder="0x…" required>
+              <label for="payee-cap">Rolling 30-day limit · USDC</label><input id="payee-cap" inputmode="decimal" value="5" required><button>Save payee limit</button><p class="helper">A zero limit revokes future payments. Previous spending remains counted.</p></form>
+            <form id="policy-form"><h2>Agent controls</h2><label for="daily-cap">Daily payment limit · USDC</label><input id="daily-cap" inputmode="decimal" required><button>Save daily limit</button>
+              <button id="pause-agent" type="button">Pause agent</button><label for="new-agent">Replace agent address</label><input id="new-agent" placeholder="0x…"><button id="rotate-agent" type="button">Replace agent</button></form>
+            <form id="withdraw-form"><h2>Owner withdrawal</h2><label for="withdraw-amount">USDC</label><input id="withdraw-amount" inputmode="decimal" value="1" required><button>Withdraw USDC</button><p class="helper">Owner recovery stays available while your agent is paused.</p></form></div>
+          <section class="agent-setup"><h2>Connect your AI agent</h2><p>Generate a new key in this browser. Save it once on your device, authorize its public address, then fund its testnet gas.</p><button id="connect-agent">Connect your AI agent</button>
+            <div id="agent-secret" hidden><label for="one-time-key">Private key · shown only in this session</label><input id="one-time-key" type="password" readonly autocomplete="off" spellcheck="false">
+              <button id="show-key">Show key</button><button id="copy-key">Copy key</button><p id="agent-public"></p>
+              <label for="mcp-config">Claude Desktop MCP configuration</label><textarea id="mcp-config" readonly rows="9" spellcheck="false"></textarea><button id="copy-config">Copy config</button><button id="hide-key">Clear private key</button>
+              <p class="helper">The key stays in browser memory until cleared. Paste it only into your local configuration. Never share it in chat or commit it.</p></div>
+          </section>
+          <h2>Tijori positions</h2><div id="treasury-positions" class="list"></div>
+          <section><h2>Upcoming bills</h2><p class="helper">This calendar stays on this device. It does not schedule automatic payments.</p>
+            <form id="bill-form" class="bill-form"><label for="bill-payee">Payee address<input id="bill-payee" required placeholder="0x…"></label><label for="bill-amount">USDC<input id="bill-amount" inputmode="decimal" value="1" required></label><label for="bill-date">Due date<input id="bill-date" type="date" required></label><button>Add bill</button></form><div id="bills"></div></section>
+          <h2>Activity</h2><div id="activity" class="list"></div><button id="refresh-treasury" class="text-button">Refresh Tijori</button>
+        </div>
+      </section>
+    </main><footer>Pakka · Testnet build · 500 USDC maximum new-entry TVL per series</footer>
+  </div>
+</div>
+</body></html>

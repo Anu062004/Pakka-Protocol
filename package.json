@@ -1,0 +1,38 @@
+{
+  "name": "pakka-contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "compile": "node scripts/compile.ts",
+    "test": "node --test --test-concurrency=1 test/*.test.ts",
+    "deploy:testnet": "node --env-file-if-exists=.env scripts/deploy-testnet.ts",
+    "seed:testnet": "node --env-file-if-exists=.env scripts/seed-testnet.ts",
+    "keeper:testnet": "node --env-file-if-exists=.env scripts/keeper-testnet.ts",
+    "keeper:once": "node --env-file-if-exists=.env scripts/keeper-testnet.ts --once",
+    "keeper:health": "node --env-file-if-exists=.env scripts/keeper-testnet.ts --health",
+    "agent:mcp": "node --env-file-if-exists=.env agent/mcp-server.ts",
+    "register:testnet": "node --env-file-if-exists=.env scripts/register-testnet.ts",
+    "dev": "node --env-file-if-exists=.env backend/server.ts",
+    "setup:env": "node scripts/setup-env.ts",
+    "test:system": "node --test test/security-hardening.test.ts",
+    "test:browser": "node --test test/browser-e2e.ts",
+    "test:fork": "node --env-file-if-exists=.env scripts/fork-e2e.ts",
+    "security": "node --env-file-if-exists=.env scripts/security-check.ts",
+    "security:status": "node scripts/security-check.ts --status",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.1",
+    "@openzeppelin/contracts": "file:vendor/openzeppelin-contracts",
+    "ethers": "6.17.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "^26.6.4",
+    "hardhat": "2.29.1",
+    "solc": "0.8.26",
+    "typescript": "^7.0.2"
+  }
+}

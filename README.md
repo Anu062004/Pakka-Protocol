@@ -230,7 +230,7 @@ wallet and use the regular router's early-sale flow if market liquidity permits.
 
 ## Expiry keeper
 
-`scripts/keeper-testnet.mjs` is a continuous Node worker over the existing
+`scripts/keeper-testnet.ts` is a continuous Node worker over the existing
 `YieldToken.settleExpiry()` function. It requires no new contract, compiler,
 owner privileges or database. It reads the registry in `deployments/arc-testnet.json`
 and discovers all registered series on every cycle, including later registrations.
@@ -351,9 +351,14 @@ separate source of historical vault state before mainnet use.
 
 ## Run locally
 
-Requires Node.js 22+ and npm. Solidity is pinned to 0.8.26 and Cancun EVM with via-IR;
-Uniswap v4 needs transient-storage opcodes, and the local Hardhat network uses Cancun.
-Compilation
+Requires Node.js 24+ and npm. Every `backend/`, `agent/`, `scripts/` and `test/`
+file is real, typed TypeScript (`frontend/` stays plain JS — it's served straight
+to the browser). There is **no build/compile step for the TypeScript**: Node runs
+`.ts` files natively, so `npm test`/`npm run dev`/etc. are exactly the same
+commands they'd be for `.mjs`, just pointed at `.ts`. Run `npm run typecheck`
+(`tsc --noEmit`) to check types without running anything. Solidity is pinned to
+0.8.26 and Cancun EVM with via-IR; Uniswap v4 needs transient-storage opcodes,
+and the local Hardhat network uses Cancun. Compilation
 uses the installed solc package without downloading a compiler at runtime.
 
 ```sh
@@ -392,7 +397,7 @@ also passed that handshake without Hardhat or solc.
 All 20 agent tests passed again after the final status and cancellation changes.
 As of 2026-10-06, after adding the web app/backend and its tests, the full suite
 is **144/148 passing**. The 4 failures are pre-existing mismatches between
-`test/uniswap-v4.test.mjs`/`test/expiry-keeper.test.mjs` and current contract
+`test/uniswap-v4.test.ts`/`test/expiry-keeper.test.ts` and current contract
 error names/behavior, unrelated to the backend work above; see AGENT_HANDOFF.md
 for the current list.
 
@@ -494,7 +499,7 @@ frontend will show nothing until the owner wallet runs `npm run register:testnet
 
 ## Agent/MCP treasury service
 
-`agent/mcp-server.mjs` exposes eight tools through the official MCP SDK over
+`agent/mcp-server.ts` exposes eight tools through the official MCP SDK over
 stdio. It binds one deployed Tijori and uses a separate agent key; it adds no
 contracts. The production entrypoint accepts only Arc Testnet `5042002`.
 Local integration tests use `31337`; there is no mainnet override.
@@ -554,7 +559,7 @@ launch **Node directly**, since npm writes additional text to stdout:
       "command": "node",
       "args": [
         "--env-file=/Users/macavenue/Desktop/arc/.env.agent",
-        "/Users/macavenue/Desktop/arc/agent/mcp-server.mjs"
+        "/Users/macavenue/Desktop/arc/agent/mcp-server.ts"
       ]
     }
   }
@@ -648,7 +653,7 @@ an indexed store would be appropriate if this grows beyond testnet scale.
 
 ## Web app and API
 
-`backend/server.mjs` serves a small **read-only** HTTP API plus the static
+`backend/server.ts` serves a small **read-only** HTTP API plus the static
 frontend in `frontend/`. It never signs or broadcasts a transaction; every write
 (lock, ladder, cash-out, pay, approvals) is signed by the connected browser
 wallet directly against the contracts via `frontend/wallet.mjs`, including an
@@ -686,13 +691,13 @@ is what actually faces the internet.
 
 **Variable rate.** `/api/rates` reports each series' vault as an **observed,
 trailing 24-hour rate**: it samples `convertToAssets` at two real blocks and
-annualizes the change (`backend/variable-rate.mjs`). This is not Morpho's own
+annualizes the change (`backend/variable-rate.ts`). This is not Morpho's own
 rate model, not fetched from any Morpho API, and can be **negative** after a
 vault loss — it says only what that specific vault actually did over the last
 day. A series reports `null`/`INSUFFICIENT_HISTORY` until the chain and the
 vault are old enough to sample a full window.
 
-**Keeper alerts.** `backend/alerts.mjs` can push expiry-keeper health alerts to
+**Keeper alerts.** `backend/alerts.ts` can push expiry-keeper health alerts to
 Discord or Telegram; configure `KEEPER_ALERT_WEBHOOK_URL` (a `discord.com`
 webhook URL) or `KEEPER_TELEGRAM_BOT_TOKEN`/`KEEPER_TELEGRAM_CHAT_ID`. Delivery
 is cooldown-limited and never includes the webhook/token in its persisted state.

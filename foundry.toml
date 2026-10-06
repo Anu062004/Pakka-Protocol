@@ -1,0 +1,25 @@
+[profile.default]
+src = "contracts"
+test = "test/solidity"
+out = "out"
+libs = ["vendor", "node_modules"]
+solc_version = "0.8.26"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+via_ir = true
+code_size_limit = 150000
+remappings = [
+  "@openzeppelin/contracts/=vendor/openzeppelin-contracts/",
+  "@uniswap/v4-core/=vendor/uniswap-v4-core/",
+  "@uniswap/v4-periphery/=vendor/uniswap-v4-periphery/",
+  "solmate/=vendor/solmate/"
+]
+
+[invariant]
+runs = 128
+depth = 64
+fail_on_revert = true
+
+[fuzz]
+runs = 256

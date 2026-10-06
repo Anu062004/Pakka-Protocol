@@ -1,0 +1,241 @@
+{
+  "retrieved": "2026-10-04",
+  "note": "Browser-extracted main-branch source snapshot; upstream commit not identified.",
+  "sources": [
+    {
+      "file": "vendor/uniswap-v4-core/src/ERC6909.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/ERC6909.sol",
+      "sha256": "d1683d1cd013ec4beb0b3517adba4d2a34926b598205b888abdddabe0011ba90"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/ERC6909Claims.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/ERC6909Claims.sol",
+      "sha256": "155fa76bd68574bae315f1af60e9d6cd5cfbcc5af48e813e548b73da926cb302"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/Extsload.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/Extsload.sol",
+      "sha256": "5d7e1f4d3d6745f595cfdd662967cea9f756df38b780195536739f7384b2b780"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/Exttload.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/Exttload.sol",
+      "sha256": "c4e0053bf7b1f996fb79c61ced3286c74eb29eaed88ea1b75306b2dbc522cfb3"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/NoDelegateCall.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/NoDelegateCall.sol",
+      "sha256": "5f0b2954065da813641a6656082f9f3d8530ed52cc18894ff740a4fa2faf6e53"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/PoolManager.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/PoolManager.sol",
+      "sha256": "54298508706e21299220d5600b2d57524ea92b3333f6c436a4d3b3e79a850843"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/ProtocolFees.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/ProtocolFees.sol",
+      "sha256": "6a22016c540482f1025119bca0a6730e957874d0fee62c076528ea8f095f19bc"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/interfaces/IExtsload.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/interfaces/IExtsload.sol",
+      "sha256": "68a79bb2b46fa489d8328e8202a1428cd1561332ea2516a19c83cbf95374d8d7"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/interfaces/IExttload.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/interfaces/IExttload.sol",
+      "sha256": "569d42255acd08b9488c6d25692416facb12de8905839432809f702ad444a49b"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/interfaces/IHooks.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/interfaces/IHooks.sol",
+      "sha256": "b77a03751a978cf83cff0b3d6c55eb340d1ec49b84846fc4bca24adaed667a6b"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/interfaces/IPoolManager.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/interfaces/IPoolManager.sol",
+      "sha256": "072ff8e66b433de2603bb4ec872ee8ea8a5a9c4bd662fe8b38ee37151ab0419b"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/interfaces/IProtocolFees.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/interfaces/IProtocolFees.sol",
+      "sha256": "718f759d51386654e7f075f3611e64149e5b7041fa489ba3abddf3b72f1cc26d"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/interfaces/callback/IUnlockCallback.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/interfaces/callback/IUnlockCallback.sol",
+      "sha256": "e19ac71b530f5afbd834617775eecf52d3bd740ec7b789e387b1390c7970b31e"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/interfaces/external/IERC20Minimal.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/interfaces/external/IERC20Minimal.sol",
+      "sha256": "1d92d7d0ace940d64793482b865e7f5a1107b32bc284bfa15960129091593269"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/interfaces/external/IERC6909Claims.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/interfaces/external/IERC6909Claims.sol",
+      "sha256": "5fc9b8542b6fb0560885d21cb71299dc16031e03e55708ab02cbafe46c1a0323"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/BitMath.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/BitMath.sol",
+      "sha256": "7dc8a323785576384fcd813101c5b2aefed45f3357ec3de093fa12ced0e2e038"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/CurrencyDelta.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/CurrencyDelta.sol",
+      "sha256": "8f7c0f574c78d12a7821313860f906c0037819970083edde6448aec52ead68f1"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/CurrencyReserves.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/CurrencyReserves.sol",
+      "sha256": "8a4bede11ff1982e77b30a9ef35d41cd8eeb743708ba2b8e1f73a49b90cbead4"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/CustomRevert.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/CustomRevert.sol",
+      "sha256": "888e81f2068b6fe7002b5077301689fe5fc5db97e6efdb798c99c850915efc5a"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/FixedPoint128.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/FixedPoint128.sol",
+      "sha256": "fa8a9be60c7e9f3f4199ba6a415259a09c8ee1c2f7f2c85db141fdc2156b2229"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/FixedPoint96.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/FixedPoint96.sol",
+      "sha256": "f75eab3ee8fc2c590dad5d790425877a48bd682c7df5cdc54ac242bb7bc698fe"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/FullMath.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/FullMath.sol",
+      "sha256": "57da15e2255b86b940ec426635114cebba5d31feb311b77e0560ada0f5605bb5"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/Hooks.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/Hooks.sol",
+      "sha256": "45565c623f57e10bf1d67005d1022968027ec8f5fc5df6c53dedd0a9b4a0724d"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/LPFeeLibrary.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/LPFeeLibrary.sol",
+      "sha256": "afd6c967a9aeb740ede16068b108dee786e4a5a7771757abbec46918ed03aff8"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/LiquidityMath.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/LiquidityMath.sol",
+      "sha256": "01935d0d11b8eecaec59cc0760467b70c6e32461bcc1885c35394a41f0c5740f"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/Lock.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/Lock.sol",
+      "sha256": "4a5d244856fad3a87cf6817991b96bb0827e738f09a7c0597d31851b0a1d8d65"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/NonzeroDeltaCount.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/NonzeroDeltaCount.sol",
+      "sha256": "b14d3907d965e979e7262d33fb00c0f3c645443f818f140292787c9bcd153183"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/ParseBytes.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/ParseBytes.sol",
+      "sha256": "88882482507bd9f341ddd9225062e3354770a6312c5e7a3ec127a6e762065c47"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/Pool.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/Pool.sol",
+      "sha256": "571ff947a91bb6cc762dd476fa89937e2d702d69cff71aca069e72a752a5d477"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/Position.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/Position.sol",
+      "sha256": "9e99d2cdb3d6b41673869758ae8986bae27c64e68866a0035ae10f9a8144e367"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/ProtocolFeeLibrary.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/ProtocolFeeLibrary.sol",
+      "sha256": "dbbdc3acb44b74a641a74ab39c6c197454fb64b23a8ab05726ac69095c767459"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/SafeCast.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/SafeCast.sol",
+      "sha256": "0b8d9d28fc03aa8b7d800d6187f5b2cd9ff749ac8c32074715da4c403a78e031"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/SqrtPriceMath.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/SqrtPriceMath.sol",
+      "sha256": "1eff494e5f55878a49596df56d9581088baa79a40a528af5ec267f767b367d9b"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/StateLibrary.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/StateLibrary.sol",
+      "sha256": "897d24bf6c6d89d107e77798808e743df00eb44f0327da7adf3b23edb1e19712"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/SwapMath.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/SwapMath.sol",
+      "sha256": "2a5a2876e58090ff000429579208f85c1b568ffecf388e5c8fe83e3506e0e50f"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/TickBitmap.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/TickBitmap.sol",
+      "sha256": "8682e6ce71ada9f32fe5f14f35e5726f423a52b51c0334e87a56c62950513959"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/TickMath.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/TickMath.sol",
+      "sha256": "7c344614c9f781cb98f9f091774e8c3a2f09be9dd67977503aeb138a7d76f62d"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/libraries/UnsafeMath.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/libraries/UnsafeMath.sol",
+      "sha256": "74cbe40617390acd1da29e011f64cdc730433e221d48eaad50cd922de0da4358"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/types/BalanceDelta.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/types/BalanceDelta.sol",
+      "sha256": "34abf495b6bce52e706d6abff70024534cbea41de48664bf16e4dfb9836ffebd"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/types/BeforeSwapDelta.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/types/BeforeSwapDelta.sol",
+      "sha256": "0e51ebb60073b422682e38d096c4beb692076662f3233c3a21c13d624f8685fe"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/types/Currency.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/types/Currency.sol",
+      "sha256": "986b6a85e2b2411a3b7dce29404ff12804a617b815e69164dbea01539b295537"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/types/PoolId.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/types/PoolId.sol",
+      "sha256": "9d540a99199ec5500b30abebc934522835b15885ca30c7114c832b6b24e15491"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/types/PoolKey.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/types/PoolKey.sol",
+      "sha256": "7ab5fe44f208edce927f7469d058a44cf327a8f59a3ab745de6dc68471b3414c"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/types/PoolOperation.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/types/PoolOperation.sol",
+      "sha256": "44ae6e002d4a967d8119aa37cc0a467ce6ecf292d41ea52d78a5a713596cc5d4"
+    },
+    {
+      "file": "vendor/uniswap-v4-core/src/types/Slot0.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-core/main/src/types/Slot0.sol",
+      "sha256": "5b85f9e0a8eee56b82862b1e770960ec4694677734902c2d247d5f471624c359"
+    },
+    {
+      "file": "vendor/solmate/src/auth/Owned.sol",
+      "url": "https://raw.githubusercontent.com/transmissions11/solmate/main/src/auth/Owned.sol",
+      "sha256": "11584402225b2a063e83ce31c2f0a7d5531bd1f88695d448acfc71e847e2e9e4"
+    },
+    {
+      "file": "vendor/uniswap-v4-periphery/src/libraries/LiquidityAmounts.sol",
+      "url": "https://raw.githubusercontent.com/Uniswap/v4-periphery/main/src/libraries/LiquidityAmounts.sol",
+      "sha256": "18065ec0953b419e64e5b5800e10d72d94e2a8864203fe3b3ea0ee27a56839ea"
+    }
+  ]
+}

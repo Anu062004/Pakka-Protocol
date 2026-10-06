@@ -1,0 +1,2208 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Pakka — Project Reference</title>
+    <style>
+        @font-face {
+            font-family: "Plex Sans";
+            src: url("fonts/IBMPlexSans-VF.ttf") format("truetype");
+            font-weight: 100 700;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: "Plex Sans";
+            src: url("fonts/IBMPlexSans-Italic-VF.ttf") format("truetype");
+            font-weight: 100 700;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: "Plex Serif";
+            src: url("fonts/IBMPlexSerif-Light.ttf");
+            font-weight: 300;
+        }
+
+        @font-face {
+            font-family: "Plex Serif";
+            src: url("fonts/IBMPlexSerif-Regular.ttf");
+            font-weight: 400;
+        }
+
+        @font-face {
+            font-family: "Plex Serif";
+            src: url("fonts/IBMPlexSerif-Italic.ttf");
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: "Plex Serif";
+            src: url("fonts/IBMPlexSerif-Medium.ttf");
+            font-weight: 500;
+        }
+
+        @font-face {
+            font-family: "Plex Serif";
+            src: url("fonts/IBMPlexSerif-SemiBold.ttf");
+            font-weight: 600;
+        }
+
+        @font-face {
+            font-family: "Plex Serif";
+            src: url("fonts/IBMPlexSerif-Bold.ttf");
+            font-weight: 700;
+        }
+
+        @font-face {
+            font-family: "Plex Mono";
+            src: url("fonts/IBMPlexMono-Regular.ttf");
+            font-weight: 400;
+        }
+
+        @font-face {
+            font-family: "Plex Mono";
+            src: url("fonts/IBMPlexMono-Medium.ttf");
+            font-weight: 500;
+        }
+
+        @font-face {
+            font-family: "Plex Mono";
+            src: url("fonts/IBMPlexMono-SemiBold.ttf");
+            font-weight: 600;
+        }
+
+        :root {
+            --ink: #1D2433;
+            --indigo: #23338A;
+            --indigo-2: #3A4BA8;
+            --tint: #EEF1FA;
+            --rule: #CDD3E6;
+            --muted: #5A6276;
+            --turmeric: #C7861A;
+            --turmeric-tint: #FBF3E3;
+            --green: #2E7D5B;
+        }
+
+        @page {
+            size: A4;
+            margin: 20mm 20mm 22mm 22mm;
+
+            @bottom-left {
+                content: "Pakka project reference, v1.0";
+                font-family: "Plex Sans";
+                font-size: 7.5pt;
+                color: #5A6276;
+            }
+
+            @bottom-right {
+                content: counter(page);
+                font-family: "Plex Sans";
+                font-size: 8pt;
+                color: #5A6276;
+            }
+        }
+
+        @page cover {
+            margin: 0;
+
+            @bottom-left {
+                content: none;
+            }
+
+            @bottom-right {
+                content: none;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Plex Sans", sans-serif;
+            font-size: 9.6pt;
+            line-height: 1.55;
+            color: var(--ink);
+            font-variant-numeric: tabular-nums;
+        }
+
+        a {
+            color: var(--indigo);
+            text-decoration: none;
+        }
+
+        p {
+            margin: 0 0 7pt;
+            max-width: 158mm;
+        }
+
+        strong {
+            font-weight: 600;
+        }
+
+        em {
+            font-style: italic;
+        }
+
+        /* ---------- cover ---------- */
+        .cover {
+            page: cover;
+            height: 297mm;
+            width: 210mm;
+            position: relative;
+            padding: 26mm 24mm 22mm 24mm;
+            break-after: page;
+            overflow: hidden;
+        }
+
+        .cover .meta {
+            font-size: 9.5pt;
+            color: var(--muted);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .cover h1 {
+            font-family: "Plex Serif";
+            font-weight: 600;
+            font-size: 84pt;
+            line-height: 1;
+            color: var(--indigo);
+            margin: 40mm 0 6mm;
+            letter-spacing: -1.5pt;
+        }
+
+        .cover .sub {
+            font-family: "Plex Serif";
+            font-weight: 300;
+            font-size: 21pt;
+            line-height: 1.25;
+            margin: 0 0 7mm;
+            max-width: 150mm;
+        }
+
+        .cover .gloss {
+            font-family: "Plex Serif";
+            font-style: italic;
+            font-size: 11pt;
+            color: var(--muted);
+            max-width: 140mm;
+        }
+
+        .cover .ticket {
+            position: absolute;
+            left: 24mm;
+            right: 24mm;
+            top: 150mm;
+        }
+
+        .cover .foot {
+            position: absolute;
+            left: 24mm;
+            right: 24mm;
+            bottom: 22mm;
+            font-size: 8.8pt;
+            color: var(--muted);
+            line-height: 1.5;
+            border-top: 0.6pt solid var(--rule);
+            padding-top: 4mm;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8mm;
+        }
+
+        .cover .foot b {
+            color: var(--ink);
+            font-weight: 600;
+        }
+
+        /* ---------- contents ---------- */
+        .toc {
+            break-after: page;
+        }
+
+        .toc h2 {
+            margin-top: 0;
+        }
+
+        .toc ol {
+            list-style: none;
+            padding: 0;
+            margin: 6mm 0 0;
+            counter-reset: t;
+        }
+
+        .toc li {
+            counter-increment: t;
+            display: grid;
+            grid-template-columns: 10mm 1fr;
+            padding: 2.6mm 0;
+            border-bottom: 0.5pt solid var(--rule);
+            font-size: 10.5pt;
+        }
+
+        .toc li::before {
+            content: counter(t);
+            font-family: "Plex Serif";
+            font-weight: 600;
+            color: var(--indigo);
+        }
+
+        .toc li span {
+            color: var(--muted);
+            font-size: 9pt;
+            display: block;
+            margin-top: 1pt;
+        }
+
+        .toc li.gl::before {
+            content: "";
+        }
+
+        .toc .howto {
+            margin-top: 9mm;
+            max-width: 150mm;
+            color: var(--muted);
+        }
+
+        /* ---------- headings ---------- */
+        section.chap {
+            break-before: page;
+        }
+
+        section.flow {
+            margin-top: 12mm;
+        }
+
+        h2 {
+            font-family: "Plex Serif";
+            font-weight: 600;
+            font-size: 22pt;
+            line-height: 1.15;
+            color: var(--indigo);
+            margin: 0 0 3mm;
+            letter-spacing: -0.2pt;
+            display: grid;
+            grid-template-columns: 12mm 1fr;
+            align-items: baseline;
+        }
+
+        h2 .n {
+            font-weight: 300;
+            color: var(--turmeric);
+        }
+
+        .lede {
+            font-family: "Plex Serif";
+            font-size: 11.5pt;
+            line-height: 1.5;
+            color: var(--ink);
+            margin: 0 0 6mm 12mm;
+            max-width: 146mm;
+        }
+
+        h3 {
+            font-family: "Plex Serif";
+            font-weight: 600;
+            font-size: 12.5pt;
+            margin: 7mm 0 2.5mm;
+            color: var(--ink);
+            break-after: avoid;
+        }
+
+        h4 {
+            font-family: "Plex Sans";
+            font-weight: 600;
+            font-size: 9.8pt;
+            margin: 4.5mm 0 1.5mm;
+            color: var(--indigo);
+            break-after: avoid;
+        }
+
+        .body {
+            margin-left: 12mm;
+        }
+
+        /* ---------- tables ---------- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2mm 0 5mm;
+            font-size: 8.9pt;
+            line-height: 1.45;
+            break-inside: auto;
+        }
+
+        thead {
+            display: table-header-group;
+        }
+
+        tr {
+            break-inside: avoid;
+        }
+
+        th {
+            text-align: left;
+            font-weight: 600;
+            color: var(--indigo);
+            border-bottom: 1pt solid var(--indigo);
+            padding: 1.8mm 2.5mm 1.6mm 0;
+            vertical-align: bottom;
+        }
+
+        td {
+            border-bottom: 0.5pt solid var(--rule);
+            padding: 1.9mm 2.5mm 1.9mm 0;
+            vertical-align: top;
+        }
+
+        td:first-child {
+            font-weight: 500;
+        }
+
+        table.kv td:first-child {
+            width: 38mm;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        table.plain td:first-child {
+            font-weight: 400;
+        }
+
+        .num {
+            text-align: right;
+            padding-right: 0;
+        }
+
+        th.num {
+            text-align: right;
+        }
+
+        /* ---------- code & formulas ---------- */
+        code,
+        .mono {
+            font-family: "Plex Mono", monospace;
+            font-size: 8.4pt;
+        }
+
+        p code,
+        td code,
+        li code {
+            background: var(--tint);
+            padding: 0.3pt 2.5pt;
+            border-radius: 2pt;
+        }
+
+        pre {
+            font-family: "Plex Mono", monospace;
+            font-size: 8.2pt;
+            line-height: 1.55;
+            background: var(--tint);
+            border-left: 2pt solid var(--indigo);
+            padding: 3mm 4mm;
+            margin: 2mm 0 5mm;
+            white-space: pre-wrap;
+            break-inside: avoid;
+            color: #1E2A55;
+        }
+
+        /* ---------- notes ---------- */
+        .note {
+            border-left: 2pt solid var(--turmeric);
+            background: var(--turmeric-tint);
+            padding: 2.8mm 4mm;
+            margin: 3mm 0 5mm;
+            break-inside: avoid;
+            max-width: 158mm;
+        }
+
+        .note p:last-child {
+            margin-bottom: 0;
+        }
+
+        .note .h {
+            font-weight: 600;
+            color: #8A5A0C;
+            display: block;
+            margin-bottom: 0.8mm;
+        }
+
+        ul,
+        ol.steps {
+            margin: 0 0 6pt;
+            padding-left: 5mm;
+            max-width: 156mm;
+        }
+
+        li {
+            margin-bottom: 2pt;
+        }
+
+        .done {
+            color: var(--green);
+            font-weight: 600;
+        }
+
+        .next {
+            color: #8A5A0C;
+            font-weight: 600;
+        }
+
+        .later {
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .two {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8mm;
+        }
+
+        .person {
+            break-inside: avoid;
+            margin-bottom: 4mm;
+        }
+
+        .person h4 {
+            margin-top: 0;
+        }
+
+        .small {
+            font-size: 8.4pt;
+            color: var(--muted);
+        }
+
+        .diagram {
+            margin: 3mm 0 6mm;
+            break-inside: avoid;
+        }
+
+        .links td:first-child {
+            width: 58mm;
+        }
+
+        .links td a {
+            word-break: break-all;
+            font-family: "Plex Mono";
+            font-size: 7.9pt;
+        }
+
+        .links h4 {
+            margin-top: 5mm;
+        }
+
+        .keep {
+            break-inside: avoid;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ======================================================= COVER -->
+    <div class="cover">
+        <div class="meta"><span>Project reference</span><span>4 October 2026</span></div>
+        <h1>Pakka</h1>
+        <p class="sub">Fixed-rate USDC on Arc, built for agents.</p>
+        <p class="gloss">In Hindi, <em>pakka</em> means certain: a deal that is settled and will not change. That is the
+            promise a fixed rate makes.</p>
+
+        <div class="ticket">
+            <svg viewBox="0 0 162 66" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Plex Sans">
+                <defs>
+                    <mask id="notch">
+                        <rect x="0" y="0" width="162" height="66" fill="#fff" />
+                        <circle cx="116" cy="0" r="4.2" fill="#000" />
+                        <circle cx="116" cy="66" r="4.2" fill="#000" />
+                    </mask>
+                    <pattern id="guil" width="6" height="6" patternUnits="userSpaceOnUse">
+                        <path d="M0 3 Q1.5 0 3 3 T6 3" fill="none" stroke="#3A4BA8" stroke-width="0.35" />
+                    </pattern>
+                </defs>
+                <g mask="url(#notch)">
+                    <rect x="0" y="0" width="162" height="66" rx="2.2" fill="#23338A" />
+                    <rect x="0" y="0" width="116" height="66" fill="url(#guil)" opacity="0.55" />
+                    <rect x="116" y="0" width="46" height="66" fill="#1B2870" />
+                </g>
+                <line x1="116" y1="5" x2="116" y2="61" stroke="#EEF1FA" stroke-width="0.5" stroke-dasharray="1.4 1.6" />
+                <rect x="6" y="6" width="104" height="54" rx="1.2" fill="none" stroke="#EEF1FA" stroke-opacity="0.35"
+                    stroke-width="0.35" />
+                <text x="11" y="15" font-size="3.6" fill="#C9D1EE">Principal token</text>
+                <text x="11" y="21.5" font-size="5" font-weight="600" fill="#ffffff"
+                    letter-spacing="0.2">PT-USDC-31DEC26</text>
+                <text x="11" y="33" font-size="3.6" fill="#C9D1EE">Redeems for</text>
+                <text x="11" y="44" font-size="10.5" font-family="Plex Serif" font-weight="600" fill="#ffffff">1.000000
+                    USDC</text>
+                <text x="11" y="50.5" font-size="4.6" font-family="Plex Serif" fill="#ffffff">on 31 December 2026</text>
+                <text x="11" y="56.5" font-size="2.9" fill="#C9D1EE">Backed by Morpho USDC vault shares on Arc, chain
+                    5042</text>
+                <text x="139" y="17" font-size="3.6" fill="#C9D1EE" text-anchor="middle">Fixed rate</text>
+                <text x="139" y="33" font-size="13" font-family="Plex Serif" font-weight="600" fill="#E3A63B"
+                    text-anchor="middle">4.9%</text>
+                <text x="139" y="39.5" font-size="3.1" fill="#C9D1EE" text-anchor="middle">bought at 0.9889 USDC</text>
+                <text x="139" y="55" font-size="2.7" fill="#8F9BCB" text-anchor="middle">Illustrative ticket</text>
+            </svg>
+        </div>
+
+        <div class="foot">
+            <div><b>Aryan Anand</b><br>GitHub: SCARPxVeNOM<br>BMSIT&amp;M, Bengaluru</div>
+            <div>Built for the <b>Arc Microgrants</b> program (Circle, on DoraHacks).<br>Version 1.0. A living document:
+                update it after every milestone.</div>
+        </div>
+    </div>
+
+    <!-- ======================================================= CONTENTS -->
+    <div class="toc">
+        <h2 style="display:block">Contents</h2>
+        <ol>
+            <li>
+                <div>The short version<span>What Pakka is, why it exists, where it stands today</span></div>
+            </li>
+            <li>
+                <div>The grant<span>Rules, scoring, deadlines and what that means for this build</span></div>
+            </li>
+            <li>
+                <div>Arc, as it stands<span>Network facts and what is live on mainnet</span></div>
+            </li>
+            <li>
+                <div>Where the gap is<span>Competitor chains, what Arc already covers, what it does not</span></div>
+            </li>
+            <li>
+                <div>How Pakka works for its users<span>The saver, the agent, the rate buyer, and the Tijori</span>
+                </div>
+            </li>
+            <li>
+                <div>The mechanism<span>PT, YT, the index, and the maths with worked numbers</span></div>
+            </li>
+            <li>
+                <div>Contracts and architecture<span>What exists, what comes next, function reference, tests</span>
+                </div>
+            </li>
+            <li>
+                <div>Arc engineering notes<span>Chain-specific details that will otherwise cost you a day</span></div>
+            </li>
+            <li>
+                <div>Build plan<span>Day-by-day schedule to submission</span></div>
+            </li>
+            <li>
+                <div>Budget<span>What it costs and what comes back</span></div>
+            </li>
+            <li>
+                <div>Risks<span>What can go wrong and the plan for each</span></div>
+            </li>
+            <li>
+                <div>Submission kit<span>Copy, demo script and checklist</span></div>
+            </li>
+            <li>
+                <div>After the grant<span>Roadmap and the route to a larger Circle grant</span></div>
+            </li>
+            <li>
+                <div>Links and references<span>Every doc, repo and page used to build this</span></div>
+            </li>
+            <li class="gl">
+                <div>Glossary</div>
+            </li>
+        </ol>
+        <p class="howto">Sections 1, 5 and 12 are the ones to reread before a pitch. Sections 6, 7 and 8 are for when
+            you are writing code. Facts about Arc and its ecosystem were collected on 4 October 2026; Arc is weeks old
+            and changes quickly, so recheck anything you are about to depend on.</p>
+    </div>
+
+    <!-- ======================================================= 1 -->
+    <section class="chap" id="s1">
+        <h2><span class="n">1</span><span>The short version</span></h2>
+        <p class="lede">Pakka splits a Morpho USDC vault share on Arc into two tokens: one that is worth exactly
+            1&nbsp;USDC on a set date, and one that collects all the variable interest until then. Buying the first at a
+            discount locks in a fixed rate.</p>
+        <div class="body">
+            <h3>What it is</h3>
+            <p>Every lending market on Arc today pays a variable rate. Morpho might pay 5% this week and 3% next month.
+                Pakka turns that variable stream into two tradeable parts. The <strong>principal token (PT)</strong>
+                redeems for 1&nbsp;USDC at maturity, so whoever buys it below 1&nbsp;USDC knows their return from the
+                first day. The <strong>yield token (YT)</strong> receives every bit of interest the underlying vault
+                earns until maturity, so it suits someone who expects rates to rise. Together, one PT and one YT are
+                always worth one unit of the underlying, which is why the system never needs an outside price feed for
+                its own accounting.</p>
+            <p>This is the design Pendle made popular on other chains. Pendle runs on Plasma, one of Arc's direct
+                competitors, and as far as could be found nothing like it runs on Arc.</p>
+
+            <h3>Who it is for first</h3>
+            <p>The first user Pakka is designed around is an AI agent with predictable costs. An agent that knows it
+                will spend about 50&nbsp;USDC a month on paid APIs can buy PT that matures once a month. Cash arrives
+                exactly when each bill is due and earns a fixed rate until then. This is a bond ladder, a standard
+                treasury technique, made callable by software through one function and an MCP tool.</p>
+            <p>Agents should not hold their owner's money freely, so the agent works inside a <strong>Tijori</strong>
+                (Hindi for safe). It is a small contract the owner deploys. The agent can buy tickets, cash them, claim
+                interest and pay payees the owner has approved, within caps. Money can only leave to the owner or to
+                those payees. A leaked agent key cannot drain it.</p>
+
+            <h3>Why Arc</h3>
+            <p>On Arc, USDC is both the money and the gas. An agent never needs to hold a second, volatile token just to
+                keep transacting, and on other chains running out of gas is a real way for a bot to stall. Morpho on Arc
+                passed $500M in deposits within about two weeks of launch, so there is real yield to split from day one.
+                Uniswap v4 is live for the PT market. Finality is deterministic and under a second, so an agent can cash
+                a matured ticket and pay a bill in the same flow without waiting for confirmations.</p>
+
+            <h3>Where it stands on 4 October</h3>
+            <table class="kv">
+                <tr>
+                    <td>Core contracts</td>
+                    <td><span class="done">Done.</span> <code>PrincipalToken</code> and <code>YieldToken</code> written
+                        in Solidity 0.8.26 with OpenZeppelin 5.1.</td>
+                </tr>
+                <tr>
+                    <td>Tests</td>
+                    <td><span class="done">Passing.</span> 11 tests including a fuzz test that runs 2,000 random
+                        sequences of splits, transfers, interest, vault losses and merges, checks solvency after every
+                        step, then makes every holder exit.</td>
+                </tr>
+                <tr>
+                    <td>Still to build</td>
+                    <td>Series registry, router (including the ladder function), Tijori and its factory, pool seeding,
+                        web app, agent with MCP tool.</td>
+                </tr>
+                <tr>
+                    <td>Target submission</td>
+                    <td>11 October 2026, three days before the deadline.</td>
+                </tr>
+            </table>
+
+            <h3>Numbers to remember</h3>
+            <table class="kv">
+                <tr>
+                    <td>Grant</td>
+                    <td>500 USDC, one of 20 awards</td>
+                </tr>
+                <tr>
+                    <td>Deadline</td>
+                    <td>14 October, 23:59 ET, which is 15 October, 09:29 IST</td>
+                </tr>
+                <tr>
+                    <td>Decisions</td>
+                    <td>Rolling review, final decisions by 21 October</td>
+                </tr>
+                <tr>
+                    <td>Mainnet series</td>
+                    <td>Two short demo series maturing 9 and 10 October, one real series maturing 31 December</td>
+                </tr>
+                <tr>
+                    <td>Money needed</td>
+                    <td>About $12 of working capital, of which roughly $2&ndash;3 is actually spent</td>
+                </tr>
+            </table>
+        </div>
+    </section>
+
+    <!-- ======================================================= 2 -->
+    <section class="chap" id="s2">
+        <h2><span class="n">2</span><span>The grant</span></h2>
+        <p class="lede">Arc Microgrants funds early builders who already have something running on Arc mainnet. The bar
+            is a working first proof, not a large user base.</p>
+        <div class="body">
+            <h3>The facts</h3>
+            <table class="kv">
+                <tr>
+                    <td>Program</td>
+                    <td>Arc Microgrants, run by Circle on DoraHacks</td>
+                </tr>
+                <tr>
+                    <td>Money</td>
+                    <td>10,000&nbsp;USDC pool, 20 grants of 500&nbsp;USDC each, paid in USDC on Arc. Non-dilutive: no
+                        equity, no IP assignment, no exclusivity.</td>
+                </tr>
+                <tr>
+                    <td>Extras</td>
+                    <td>Access to Arc ecosystem office hours and visibility in the Arc builder community</td>
+                </tr>
+                <tr>
+                    <td>Window</td>
+                    <td>Opened 16 September 2026. Closes 14 October 2026, 23:59 ET (15 October, 09:29 IST).</td>
+                </tr>
+                <tr>
+                    <td>Review</td>
+                    <td>Submissions are reviewed as they arrive. Shortlisted projects are scored and decided in batches.
+                        Selected builders complete a short verification step before payout. Decisions by 21 October.
+                    </td>
+                </tr>
+                <tr>
+                    <td>Eligible</td>
+                    <td>Proofs of concept, tiny apps, demos, prototypes and technical experiments that are deployed and
+                        working on Arc mainnet. New and existing projects both qualify, including hackathon projects.
+                        One submission per project.</td>
+                </tr>
+                <tr>
+                    <td>Not eligible</td>
+                    <td>Design mockups, slide decks, testnet-only builds, projects with no Arc component, and work
+                        already funded by a Circle or Arc program</td>
+                </tr>
+            </table>
+
+            <h3>What reviewers score</h3>
+            <p>The program page names four things: relevance to Arc, technical credibility, the quality of what you
+                built, and whether the project is worth taking further. It adds that promise counts for more than
+                traction. Here is how Pakka should be read against each.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:36mm">Criterion</th>
+                        <th style="width:22mm">Pakka</th>
+                        <th>What to do about it</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>Relevance to Arc</td>
+                    <td>Medium</td>
+                    <td>The weakest axis, because fixed-rate protocols exist on other chains. Lead with the agent angle
+                        and USDC-as-gas. Use Morpho and Uniswap on Arc, and add EURC fixed rates if a Morpho EURC vault
+                        exists on Arc.</td>
+                </tr>
+                <tr>
+                    <td>Technical credibility</td>
+                    <td>Strong</td>
+                    <td>Index-based yield accounting with fuzzed solvency checks is harder than most submissions. Show
+                        the tests in the README and verify every contract on the explorer.</td>
+                </tr>
+                <tr>
+                    <td>Quality of the build</td>
+                    <td>Depends on execution</td>
+                    <td>A bug holding real USDC hurts more than a modest feature set. Keep scope tight, caps low, and
+                        the full cycle demonstrated on mainnet.</td>
+                </tr>
+                <tr>
+                    <td>Worth taking further</td>
+                    <td>Good</td>
+                    <td>Fixed income is the largest market in traditional finance. Point to Circle's Agent Wallets
+                        reaching Arc mainnet, EURC rates, and FX forwards.</td>
+                </tr>
+            </table>
+
+            <h3>What a submission needs</h3>
+            <ul>
+                <li>A live deployment on Arc mainnet, with a link reviewers can open</li>
+                <li>A public repository</li>
+                <li>A short description of what the project does and what it uses Arc for</li>
+                <li>A public builder profile on GitHub, X or Farcaster</li>
+            </ul>
+
+            <h3>What others have already submitted</h3>
+            <p>A scan of public repositories that reference the program shows where the field is crowded. None of them
+                touch fixed income.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:44mm">Lane</th>
+                        <th>Examples</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>Payment relays and gateways</td>
+                    <td>ArcFlow Sentinel (RPC probe plus agent micro-payment gateway), x402 preflight tools</td>
+                </tr>
+                <tr>
+                    <td>Transaction safety</td>
+                    <td>ArcGuard (is this transaction safe to sign), Tally (contract provenance badges)</td>
+                </tr>
+                <tr>
+                    <td>Hash anchoring</td>
+                    <td>Geomacro (proof hash in calldata), Pulse Receipt (notarised market alerts)</td>
+                </tr>
+                <tr>
+                    <td>Analytics</td>
+                    <td>ArcLens (wallet and transaction reports)</td>
+                </tr>
+                <tr>
+                    <td>Escrow, splits and subscriptions</td>
+                    <td>Troth (milestone escrow), SplitPay (payout splitter), Standing (recurring payments)</td>
+                </tr>
+                <tr>
+                    <td>Inheritance</td>
+                    <td>ArcInherit (timelock inheritance vault)</td>
+                </tr>
+            </table>
+            <div class="note"><span class="h">The practical consequence</span>
+                <p>Review is rolling and there are only 20 awards, so slots can fill before the deadline. Submit by 11
+                    October, not on the last night.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================================= 3 -->
+    <section class="chap" id="s3">
+        <h2><span class="n">3</span><span>Arc, as it stands</span></h2>
+        <p class="lede">Arc is Circle's own Layer 1. Its live activity today is institutional finance. Its agent story
+            is mostly still on the way to mainnet, which is exactly where a small builder can add something.</p>
+        <div class="body">
+            <h3>Network facts</h3>
+            <table class="kv">
+                <tr>
+                    <td>Public mainnet</td>
+                    <td>16 September 2026, after a private mainnet phase with institutional builders</td>
+                </tr>
+                <tr>
+                    <td>Chain IDs</td>
+                    <td>Mainnet <code>5042</code>, testnet <code>5042002</code></td>
+                </tr>
+                <tr>
+                    <td>RPC</td>
+                    <td><code>https://rpc.mainnet.arc.io</code> and <code>https://rpc.testnet.arc.network</code></td>
+                </tr>
+                <tr>
+                    <td>Explorer and faucet</td>
+                    <td><code>explorer.arc.io</code>; testnet USDC and EURC from <code>faucet.circle.com</code></td>
+                </tr>
+                <tr>
+                    <td>Gas</td>
+                    <td>Paid in USDC. EIP-1559 style with smoothing, minimum base fee 20&nbsp;gwei, ceiling
+                        20,000&nbsp;gwei. Circle's design target is about $0.001 per ERC-20 transfer. Observed costs
+                        after launch: a USDC transfer about $0.0014, a Uniswap v4 action about $0.0055, a token
+                        deployment about $0.044.</td>
+                </tr>
+                <tr>
+                    <td>Blocks and finality</td>
+                    <td>About 0.5&nbsp;s blocks, 30M gas per block, deterministic finality with no reorganisation</td>
+                </tr>
+                <tr>
+                    <td>USDC</td>
+                    <td>One balance, two interfaces at <code>0x3600000000000000000000000000000000000000</code>: native
+                        with 18 decimals, ERC-20 with 6 decimals</td>
+                </tr>
+                <tr>
+                    <td>Validators</td>
+                    <td>Permissioned. Eleven institutions alongside Circle, including BlackRock, DTCC, ICE, Mastercard,
+                        Visa, Standard Chartered, MoneyGram, SBI Group, Galaxy, Sumitomo and Worldpay. Deployment is
+                        permissionless.</td>
+                </tr>
+                <tr>
+                    <td>ARC token</td>
+                    <td>Circle minted 10 billion ARC at genesis but has not launched it publicly</td>
+                </tr>
+            </table>
+
+            <h3>What is live on mainnet</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:34mm">Area</th>
+                        <th>What exists</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>Lending</td>
+                    <td>Aave V4 and Morpho at launch, plus Euler and Fluid. Morpho on Arc reached $500.27M in deposits
+                        and $189.93M in loans by 2 October.</td>
+                </tr>
+                <tr>
+                    <td>Trading</td>
+                    <td>Uniswap v2, v3, v4 and UniswapX; Curve, Aero, SushiSwap; aggregators 1inch, KyberSwap, 0x and
+                        LI.FI</td>
+                </tr>
+                <tr>
+                    <td>Perpetuals</td>
+                    <td>Aster, edgeX, Extended</td>
+                </tr>
+                <tr>
+                    <td>FX</td>
+                    <td>Hibachi (stablecoin FX orderbook) and Circle's StableFX (RFQ pricing with on-chain settlement)
+                    </td>
+                </tr>
+                <tr>
+                    <td>Assets</td>
+                    <td>cirBTC (1:1 BTC, swappable on Uniswap without a Circle account), BlackRock, Janus Henderson via
+                        Centrifuge, Dinari tokenised stocks, Huma payment-flow yield</td>
+                </tr>
+                <tr>
+                    <td>Circle kits</td>
+                    <td>App Kit (bridge, swap, send, unified balance). Onramp Kit (card and Apple/Google Pay, US, UK and
+                        EU first). Earn Kit (USDC and EURC lending through Morpho). Borrow Kit (cirBTC-backed loans in
+                        Morpho markets, permissionless, no API key).</td>
+                </tr>
+                <tr>
+                    <td>Agents</td>
+                    <td>Circle Agent Stack: Agent Wallets with policies, Nanopayments through Circle Gateway, and an
+                        Agent Marketplace of 600+ services. Circle lists Arc as testnet for Agent Stack, with mainnet
+                        coming soon. The per-payment x402 Facilitator Service does run on Arc.</td>
+                </tr>
+            </table>
+            <div class="note"><span class="h">Reading the landscape</span>
+                <p>Everything with real money on Arc today is institutional: Treasuries, Bitcoin collateral, curated
+                    lending. Circle names agents in every announcement, but most agent rails have not reached Arc
+                    mainnet yet. Pakka sits where those two meet: it uses the live credit layer and gives agents a
+                    treasury tool that Circle's own wallets can plug into later.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================================= 4 -->
+    <section class="chap" id="s4">
+        <h2><span class="n">4</span><span>Where the gap is</span></h2>
+        <p class="lede">Arc launched with most large DeFi names already present, so the list of things missing is short.
+            Fixed rates are the clearest item on it.</p>
+        <div class="body">
+            <h3>The other stablechains</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:20mm">Chain</th>
+                        <th style="width:30mm">Backers</th>
+                        <th style="width:34mm">Gas</th>
+                        <th style="width:22mm">Mainnet</th>
+                        <th>What it is known for</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>Arc</td>
+                    <td>Circle</td>
+                    <td>USDC</td>
+                    <td>Sep 2026</td>
+                    <td>Institutional finance, the full Circle stack, an agent roadmap</td>
+                </tr>
+                <tr>
+                    <td>Tempo</td>
+                    <td>Stripe, Paradigm</td>
+                    <td>Any USD stablecoin, no native token</td>
+                    <td>Mar 2026</td>
+                    <td>Payments at scale; Machine Payments Protocol with streaming sessions and a directory of 100+
+                        paid services for agents; Tempo Zones for private execution</td>
+                </tr>
+                <tr>
+                    <td>Plasma</td>
+                    <td>Tether-aligned</td>
+                    <td>XPL token, zero-fee USDT transfers</td>
+                    <td>Sep 2025</td>
+                    <td>Retail USDT; Aave, Fluid, Euler, Pendle V2, Veda, Beefy, Midas and its own neobank, Plasma One
+                    </td>
+                </tr>
+                <tr>
+                    <td>Stable</td>
+                    <td>Bitfinex-backed</td>
+                    <td>USDT0</td>
+                    <td>Dec 2025</td>
+                    <td>Lean USDT payments rail; small DeFi footprint (about $34M TVL in a mid-2026 snapshot)</td>
+                </tr>
+            </table>
+
+            <h3>Already covered on Arc, so not worth building</h3>
+            <table class="plain">
+                <thead>
+                    <tr>
+                        <th style="width:52mm">Competitor feature</th>
+                        <th>Arc equivalent</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>Plasma One neobank and card</td>
+                    <td>ether.fi, Rain, Wirex</td>
+                </tr>
+                <tr>
+                    <td>Tempo's native FX exchange</td>
+                    <td>Hibachi, Circle StableFX</td>
+                </tr>
+                <tr>
+                    <td>Midas-style RWA products</td>
+                    <td>BlackRock, Centrifuge, Janus Henderson, Dinari, Huma</td>
+                </tr>
+                <tr>
+                    <td>Veda and Beefy vaults</td>
+                    <td>Curated Morpho vaults from Gauntlet, Steakhouse and others; Earn Kit</td>
+                </tr>
+                <tr>
+                    <td>Tempo's services directory</td>
+                    <td>Circle Agent Marketplace, with a public discovery API</td>
+                </tr>
+                <tr>
+                    <td>MPP sessions for agents</td>
+                    <td>Circle Gateway Nanopayments (fund once, sign off-chain, settle net amounts in bulk)</td>
+                </tr>
+                <tr>
+                    <td>Debt clearing, agent banking, inheritance</td>
+                    <td>Cycles, Catena Labs, ArcInherit</td>
+                </tr>
+            </table>
+
+            <h3>Still open</h3>
+            <table class="plain">
+                <thead>
+                    <tr>
+                        <th style="width:52mm">Gap</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td><strong>Yield trading and fixed rates</strong></td>
+                    <td>Pendle runs on Plasma; nothing equivalent found on Arc. <strong>This is Pakka.</strong></td>
+                </tr>
+                <tr>
+                    <td>Ethena USDe and sUSDe</td>
+                    <td>Absent from Arc's official listing, but only Ethena can bring it</td>
+                </tr>
+                <tr>
+                    <td>Private execution environments</td>
+                    <td>Tempo Zones; on Arc this is protocol-level work on Circle's roadmap</td>
+                </tr>
+                <tr>
+                    <td>A trust layer for paid endpoints</td>
+                    <td>MPPScan and the vet402 observatory on Tempo; buildable on Arc, but the market it would rate is
+                        still small</td>
+                </tr>
+            </table>
+            <div class="note"><span class="h">One check before mainnet</span>
+                <p>Arc's ecosystem page blocks automated reading past its first page, so entries from M to Z were
+                    checked through launch coverage only. Open arc.io/ecosystem in a browser, click Load more, and
+                    confirm that Pendle, Spectra, Notional and Term Finance are not listed.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================================= 5 -->
+    <section class="chap" id="s5">
+        <h2><span class="n">5</span><span>How Pakka works for its users</span></h2>
+        <p class="lede">Pakka is a vending machine, not a bank manager. It never holds anyone's money on their behalf.
+            USDC goes in, tickets come straight back to the same wallet.</p>
+        <div class="body">
+            <div class="person">
+                <h4>Priya saves at a fixed rate</h4>
+                <p>Priya has 100&nbsp;USDC she will not need for three months. She opens the Pakka site, connects a
+                    wallet and sees Morpho's current variable rate next to fixed rates for each maturity. She picks 31
+                    January, enters 100&nbsp;USDC and signs once. A ticket lands in her wallet that pays a known amount
+                    on that date. On 31 January she presses Cash out and receives it in USDC. If she needs the money
+                    earlier she sells the ticket on the pool at that day's price, much like breaking a fixed deposit
+                    early.</p>
+            </div>
+            <div class="person">
+                <h4>Rahul's agent manages its own budget</h4>
+                <p>Rahul runs an AI agent that spends about 50&nbsp;USDC a month on paid services. Once, on the website,
+                    he creates a Tijori, deposits 150&nbsp;USDC, sets the agent's address and approves the service
+                    provider as a payee with a monthly cap. From then on the agent works alone. It calls
+                    <code>planTreasury(50, 3)</code> through the MCP tool and receives three tickets. Each month it
+                    cashes the ticket that matured and pays the bill. Rahul can withdraw everything at any time.</p>
+            </div>
+            <div class="person">
+                <h4>Arjun buys the variable side</h4>
+                <p>Arjun thinks rates will rise, so he buys YT from a small Yield tab. If Morpho's rate climbs he earns
+                    more than he paid; if it falls he earns less. This side exists because the mechanism needs it, not
+                    because it is the pitch. Show it in the demo, but do not market leverage or points.</p>
+            </div>
+
+            <h3>The ladder, in numbers</h3>
+            <p>At an illustrative fixed rate of 5% a year, three tickets of 50&nbsp;USDC each cost:</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ticket</th>
+                        <th class="num">Matures in</th>
+                        <th class="num">Price per 1 USDC</th>
+                        <th class="num">Cost for 50 USDC</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>PT-30NOV</td>
+                    <td class="num">1 month</td>
+                    <td class="num">0.995942</td>
+                    <td class="num">49.797</td>
+                </tr>
+                <tr>
+                    <td>PT-31DEC</td>
+                    <td class="num">2 months</td>
+                    <td class="num">0.991901</td>
+                    <td class="num">49.595</td>
+                </tr>
+                <tr>
+                    <td>PT-31JAN</td>
+                    <td class="num">3 months</td>
+                    <td class="num">0.987877</td>
+                    <td class="num">49.394</td>
+                </tr>
+                <tr>
+                    <td><strong>Total</strong></td>
+                    <td class="num"></td>
+                    <td class="num"></td>
+                    <td class="num"><strong>148.786</strong></td>
+                </tr>
+            </table>
+            <p>The agent pays 148.79&nbsp;USDC today and receives exactly 50&nbsp;USDC at each month's end:
+                1.21&nbsp;USDC of fixed interest, with every payment arriving on the day it is needed.</p>
+
+            <h3>The Tijori rules</h3>
+            <table class="plain">
+                <thead>
+                    <tr>
+                        <th style="width:62mm">The agent can</th>
+                        <th>The agent cannot</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>Buy PT through the Pakka router, for registered series only</td>
+                    <td>Send USDC, PT or YT to any address it chooses</td>
+                </tr>
+                <tr>
+                    <td>Cash out matured PT, claim YT interest</td>
+                    <td>Change its own limits, payees or the router</td>
+                </tr>
+                <tr>
+                    <td>Pay owner-approved payees, within per-payee and per-day caps</td>
+                    <td>Act after the owner pauses it or replaces its key</td>
+                </tr>
+            </table>
+            <p>If the agent misbehaves or its key leaks, the worst it can do is buy tickets that still belong to the
+                owner, or pay an approved payee up to the cap. This is the answer to the first question every reviewer
+                will have: why would anyone let an AI touch their money?</p>
+
+            <h3>What a reviewer sees</h3>
+            <ol class="steps">
+                <li>A live page showing real fixed and variable rates on Arc mainnet</li>
+                <li>Explorer links for a fixed-rate lock, the agent building its ladder, and two real cash-outs on 9 and
+                    10 October</li>
+                <li>A 60 to 90 second video of the agent pressing the button itself</li>
+                <li>Verified contracts and a public repository with the test suite</li>
+            </ol>
+        </div>
+    </section>
+
+    <!-- ======================================================= 6 -->
+    <section class="chap" id="s6">
+        <h2><span class="n">6</span><span>The mechanism</span></h2>
+        <p class="lede">The whole system rests on one number, the index, which says how many USDC a fixed amount of
+            vault shares is worth. Everything else is bookkeeping around it.</p>
+        <div class="body">
+            <h3>The index</h3>
+            <p>A Morpho vault is an ERC-4626 vault. Depositors receive shares, and the shares grow in value as borrowers
+                pay interest. Pakka reads that value directly from the vault.</p>
+            <pre>INDEX_UNIT = 10 ** (shareDecimals + 18)
+index      = vault.convertToAssets(INDEX_UNIT)     // USDC (raw) per INDEX_UNIT shares
+pyIndex    = max(index, pyIndexStored)             // stored, never decreases</pre>
+            <p>Morpho shares use 18 decimals and USDC uses 6. Querying a single whole share would return about 1,000,000
+                raw units and lose daily interest to rounding. Querying <code>INDEX_UNIT</code> shares gives at least 18
+                digits of precision whatever the decimals are.</p>
+
+            <h3>Splitting and backing</h3>
+            <pre>split       :  s shares  ->  s * pyIndex / INDEX_UNIT   PT  and the same amount of YT
+PT backing  :  totalPT * INDEX_UNIT / pyIndex            shares the contract must hold</pre>
+            <p>PT and YT are counted in USDC units, not shares, so one PT is a claim on exactly one USDC of value at
+                maturity. As the index rises, each share is worth more, so fewer shares are needed to back the same PT.
+                The shares that are freed are the interest, and they belong to YT holders.</p>
+
+            <h3>YT interest</h3>
+            <pre>interestShares = ytBalance * INDEX_UNIT * (current - previous) / (previous * current)</pre>
+            <p>Each holder has their own <code>userIndex</code>, the index when their interest was last settled.
+                Interest is settled for both sides before any YT balance changes: mint, burn and every transfer. Without
+                that rule, someone could buy YT just before a claim and collect interest they never earned. The formula
+                is computed with a single rounding step, so the contract can never owe more than it holds.</p>
+            <h4>Worked example</h4>
+            <p>Deposit 100 shares when the index is 1.05 USDC per share: the contract mints 105 PT and 105 YT. The index
+                later reaches 1.06. Backing 105 PT now needs 105&nbsp;/&nbsp;1.06 = 99.057 shares. The contract holds
+                100, so 0.943 shares are surplus. At 1.06 they are worth 1.00&nbsp;USDC, which is the YT holders'
+                interest: 105&nbsp;USDC of face value growing by 0.952%.</p>
+
+            <h3>The fixed rate</h3>
+            <pre>impliedAPY = (1 / ptPrice) ^ (1 / yearsToMaturity) - 1</pre>
+            <p>A PT priced at 0.99&nbsp;USDC with three months left implies
+                (1/0.99)<sup>4</sup>&nbsp;&minus;&nbsp;1&nbsp;&asymp;&nbsp;4.1% a year. Because one PT plus one YT is
+                one unit of the asset, YT trades at roughly one minus the PT price. Buying the variable side is
+                therefore three steps in one transaction: deposit USDC, split, sell the PT.</p>
+
+            <h3>Maturity</h3>
+            <p>On the first interaction at or after expiry, the contract freezes <code>indexAtExpiry</code>. YT stops
+                earning at that point. PT then redeems for <code>pt * INDEX_UNIT / indexAtExpiry</code> shares, which
+                may be unwrapped straight to USDC. Because that is a fixed number of shares, any yield the vault earns
+                after maturity accrues to PT holders who have not yet cashed out. Anyone can call
+                <code>settleExpiry()</code> at the moment of expiry.</p>
+
+            <h3>When the vault loses money</h3>
+            <p>If Morpho takes bad debt, the vault's index falls below the stored high-water mark. Because
+                <code>pyIndex</code> never decreases, YT earns nothing until the vault recovers past that mark, and PT
+                holders absorb the loss when they redeem. The share count stays solvent, so nobody is locked out. The
+                honest wording for users is that the rate is fixed as long as the underlying vault stays healthy.</p>
+
+            <h3>Rounding and the invariant</h3>
+            <p>Every payout rounds down, every requirement rounds up in the contract's favour. The invariant tested
+                after every fuzz step is that vault shares held are at least the PT backing plus every holder's accrued
+                interest. The final fuzz phase expires the series and makes every holder claim and redeem; only rounding
+                dust may remain.</p>
+        </div>
+    </section>
+
+    <!-- ======================================================= 7 -->
+    <section class="chap" id="s7">
+        <h2><span class="n">7</span><span>Contracts and architecture</span></h2>
+        <p class="lede">One YieldToken contract per maturity is the core. Everything else is plumbing around it: a
+            registry, a router, the agent's safe, pools, and the interfaces.</p>
+        <div class="body">
+            <div class="diagram">
+                <svg viewBox="0 0 166 78" width="100%" xmlns="http://www.w3.org/2000/svg" font-family="Plex Sans">
+                    <defs>
+                        <marker id="ar" markerWidth="4" markerHeight="4" refX="3.4" refY="2" orient="auto">
+                            <path d="M0,0 L4,2 L0,4 z" fill="#23338A" />
+                        </marker>
+                    </defs>
+                    <g font-size="3.3" fill="#1D2433">
+                        <rect x="2" y="6" width="34" height="13" rx="1.5" fill="#EEF1FA" stroke="#CDD3E6"
+                            stroke-width="0.4" />
+                        <text x="19" y="11.6" text-anchor="middle" font-weight="600">Saver (website)</text><text x="19"
+                            y="16" text-anchor="middle" fill="#5A6276" font-size="2.8">wallet signs directly</text>
+                        <rect x="2" y="30" width="34" height="13" rx="1.5" fill="#EEF1FA" stroke="#CDD3E6"
+                            stroke-width="0.4" />
+                        <text x="19" y="35.6" text-anchor="middle" font-weight="600">AI agent</text><text x="19" y="40"
+                            text-anchor="middle" fill="#5A6276" font-size="2.8">MCP tool, own key</text>
+                        <rect x="46" y="30" width="30" height="13" rx="1.5" fill="#FBF3E3" stroke="#C7861A"
+                            stroke-width="0.4" />
+                        <text x="61" y="35.6" text-anchor="middle" font-weight="600">Tijori</text><text x="61" y="40"
+                            text-anchor="middle" fill="#5A6276" font-size="2.8">owner's rules, caps</text>
+                        <rect x="86" y="17" width="32" height="13" rx="1.5" fill="#23338A" />
+                        <text x="102" y="22.6" text-anchor="middle" font-weight="600"
+                            fill="#fff">PakkaRouter</text><text x="102" y="27" text-anchor="middle" fill="#C9D1EE"
+                            font-size="2.8">ladder, lock, cash out</text>
+                        <rect x="86" y="50" width="32" height="13" rx="1.5" fill="#EEF1FA" stroke="#CDD3E6"
+                            stroke-width="0.4" />
+                        <text x="102" y="55.6" text-anchor="middle" font-weight="600">SeriesRegistry</text><text x="102"
+                            y="60" text-anchor="middle" fill="#5A6276" font-size="2.8">series to pool keys</text>
+                        <rect x="128" y="4" width="36" height="13" rx="1.5" fill="#23338A" />
+                        <text x="146" y="9.6" text-anchor="middle" font-weight="600" fill="#fff">YieldToken +
+                            PT</text><text x="146" y="14" text-anchor="middle" fill="#C9D1EE" font-size="2.8">one per
+                            maturity</text>
+                        <rect x="128" y="30" width="36" height="13" rx="1.5" fill="#EEF1FA" stroke="#CDD3E6"
+                            stroke-width="0.4" />
+                        <text x="146" y="35.6" text-anchor="middle" font-weight="600">Uniswap v4 pool</text><text
+                            x="146" y="40" text-anchor="middle" fill="#5A6276" font-size="2.8">PT / USDC</text>
+                        <rect x="128" y="58" width="36" height="13" rx="1.5" fill="#EEF1FA" stroke="#CDD3E6"
+                            stroke-width="0.4" />
+                        <text x="146" y="63.6" text-anchor="middle" font-weight="600">Morpho USDC vault</text><text
+                            x="146" y="68" text-anchor="middle" fill="#5A6276" font-size="2.8">ERC-4626, the
+                            yield</text>
+                    </g>
+                    <g stroke="#23338A" stroke-width="0.45" fill="none" marker-end="url(#ar)">
+                        <path d="M36 12.5 L84.5 21" />
+                        <path d="M36 36.5 L44.5 36.5" />
+                        <path d="M76 34 L84.5 27.5" />
+                        <path d="M118 21 L126.5 12" />
+                        <path d="M118 25.5 L126.5 34" />
+                        <path d="M102 30 L102 48.5" />
+                        <path d="M146 17 L146 28.5" stroke-dasharray="1 1" />
+                        <path d="M156 17 C 166 30, 166 50, 158 56.5" />
+                    </g>
+                    <text x="160" y="46" font-size="2.6" fill="#5A6276">holds shares</text>
+                </svg>
+            </div>
+
+            <h3>Components</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:44mm">Component</th>
+                        <th style="width:18mm">Status</th>
+                        <th>Role</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td><code>PrincipalToken.sol</code></td>
+                    <td class="done">Done</td>
+                    <td>ERC-20 PT. Only its YieldToken can mint and burn. Decimals match the asset.</td>
+                </tr>
+                <tr>
+                    <td><code>YieldToken.sol</code></td>
+                    <td class="done">Done</td>
+                    <td>ERC-20 YT that also holds vault shares, mints PT, tracks interest, freezes at expiry and redeems
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>MockUSDC</code>, <code>MockVault</code></td>
+                    <td class="done">Done</td>
+                    <td>Test-only. The vault can simulate yield and losses.</td>
+                </tr>
+                <tr>
+                    <td><code>DemoVault</code></td>
+                    <td class="done">Done</td>
+                    <td>Testnet-only ERC-4626 over real faucet USDC. Send USDC to it to simulate interest.</td>
+                </tr>
+                <tr>
+                    <td><code>SeriesRegistry</code></td>
+                    <td class="next">Next</td>
+                    <td>Append-only list of series and their Uniswap v4 pool keys</td>
+                </tr>
+                <tr>
+                    <td><code>PakkaRouter</code></td>
+                    <td class="next">Next</td>
+                    <td>USDC-in shortcuts: lock a fixed rate, build a ladder, sell early, cash out, buy yield</td>
+                </tr>
+                <tr>
+                    <td><code>Tijori</code>, <code>TijoriFactory</code></td>
+                    <td class="next">Next</td>
+                    <td>Owner-controlled safe for one agent, deployed as minimal clones</td>
+                </tr>
+                <tr>
+                    <td><code>PoolSeeder</code> and scripts</td>
+                    <td class="next">Next</td>
+                    <td>Create PT/USDC pools at a target rate and seed small liquidity</td>
+                </tr>
+                <tr>
+                    <td>Web app</td>
+                    <td class="later">After</td>
+                    <td>Next.js, wagmi and viem, reading state straight from the chain. No database.</td>
+                </tr>
+                <tr>
+                    <td>Agent and MCP server</td>
+                    <td class="later">After</td>
+                    <td>Exposes plan, cash out, pay and status as tools any MCP-capable agent can call</td>
+                </tr>
+                <tr>
+                    <td>Indexer</td>
+                    <td class="later">Optional</td>
+                    <td>Goldsky or Ponder, only for rate history and activity feeds</td>
+                </tr>
+            </table>
+
+            <h3>YieldToken reference</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:62mm">Function</th>
+                        <th>What it does</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td><code>split(shares, receiver)</code></td>
+                    <td>Pull vault shares, mint equal PT and YT in asset units. Reverts after expiry.</td>
+                </tr>
+                <tr>
+                    <td><code>splitFromAssets(assets, receiver)</code></td>
+                    <td>Pull USDC, deposit into the vault, then split</td>
+                </tr>
+                <tr>
+                    <td><code>merge(amount, receiver, toAssets)</code></td>
+                    <td>Before expiry: burn equal PT and YT, return the backing shares or USDC</td>
+                </tr>
+                <tr>
+                    <td><code>redeemPT(amount, receiver, toAssets)</code></td>
+                    <td>After expiry: burn PT alone for its backing plus any post-expiry yield</td>
+                </tr>
+                <tr>
+                    <td><code>claimInterest(user, toAssets)</code></td>
+                    <td>Pay a user's accrued YT interest to that user. Anyone may call it.</td>
+                </tr>
+                <tr>
+                    <td><code>settleExpiry()</code></td>
+                    <td>Freeze the interest index at maturity. Also happens lazily.</td>
+                </tr>
+                <tr>
+                    <td><code>accruedInterest(user)</code></td>
+                    <td>View: claimable interest in shares</td>
+                </tr>
+                <tr>
+                    <td><code>pyIndexCurrent()</code>, <code>interestIndex()</code></td>
+                    <td>Views: current never-decreasing index, and the index YT earns up to</td>
+                </tr>
+                <tr>
+                    <td><code>previewSplit(shares)</code>, <code>sharesForPT(amount)</code></td>
+                    <td>Views for the UI and router</td>
+                </tr>
+            </table>
+
+            <h3>Test suite</h3>
+            <table class="plain">
+                <tr>
+                    <td>Split mints asset value</td>
+                    <td>1,000&nbsp;USDC in gives 1,000 PT and 1,000 YT, with 6 decimals</td>
+                </tr>
+                <tr>
+                    <td>Interest goes to YT</td>
+                    <td>5% vault growth pays the YT holder 50&nbsp;USDC, claimable by anyone on their behalf</td>
+                </tr>
+                <tr>
+                    <td>Transfers split interest fairly</td>
+                    <td>Seller keeps interest earned before the transfer; buyer earns only afterwards</td>
+                </tr>
+                <tr>
+                    <td>Late buyers earn nothing past</td>
+                    <td>YT received after a yield event has zero claim on it</td>
+                </tr>
+                <tr>
+                    <td>Merge before expiry</td>
+                    <td>PT plus YT plus interest returns the full 1,050&nbsp;USDC</td>
+                </tr>
+                <tr>
+                    <td>Fixed-rate buyer at expiry</td>
+                    <td>PT holder receives exactly face value; YT holder keeps all 3% interest</td>
+                </tr>
+                <tr>
+                    <td>Interest freezes at expiry</td>
+                    <td>YT stops; post-expiry yield goes to PT holders who wait</td>
+                </tr>
+                <tr>
+                    <td>Losses absorbed without reverts</td>
+                    <td>A 10% vault loss gives YT nothing and PT 900&nbsp;USDC</td>
+                </tr>
+                <tr>
+                    <td>Earns again only after recovery</td>
+                    <td>YT resumes only once the vault passes its previous high</td>
+                </tr>
+                <tr>
+                    <td>Reverts</td>
+                    <td>Wrong-time actions and unauthorised PT minting fail with clear errors</td>
+                </tr>
+                <tr>
+                    <td>Everyone can exit (fuzz, 2,000 runs)</td>
+                    <td>Random splits, transfers, yield, losses, claims and merges; solvency after every step; full exit
+                        at the end</td>
+                </tr>
+            </table>
+        </div>
+    </section>
+
+    <!-- ======================================================= 8 -->
+    <section class="chap" id="s8">
+        <h2><span class="n">8</span><span>Arc engineering notes</span></h2>
+        <p class="lede">Arc is EVM-compatible, but a handful of differences break naive code. Each of these has cost
+            someone a day already.</p>
+        <div class="body">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:52mm">Behaviour</th>
+                        <th>What to do</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>USDC has two interfaces sharing one balance: native (18 decimals) and ERC-20 at
+                        <code>0x3600&hellip;0000</code> (6 decimals)</td>
+                    <td>Use only the ERC-20 interface in contracts. Never use <code>msg.value</code> or
+                        <code>payable</code> USDC paths. In Uniswap v4, use the ERC-20 address as the pool currency,
+                        never <code>address(0)</code>, which would be native USDC with 18 decimals.</td>
+                </tr>
+                <tr>
+                    <td>Minimum base fee 20&nbsp;gwei; transactions below it are silently dropped by the mempool</td>
+                    <td>Always pass a gas price, for example <code>--with-gas-price 25gwei</code> in Foundry, and set
+                        <code>maxFeePerGas</code> of at least 20&nbsp;gwei in viem</td>
+                </tr>
+                <tr>
+                    <td>The next block's base fee is published in the parent header's <code>extraData</code>; the base
+                        fee is paid to the block producer, not burned</td>
+                    <td>Fee quotes are predictable. Show them to users in USDC, not gwei.</td>
+                </tr>
+                <tr>
+                    <td>EIP-7708: native USDC movements emit a standard ERC-20 <code>Transfer</code> log from a system
+                        address</td>
+                    <td>Indexers that count both that log and the ERC-20 log will double-count. Pick one stream. Gas
+                        deductions emit no log; read them from receipts.</td>
+                </tr>
+                <tr>
+                    <td>Deterministic finality under a second</td>
+                    <td>No confirmation counts or reorg handling. A confirmed receipt is final, so the agent can cash
+                        out and pay in sequence.</td>
+                </tr>
+                <tr>
+                    <td>Osaka baseline, including EIP-7702; ERC-4337 supported natively</td>
+                    <td>Tijori can later become a smart-account policy. A paymaster can cover gas for a wallet that
+                        holds only collateral.</td>
+                </tr>
+                <tr>
+                    <td>Morpho vault shares use 18 decimals over 6-decimal USDC</td>
+                    <td>Read <code>decimals()</code> at runtime; never assume. Pakka's <code>INDEX_UNIT</code> handles
+                        this.</td>
+                </tr>
+                <tr>
+                    <td>A vault may be short of withdrawable liquidity at high utilisation</td>
+                    <td>Offer cash-out in shares as well as USDC; check <code>maxRedeem</code> in the router before
+                        unwrapping.</td>
+                </tr>
+            </table>
+
+            <h3>Addresses worth keeping</h3>
+            <table class="kv">
+                <tr>
+                    <td>USDC (both networks)</td>
+                    <td><code>0x3600000000000000000000000000000000000000</code></td>
+                </tr>
+                <tr>
+                    <td>EURC (testnet)</td>
+                    <td><code>0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a</code>; for mainnet, read Arc's contract
+                        addresses page</td>
+                </tr>
+                <tr>
+                    <td>Uniswap v4 PoolManager (mainnet)</td>
+                    <td><code>0x8366a39CC670B4001A1121B8F6A443A643e40951</code></td>
+                </tr>
+                <tr>
+                    <td>Uniswap v4 Quoter (mainnet)</td>
+                    <td><code>0x8Dc178eFB8111BB0973Dd9d722ebeFF267c98F94</code></td>
+                </tr>
+                <tr>
+                    <td>Uniswap StateView (mainnet)</td>
+                    <td><code>0xF3334192D15450CdD385c8B70e03f9A6bD9E673b</code></td>
+                </tr>
+                <tr>
+                    <td>Uniswap UniversalRouter (mainnet)</td>
+                    <td><code>0x4fcA4a51Ab4F23A7447b3284fBd7D73289A89Fb1</code></td>
+                </tr>
+                <tr>
+                    <td>Permit2</td>
+                    <td><code>0x000000000022D473030F116dDEE9F6B43aC78BA3</code></td>
+                </tr>
+                <tr>
+                    <td>Uniswap v4 PoolManager (testnet)</td>
+                    <td><code>0x1d70945634f618eefdf9edaadb59b9a183cef929</code></td>
+                </tr>
+                <tr>
+                    <td>Morpho USDC vault (mainnet)</td>
+                    <td>To fill in: pick a curated vault (Gauntlet or Steakhouse) in the Morpho app</td>
+                </tr>
+            </table>
+            <div class="note"><span class="h">Verify before use</span>
+                <p>The Uniswap addresses above come from a third-party repository and an indexer's documentation, not
+                    from Uniswap directly. Confirm each against Uniswap's official deployment list before deploying
+                    anything that depends on them.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================================= 9 -->
+    <section class="chap" id="s9">
+        <h2><span class="n">9</span><span>Build plan</span></h2>
+        <p class="lede">The schedule is driven by one date: mainnet must be live by 7 October so the two short demo
+            series can mature before submission.</p>
+        <div class="body">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:22mm">Date</th>
+                        <th>Work</th>
+                        <th style="width:44mm">Done when</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>Sat 4 Oct</td>
+                    <td>Core contracts and tests. Public repo. Testnet USDC from the faucet. Find the Morpho USDC vault
+                        address on mainnet. Check the ecosystem page for fixed-rate competitors. Withdraw $1 to Arc as a
+                        test, then the rest.</td>
+                    <td>11 tests green; vault address known</td>
+                </tr>
+                <tr>
+                    <td>Sun 5 Oct</td>
+                    <td>SeriesRegistry, PakkaRouter with Uniswap v4 swaps, ladder function. Unit tests with a local
+                        PoolManager.</td>
+                    <td>Ladder test buys three maturities in one call</td>
+                </tr>
+                <tr>
+                    <td>Mon 6 Oct</td>
+                    <td>Tijori and factory. Fork tests against the real Morpho vault and PoolManager. Testnet deployment
+                        with 1-hour, 1-day and 7-day series.</td>
+                    <td>Full lock, mature, cash-out cycle on testnet</td>
+                </tr>
+                <tr>
+                    <td>Tue 7 Oct</td>
+                    <td><strong>Mainnet.</strong> Deploy and verify contracts. Series maturing 9 Oct, 10 Oct and 31 Dec.
+                        Seed each pool with about $2.</td>
+                    <td>All contracts verified; pools quoting</td>
+                </tr>
+                <tr>
+                    <td>Wed 8 Oct</td>
+                    <td>Website: rates table, lock, cash out, Tijori setup. Reads state directly from the chain.</td>
+                    <td>Priya's flow works end to end</td>
+                </tr>
+                <tr>
+                    <td>Thu 9 Oct</td>
+                    <td>First demo series matures. The agent cashes out and pays a bill. Record the video. Agent and MCP
+                        tool.</td>
+                    <td>First real cash-out on explorer</td>
+                </tr>
+                <tr>
+                    <td>Fri 10 Oct</td>
+                    <td>Second series matures; second cash-out. README, screenshots, submission copy.</td>
+                    <td>Repo ready for strangers</td>
+                </tr>
+                <tr>
+                    <td>Sat 11 Oct</td>
+                    <td><strong>Submit.</strong></td>
+                    <td>Submission confirmed on DoraHacks</td>
+                </tr>
+                <tr>
+                    <td>12&ndash;14 Oct</td>
+                    <td>Buffer. Fix anything that broke; keep pool liquidity in place until 21 October.</td>
+                    <td></td>
+                </tr>
+            </table>
+
+            <h3>Where testing happens</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:40mm">Stage</th>
+                        <th style="width:18mm">Cost</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>Laptop, mock vault</td>
+                    <td>Free</td>
+                    <td>Logic, edge cases, losses, fuzzing</td>
+                </tr>
+                <tr>
+                    <td>Laptop, mainnet fork</td>
+                    <td>Free</td>
+                    <td>Real Morpho and Uniswap state with fake money:
+                        <code>anvil --fork-url https://rpc.mainnet.arc.io</code>, then <code>vm.warp</code> months ahead
+                    </td>
+                </tr>
+                <tr>
+                    <td>Arc testnet</td>
+                    <td>Free</td>
+                    <td>Website and agent flow with faucet USDC and maturities of an hour or a day</td>
+                </tr>
+                <tr>
+                    <td>Arc mainnet</td>
+                    <td>About $12</td>
+                    <td>Final deployment and demo transactions only. Never debug here.</td>
+                </tr>
+            </table>
+        </div>
+    </section>
+
+    <!-- ======================================================= 10 -->
+    <section class="flow" id="s10">
+        <h2><span class="n">10</span><span>Budget</span></h2>
+        <div class="body">
+            <p>Gas on Arc is close to free. Most of the money is working capital that sits in pools and demo positions
+                and comes back after the series mature.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th class="num">Amount</th>
+                        <th>Comes back?</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>Gas: all deployments (three series, router, registry, factory, pools)</td>
+                    <td class="num">~$0.70</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <td>Gas: about 150 demo and setup transactions</td>
+                    <td class="num">~$0.75</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <td>Pool liquidity, three pools at about $2 each</td>
+                    <td class="num">~$6</td>
+                    <td>Yes, after 21 October</td>
+                </tr>
+                <tr>
+                    <td>Priya's demo lock</td>
+                    <td class="num">~$1</td>
+                    <td>Yes, at maturity</td>
+                </tr>
+                <tr>
+                    <td>Agent's Tijori, three steps of $1</td>
+                    <td class="num">~$3</td>
+                    <td>Yes, as each ticket matures</td>
+                </tr>
+                <tr>
+                    <td><strong>Wallet needs</strong></td>
+                    <td class="num"><strong>~$12</strong></td>
+                    <td>About ₹1,000</td>
+                </tr>
+                <tr>
+                    <td><strong>Actually spent</strong></td>
+                    <td class="num"><strong>~$2&ndash;3</strong></td>
+                    <td>Gas, withdrawal fee, pool slippage</td>
+                </tr>
+            </table>
+            <p>Get USDC onto Arc by withdrawing directly from an exchange that lists Arc (Binance, Bybit, Kraken,
+                KuCoin, OKX and Upbit were live access points at launch). Send $1 first. Avoid look-alike bridge sites,
+                which were already charging 0.5% to 4% in the first weeks. Hosting on Vercel, the public RPC, explorer
+                verification and all testnet activity are free.</p>
+        </div>
+    </section>
+
+    <!-- ======================================================= 11 -->
+    <section class="chap" id="s11">
+        <h2><span class="n">11</span><span>Risks</span></h2>
+        <div class="body">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:48mm">Risk</th>
+                        <th style="width:18mm">Likelihood</th>
+                        <th>Plan</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>Bug in YT accounting</td>
+                    <td>Medium</td>
+                    <td>Fuzz with losses, invariant checks, fork tests, deposit caps on mainnet, unaudited label
+                        everywhere</td>
+                </tr>
+                <tr>
+                    <td>Submitting too late</td>
+                    <td>Medium</td>
+                    <td>Hard target of 11 October; nothing new after 10 October except fixes</td>
+                </tr>
+                <tr>
+                    <td>Seen as a Pendle clone</td>
+                    <td>Medium</td>
+                    <td>Say it plainly: Pendle is not on Arc, this is Arc's fixed-rate layer, built for agents. Lead
+                        with the ladder and the Tijori.</td>
+                </tr>
+                <tr>
+                    <td>Uniswap v4 integration takes too long</td>
+                    <td>Medium</td>
+                    <td>Fallback: a fixed-price PT counter contract you seed yourself. Still real, still on mainnet;
+                        move to v4 after the grant.</td>
+                </tr>
+                <tr>
+                    <td>Thin pools make the rate jump</td>
+                    <td>High</td>
+                    <td>Label the site "demo liquidity". Reviewers know the rate comes from a seeded pool, and the
+                        program values promise over traction.</td>
+                </tr>
+                <tr>
+                    <td>Morpho vault loss</td>
+                    <td>Low</td>
+                    <td>Handled by the design: no revert, YT pauses, PT absorbs. Disclose it in the README.</td>
+                </tr>
+                <tr>
+                    <td>Vault liquidity crunch at cash-out</td>
+                    <td>Low</td>
+                    <td>Offer cash-out in vault shares as well as USDC</td>
+                </tr>
+                <tr>
+                    <td>A competitor launches fixed rates on Arc first</td>
+                    <td>Low</td>
+                    <td>The agent ladder and Tijori remain distinct. Check the ecosystem page before mainnet.</td>
+                </tr>
+                <tr>
+                    <td>Circle ships yield inside Agent Wallets</td>
+                    <td>Low before the deadline</td>
+                    <td>Earn Kit yields are variable. Fixed maturities are a different product; position Pakka as the
+                        layer those wallets plug into.</td>
+                </tr>
+            </table>
+        </div>
+    </section>
+
+    <!-- ======================================================= 12 -->
+    <section class="flow" id="s12">
+        <h2><span class="n">12</span><span>Submission kit</span></h2>
+        <div class="body">
+            <h3>Name and one line</h3>
+            <p><strong>Pakka: fixed-rate USDC on Arc, built for agents.</strong></p>
+
+            <h3>Description</h3>
+            <p>Pakka splits Morpho USDC vault shares on Arc into a principal token, worth exactly 1&nbsp;USDC at
+                maturity, and a yield token that collects all variable interest until then. Buying the principal token
+                at a discount locks in a fixed rate. An AI agent with predictable costs can build a ladder of maturities
+                in one call, so cash arrives when each bill is due, while a Tijori contract limits it to buying tickets,
+                cashing them and paying owner-approved payees. Pendle-style fixed rates run on Plasma; Arc had none.</p>
+
+            <h3>What it uses Arc for</h3>
+            <p>Arc is the only chain where an agent holds one asset, USDC, for both spending and gas, so a treasury bot
+                can never stall for lack of a gas token. Yield comes from Morpho vaults on Arc. Principal tokens trade
+                in Uniswap v4 pools on Arc. Sub-second deterministic finality lets an agent cash a matured ticket and
+                pay a bill in the same flow. All contracts are deployed and verified on Arc mainnet, with full maturity
+                cycles completed on chain.</p>
+
+            <h3>Demo video, 60 to 90 seconds</h3>
+            <ol class="steps">
+                <li>The problem in one sentence over the rates table: every rate on Arc changes daily.</li>
+                <li>Priya's lock: one signature, PT arrives, the explorer shows it.</li>
+                <li>The agent receives "50 USDC a month for three months" and calls the tool by itself. Three tickets
+                    land in its Tijori.</li>
+                <li>A matured ticket is cashed and a bill paid on 9 October, on the explorer.</li>
+                <li>The agent tries to send funds elsewhere and the Tijori rejects it.</li>
+                <li>Close on the repo: tests, fuzzing, verified contracts.</li>
+            </ol>
+
+            <h3>Before you press submit</h3>
+            <ul>
+                <li>All contracts verified on explorer.arc.io, addresses listed in the README</li>
+                <li>Explorer links for split, lock, ladder, two cash-outs and one interest claim</li>
+                <li>Live site pointed at mainnet, with "unaudited" and "demo liquidity" visible</li>
+                <li><code>forge test</code> passes from a clean clone</li>
+                <li>No private keys or <code>.env</code> in git history</li>
+                <li>GitHub profile public and linked</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ======================================================= 13 -->
+    <section class="chap" id="s13">
+        <h2><span class="n">13</span><span>After the grant</span></h2>
+        <div class="body">
+            <p>The microgrant pays for a first proof. Circle's larger grant program looks for projects where Arc is core
+                to the flow of value and Circle products are real building blocks, with evidence of usage or a credible
+                path to it. Each item below moves Pakka toward that bar.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width:46mm">Step</th>
+                        <th>Why it matters</th>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>EURC fixed rates</td>
+                    <td>Dollar and euro fixed rates on one chain is something Arc is uniquely placed to offer</td>
+                </tr>
+                <tr>
+                    <td>FX forwards</td>
+                    <td>Fixed USD rates, fixed EUR rates and spot FX together imply a forward exchange rate, which
+                        businesses use to plan payments months ahead. Pairs naturally with StableFX.</td>
+                </tr>
+                <tr>
+                    <td>Agent Wallets integration</td>
+                    <td>When Circle's Agent Stack reaches Arc mainnet, the Tijori rules become a wallet policy and Pakka
+                        becomes the treasury tool those wallets call</td>
+                </tr>
+                <tr>
+                    <td>A purpose-built PT market</td>
+                    <td>Replace the concentrated-liquidity pool with a rate-aware curve or a Uniswap v4 hook that prices
+                        in implied yield and converges to par</td>
+                </tr>
+                <tr>
+                    <td>More vaults and maturities</td>
+                    <td>Monthly series across several curated Morpho vaults, created by a factory</td>
+                </tr>
+                <tr>
+                    <td>Audit and limits</td>
+                    <td>Lift deposit caps only after an external review</td>
+                </tr>
+            </table>
+        </div>
+    </section>
+
+    <!-- ======================================================= 14 -->
+    <section class="chap links" id="s14">
+        <h2><span class="n">14</span><span>Links and references</span></h2>
+        <div class="body">
+            <p class="small">Collected 4 October 2026.</p>
+
+            <h4>The grant</h4>
+            <table>
+                <tr>
+                    <td>Arc Microgrants on DoraHacks</td>
+                    <td><a
+                            href="https://dorahacks.io/hackathon/arc-microgrants">https://dorahacks.io/hackathon/arc-microgrants</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Circle Developer Grants</td>
+                    <td><a href="https://www.circle.com/grant">https://www.circle.com/grant</a></td>
+                </tr>
+            </table>
+
+            <h4>Arc documentation</h4>
+            <table>
+                <tr>
+                    <td>Docs home</td>
+                    <td><a href="https://docs.arc.io">https://docs.arc.io</a></td>
+                </tr>
+                <tr>
+                    <td>Gas and fees</td>
+                    <td><a
+                            href="https://docs.arc.io/arc/references/gas-and-fees">https://docs.arc.io/arc/references/gas-and-fees</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>EVM differences</td>
+                    <td><a
+                            href="https://docs.arc.io/arc/references/evm-differences">https://docs.arc.io/arc/references/evm-differences</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Contract addresses</td>
+                    <td><a
+                            href="https://docs.arc.io/arc/references/contract-addresses">https://docs.arc.io/arc/references/contract-addresses</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Stablecoin-native model</td>
+                    <td><a
+                            href="https://docs.arc.io/arc/concepts/stablecoin-native-model">https://docs.arc.io/arc/concepts/stablecoin-native-model</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>App Kit</td>
+                    <td><a href="https://docs.arc.io/app-kit">https://docs.arc.io/app-kit</a></td>
+                </tr>
+                <tr>
+                    <td>Borrow Kit</td>
+                    <td><a href="https://docs.arc.io/app-kit/borrow">https://docs.arc.io/app-kit/borrow</a></td>
+                </tr>
+                <tr>
+                    <td>Stablecoin FX guide</td>
+                    <td><a
+                            href="https://docs.arc.network/build/stablecoin-fx">https://docs.arc.network/build/stablecoin-fx</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>eCommerce checkout guide</td>
+                    <td><a href="https://docs.arc.io/build/ecommerce">https://docs.arc.io/build/ecommerce</a></td>
+                </tr>
+            </table>
+
+            <h4>Arc network and ecosystem</h4>
+            <table>
+                <tr>
+                    <td>Ecosystem directory</td>
+                    <td><a href="https://www.arc.io/ecosystem">https://www.arc.io/ecosystem</a></td>
+                </tr>
+                <tr>
+                    <td>Arc Portal, discover apps</td>
+                    <td><a href="https://portal.arc.io/discover">https://portal.arc.io/discover</a></td>
+                </tr>
+                <tr>
+                    <td>Explorer</td>
+                    <td><a href="https://explorer.arc.io">https://explorer.arc.io</a></td>
+                </tr>
+                <tr>
+                    <td>Faucet</td>
+                    <td><a href="https://faucet.circle.com">https://faucet.circle.com</a></td>
+                </tr>
+                <tr>
+                    <td>Mainnet launch post</td>
+                    <td><a
+                            href="https://www.arc.io/blog/arc-economic-os-internet">https://www.arc.io/blog/arc-economic-os-internet</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Borrow Kit walkthrough</td>
+                    <td><a
+                            href="https://www.arc.io/blog/let-your-users-borrow-usdc-against-their-crypto-assets-with-borrow-kit">https://www.arc.io/blog/let-your-users-borrow-usdc-against-their-crypto-assets-with-borrow-kit</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Sponsored transactions and gas</td>
+                    <td><a
+                            href="https://www.arc.io/blog/sponsored-transactions-on-arc-with-usdc-as-gas">https://www.arc.io/blog/sponsored-transactions-on-arc-with-usdc-as-gas</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>cirBTC on Arc</td>
+                    <td><a
+                            href="https://www.arc.io/blog/cirbtc-is-now-live-on-arc">https://www.arc.io/blog/cirbtc-is-now-live-on-arc</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>App Kits overview</td>
+                    <td><a href="https://www.arc.io/app-kits">https://www.arc.io/app-kits</a></td>
+                </tr>
+            </table>
+
+            <h4>Circle agent and payments stack</h4>
+            <table>
+                <tr>
+                    <td>Agent Stack</td>
+                    <td><a href="https://www.circle.com/agent-stack">https://www.circle.com/agent-stack</a></td>
+                </tr>
+                <tr>
+                    <td>Agent Marketplace docs</td>
+                    <td><a
+                            href="https://developers.circle.com/agent-stack/agent-marketplace">https://developers.circle.com/agent-stack/agent-marketplace</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Agent Marketplace catalogue</td>
+                    <td><a href="https://agents.circle.com/services">https://agents.circle.com/services</a></td>
+                </tr>
+                <tr>
+                    <td>Gateway Nanopayments</td>
+                    <td><a
+                            href="https://developers.circle.com/gateway/nanopayments">https://developers.circle.com/gateway/nanopayments</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>x402 facilitators</td>
+                    <td><a
+                            href="https://developers.circle.com/x402-facilitators">https://developers.circle.com/x402-facilitators</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>StableFX technical guide</td>
+                    <td><a
+                            href="https://developers.circle.com/stablefx/concepts/technical-guide">https://developers.circle.com/stablefx/concepts/technical-guide</a>
+                    </td>
+                </tr>
+            </table>
+
+            <h4>DeFi building blocks</h4>
+            <table>
+                <tr>
+                    <td>Uniswap live on Arc</td>
+                    <td><a
+                            href="https://blog.uniswap.org/uniswap-is-live-on-arc">https://blog.uniswap.org/uniswap-is-live-on-arc</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Uniswap v4 docs</td>
+                    <td><a
+                            href="https://docs.uniswap.org/contracts/v4/overview">https://docs.uniswap.org/contracts/v4/overview</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Morpho docs</td>
+                    <td><a href="https://docs.morpho.org">https://docs.morpho.org</a></td>
+                </tr>
+                <tr>
+                    <td>Morpho app (find the Arc USDC vault)</td>
+                    <td><a href="https://app.morpho.org">https://app.morpho.org</a></td>
+                </tr>
+                <tr>
+                    <td>Pendle docs (reference design)</td>
+                    <td><a href="https://docs.pendle.finance">https://docs.pendle.finance</a></td>
+                </tr>
+                <tr>
+                    <td>Fixed-rate design review</td>
+                    <td><a
+                            href="https://statemind.io/blog/fixed-rate-design">https://statemind.io/blog/fixed-rate-design</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>OpenZeppelin ERC-4626</td>
+                    <td><a
+                            href="https://docs.openzeppelin.com/contracts/5.x/erc4626">https://docs.openzeppelin.com/contracts/5.x/erc4626</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Foundry book</td>
+                    <td><a href="https://book.getfoundry.sh">https://book.getfoundry.sh</a></td>
+                </tr>
+            </table>
+
+            <h4>Circle sample apps on GitHub</h4>
+            <table>
+                <tr>
+                    <td>Lend and borrow with cirBTC</td>
+                    <td><a
+                            href="https://github.com/circlefin/arc-defi-lend-borrow">https://github.com/circlefin/arc-defi-lend-borrow</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Nanopayments demo</td>
+                    <td><a
+                            href="https://github.com/circlefin/arc-nanopayments">https://github.com/circlefin/arc-nanopayments</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>eCommerce payments</td>
+                    <td><a
+                            href="https://github.com/circlefin/arc-ecommerce-payments">https://github.com/circlefin/arc-ecommerce-payments</a>
+                    </td>
+                </tr>
+            </table>
+
+            <h4>Competitors and research</h4>
+            <table>
+                <tr>
+                    <td>Stablechain comparison (Chainstack)</td>
+                    <td><a
+                            href="https://chainstack.com/stablecoin-l1-comparison/">https://chainstack.com/stablecoin-l1-comparison/</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Stablechain RPC guide (Dwellir)</td>
+                    <td><a
+                            href="https://www.dwellir.com/blog/stablechain-rpc-guide">https://www.dwellir.com/blog/stablechain-rpc-guide</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Plasma on DefiLlama</td>
+                    <td><a href="https://defillama.com/chain/plasma">https://defillama.com/chain/plasma</a></td>
+                </tr>
+                <tr>
+                    <td>Tempo mainnet announcement</td>
+                    <td><a href="https://tempo.xyz/blog/mainnet/">https://tempo.xyz/blog/mainnet/</a></td>
+                </tr>
+                <tr>
+                    <td>Machine Payments Protocol</td>
+                    <td><a href="https://mpp.dev">https://mpp.dev</a></td>
+                </tr>
+            </table>
+
+            <h4>Data and tooling</h4>
+            <table>
+                <tr>
+                    <td>Bitquery, Arc mainnet trades</td>
+                    <td><a
+                            href="https://docs.bitquery.io/docs/blockchain/arc-mainnet/arc-mainnet-trades-api/">https://docs.bitquery.io/docs/blockchain/arc-mainnet/arc-mainnet-trades-api/</a>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Goldsky</td>
+                    <td><a href="https://goldsky.com">https://goldsky.com</a></td>
+                </tr>
+                <tr>
+                    <td>Uniswap v4 addresses on Arc (third-party, verify)</td>
+                    <td><a href="https://github.com/Creepy-Cr/Revo">https://github.com/Creepy-Cr/Revo</a></td>
+                </tr>
+                <tr>
+                    <td>Gas refund pattern on Arc (example repo)</td>
+                    <td><a href="https://github.com/ferrousowl/standing">https://github.com/ferrousowl/standing</a></td>
+                </tr>
+            </table>
+        </div>
+    </section>
+
+    <!-- ======================================================= GLOSSARY -->
+    <section class="flow" id="gl">
+        <h2 style="display:block">Glossary</h2>
+        <div class="body" style="margin-left:0">
+            <table class="plain">
+                <tr>
+                    <td style="width:40mm"><strong>PT, principal token</strong></td>
+                    <td>Redeems for one unit of the asset at maturity. Bought at a discount, it earns a fixed rate.</td>
+                </tr>
+                <tr>
+                    <td><strong>YT, yield token</strong></td>
+                    <td>Receives all of the vault's variable interest until maturity</td>
+                </tr>
+                <tr>
+                    <td><strong>Maturity, expiry</strong></td>
+                    <td>The date a series ends: YT stops earning and PT can be redeemed</td>
+                </tr>
+                <tr>
+                    <td><strong>Series</strong></td>
+                    <td>One YieldToken and its PT for one vault and one maturity</td>
+                </tr>
+                <tr>
+                    <td><strong>Index</strong></td>
+                    <td>USDC value of a fixed amount of vault shares; rises as the vault earns</td>
+                </tr>
+                <tr>
+                    <td><strong>Implied APY</strong></td>
+                    <td>The fixed annual rate implied by PT's discount and time to maturity</td>
+                </tr>
+                <tr>
+                    <td><strong>Bond ladder</strong></td>
+                    <td>Several fixed-rate holdings maturing at staggered dates so cash arrives on schedule</td>
+                </tr>
+                <tr>
+                    <td><strong>Tijori</strong></td>
+                    <td>Pakka's owner-controlled safe that lets an agent manage a budget within fixed rules</td>
+                </tr>
+                <tr>
+                    <td><strong>ERC-4626</strong></td>
+                    <td>The standard interface for yield-bearing vaults; Morpho vaults implement it</td>
+                </tr>
+                <tr>
+                    <td><strong>MCP</strong></td>
+                    <td>Model Context Protocol, the standard way AI agents discover and call external tools</td>
+                </tr>
+                <tr>
+                    <td><strong>Deterministic finality</strong></td>
+                    <td>Once a transaction is confirmed it can never be reversed or reordered</td>
+                </tr>
+            </table>
+        </div>
+    </section>
+
+</body>
+
+</html>

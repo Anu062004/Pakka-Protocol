@@ -1,0 +1,15 @@
+node_modules/
+artifacts/
+cache/
+.env
+.env.keeper
+.env.agent
+runtime/
+.tools/
+out/
+coverage/
+reports/
+playwright-report/
+test-results/
+.env.*.local
+.claude/

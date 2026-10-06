@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "chainId": 5042002,
+  "usdc": "0x3600000000000000000000000000000000000000",
+  "deployer": "0x6b3a924379B9408D8110f10F084ca809863B378A",
+  "owner": "0xaBF3bA5894004Ae655bFe9E9Bd6899610351Cf67",
+  "deployedAtBlock": 65779740,
+  "status": "owner-registration-required",
+  "demoVault": true,
+  "contracts": [
+    {
+      "name": "DemoVault",
+      "address": "0xCFf24F7dB2583873e94B24e69a09B60552d13e27",
+      "transactionHash": "0xadab17877bdb8566aa8b5ed64020a9ed7c338aebf732dd731394e8240a57fef1"
+    },
+    {
+      "name": "SeriesRegistry",
+      "address": "0xdd63C87DC097eB74c15EDf43aBD8fC7Ed953E722",
+      "transactionHash": "0x7f061657806d7c845b186677366cb504ca085938a794dc3ca0be6beb5a76de21"
+    },
+    {
+      "name": "TestnetPoolManager",
+      "address": "0x6F73287700f87203164e9CC408F72A5927475ac1",
+      "transactionHash": "0xd56f20b5ae590196513ed238bdb9b24da77a99f6644f3d4720ac658e0f6abdf2"
+    },
+    {
+      "name": "UniswapV4Market",
+      "address": "0x96159cfbF6736d846e257F786Ce083A8830FA72A",
+      "transactionHash": "0x101dbb0f9d5a351553857b3dc624342973e8bf80b9d6a6e742eaf5df10b6901c"
+    },
+    {
+      "name": "PakkaRouter",
+      "address": "0x577459924735400E06024fFF3D45771399D96ecc",
+      "transactionHash": "0x1215236279b33107b1ee2125742a4361fb814b460a4d4b33696070918f6c981b"
+    },
+    {
+      "name": "TijoriFactory",
+      "address": "0x66ecf82b8e0e270070641d5A02de2cDC878B38dc",
+      "transactionHash": "0xd248db7fc040e8b65c8ae6227df423a76efa601085b3b15a6fe4bb1f0e3c925e"
+    },
+    {
+      "name": "Tijori",
+      "address": "0xd5Ad0f8aB0c2319A78623C0265DE15B6cEb6b6F3",
+      "createdBy": "0x66ecf82b8e0e270070641d5A02de2cDC878B38dc",
+      "transactionHash": "0xd248db7fc040e8b65c8ae6227df423a76efa601085b3b15a6fe4bb1f0e3c925e"
+    },
+    {
+      "name": "PoolSeeder",
+      "address": "0xCc836C3b3C4c06C4782Bb8D7e97b6626D7CF5EED",
+      "transactionHash": "0xad0f108e5a099d51723c5cdd10d7452d0cd2fdf8a8ce7bb9cb5fdb1b8b91e4fc"
+    },
+    {
+      "name": "YieldToken",
+      "address": "0x77eBD5Efe9395244108a7577d7Bfd7d1cE8E4F43",
+      "transactionHash": "0x37339889b42e266baae2532cb8f4701cf00c5b379312f626065a0b97e8b6d776"
+    },
+    {
+      "name": "YieldToken",
+      "address": "0x78F5607c8f63d8771F89a0cD93ab3aD3dF6162f3",
+      "transactionHash": "0xdd6fb2eb3055112c5672081677dded31638496a8af8576e19f59c5bb53e87404"
+    },
+    {
+      "name": "YieldToken",
+      "address": "0x7F2713D55F0c5Af7F90325B9558345aae43Bf253",
+      "transactionHash": "0x515da629efca73320c23ef1aca8f24598409be92a296b0c7f0450b4bdc0a5d57"
+    }
+  ],
+  "series": [
+    {
+      "expiry": 1791285542,
+      "duration": 3600,
+      "yieldToken": "0x77eBD5Efe9395244108a7577d7Bfd7d1cE8E4F43",
+      "principalToken": "0xd9f3Cc8c78510D3F42FF8C6faFB2c61b8e82A846",
+      "transactionHash": "0x37339889b42e266baae2532cb8f4701cf00c5b379312f626065a0b97e8b6d776"
+    },
+    {
+      "expiry": 1791368348,
+      "duration": 86400,
+      "yieldToken": "0x78F5607c8f63d8771F89a0cD93ab3aD3dF6162f3",
+      "principalToken": "0x18090E5f1A2Dd02d3cC8679D8Cd5cD5Aefd78e77",
+      "transactionHash": "0xdd6fb2eb3055112c5672081677dded31638496a8af8576e19f59c5bb53e87404"
+    },
+    {
+      "expiry": 1791886754,
+      "duration": 604800,
+      "yieldToken": "0x7F2713D55F0c5Af7F90325B9558345aae43Bf253",
+      "principalToken": "0xbE01918AA75BdF03357c0bae836f9559af0dA3F0",
+      "transactionHash": "0x515da629efca73320c23ef1aca8f24598409be92a296b0c7f0450b4bdc0a5d57"
+    }
+  ],
+  "ownerActions": [
+    {
+      "description": "Register TEST-1791285542",
+      "to": "0xdd63C87DC097eB74c15EDf43aBD8fC7Ed953E722",
+      "value": "0",
+      "data": "0x46f53e3d00000000000000000000000077ebd5efe9395244108a7577d7bfd7d1ce8e4f43"
+    },
+    {
+      "description": "Register TEST-1791368348",
+      "to": "0xdd63C87DC097eB74c15EDf43aBD8fC7Ed953E722",
+      "value": "0",
+      "data": "0x46f53e3d00000000000000000000000078f5607c8f63d8771f89a0cd93ab3ad3df6162f3"
+    },
+    {
+      "description": "Register TEST-1791886754",
+      "to": "0xdd63C87DC097eB74c15EDf43aBD8fC7Ed953E722",
+      "value": "0",
+      "data": "0x46f53e3d0000000000000000000000007f2713d55f0c5af7f90325b9558345aae43bf253"
+    }
+  ],
+  "vault": "0xCFf24F7dB2583873e94B24e69a09B60552d13e27",
+  "registry": "0xdd63C87DC097eB74c15EDf43aBD8fC7Ed953E722",
+  "registryTransactionHash": "0x7f061657806d7c845b186677366cb504ca085938a794dc3ca0be6beb5a76de21",
+  "tijoriFactory": "0x66ecf82b8e0e270070641d5A02de2cDC878B38dc",
+  "tijoriImplementation": "0xd5Ad0f8aB0c2319A78623C0265DE15B6cEb6b6F3",
+  "poolManager": "0x6F73287700f87203164e9CC408F72A5927475ac1",
+  "selfHostedManager": true,
+  "market": "0x96159cfbF6736d846e257F786Ce083A8830FA72A",
+  "router": "0x577459924735400E06024fFF3D45771399D96ecc",
+  "poolSeeder": "0xCc836C3b3C4c06C4782Bb8D7e97b6626D7CF5EED"
+}
