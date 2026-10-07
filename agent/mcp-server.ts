@@ -106,9 +106,19 @@ export function createServer(getService: () => TreasuryService | Promise<Treasur
   return server;
 }
 
-export async function main(env: NodeJS.ProcessEnv = process.env): Promise<McpServer> {
+export interface AgentRuntime {
+  server: McpServer;
+  // The signer, provider and file locks are per process, so transports that need a fresh
+  // McpServer per request share this one service rather than constructing their own.
+  getService: () => TreasuryService;
+  close: () => Promise<void>;
+}
+
+// Transport-independent: the key, locks and provider are owned here so stdio and HTTP
+// entrypoints share one construction path rather than duplicating the lifecycle.
+export function createRuntime(env: NodeJS.ProcessEnv = process.env): AgentRuntime {
   let service: TreasuryService | undefined, provider: JsonRpcProvider | undefined, unlock: (() => void) | undefined, unlockWallet: (() => void) | undefined;
-  const server = createServer(() => {
+  const getService = (): TreasuryService => {
     if (service) return service;
     const tijoriAddress = env.AGENT_TIJORI_ADDRESS;
     if (!tijoriAddress) return fail("AGENT_TIJORI_NOT_CONFIGURED");
@@ -134,15 +144,21 @@ export async function main(env: NodeJS.ProcessEnv = process.env): Promise<McpSer
       provider = candidateProvider; unlock = candidateUnlock; unlockWallet = candidateWalletUnlock; service = candidate;
       return service;
     } catch (error) { candidateWalletUnlock?.(); candidateUnlock?.(); candidateProvider.destroy(); throw error; }
-  });
-  await server.connect(new StdioServerTransport(process.stdin, process.stdout, { maxBufferSize: 65536 }));
-  // No diagnostics on stdout: it is reserved for newline-delimited MCP messages.
+  };
+  const server = createServer(getService);
   let closing: Promise<void> | undefined;
   const close = () => closing ??= (async () => {
     await server.close();
     await service?.idle;
     provider?.destroy(); unlockWallet?.(); unlock?.(); unlock = undefined;
   })();
+  return { server, getService, close };
+}
+
+export async function main(env: NodeJS.ProcessEnv = process.env): Promise<McpServer> {
+  const { server, close } = createRuntime(env);
+  await server.connect(new StdioServerTransport(process.stdin, process.stdout, { maxBufferSize: 65536 }));
+  // No diagnostics on stdout: it is reserved for newline-delimited MCP messages.
   const shutdownFailed = () => { console.error("AGENT_SHUTDOWN_FAILED"); process.exitCode = 1; };
   const stop = () => { void close().then(() => process.exit(0), shutdownFailed); };
   process.once("SIGINT", stop);

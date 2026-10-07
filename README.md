@@ -146,6 +146,9 @@ serves `frontend/` from the CDN.
 
 ## Agent treasury
 
+See [AGENTS.md](AGENTS.md) to connect an agent — Claude Desktop over stdio, or
+any other MCP client over HTTP.
+
 `agent/` runs an MCP server whose tools are scoped to a single `Tijori`. The
 treasury contract — not the agent process — enforces what is possible: the agent
 can buy registered series, redeem matured PT, claim interest, and pay approved
@@ -155,6 +158,14 @@ addresses, change its own limits, or act once the owner pauses it.
 Quotes and plans never broadcast. Payments are journaled before broadcast and
 keyed by operation ID, so a lost response cannot double-pay, and a restart
 resumes rather than reissues.
+
+```sh
+npm run agent:mcp    # stdio, for clients that spawn a subprocess
+npm run agent:http   # Streamable HTTP on 127.0.0.1:4174, for everything else
+```
+
+`agent:http` requires `AGENT_HTTP_TOKEN` (32+ characters) and binds to loopback.
+It holds the agent key and signs, so run it yourself rather than delegating it.
 
 ## Security notes
 

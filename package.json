@@ -12,6 +12,7 @@
     "keeper:once": "node --env-file-if-exists=.env scripts/keeper-testnet.ts --once",
     "keeper:health": "node --env-file-if-exists=.env scripts/keeper-testnet.ts --health",
     "agent:mcp": "node --env-file-if-exists=.env agent/mcp-server.ts",
+    "agent:http": "node --env-file-if-exists=.env agent/http-server.ts",
     "register:testnet": "node --env-file-if-exists=.env scripts/register-testnet.ts",
     "add:series": "node --env-file-if-exists=.env scripts/add-series.ts",
     "dev": "node --env-file-if-exists=.env backend/server.ts",
