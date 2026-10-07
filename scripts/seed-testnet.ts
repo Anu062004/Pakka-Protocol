@@ -40,10 +40,12 @@ try {
   const overrides = { gasPrice: fees.gasPrice && fees.gasPrice > floor ? fees.gasPrice : floor };
   const save = () => writeJson(manifestPath, manifest);
   for (const item of manifest.series) {
-    if (!item.seriesId) throw new Error("Finish registering deployed series before seeding.");
-    if (item.pool?.seeded) { console.log(`Series ${item.seriesId} is already seeded.`); continue; }
     const block = await provider.getBlock("latest");
     if (!block) throw new Error("BLOCK_UNAVAILABLE");
+    // Expired series are never registered, so they carry no seriesId and cannot be seeded.
+    if (item.expiry <= block.timestamp) { console.log(`Series expiring ${item.expiry} has already expired; skipped.`); continue; }
+    if (!item.seriesId) throw new Error("Finish registering deployed series before seeding.");
+    if (item.pool?.seeded) { console.log(`Series ${item.seriesId} is already seeded.`); continue; }
     const record = await registry.getSeries(item.seriesId);
     if (BigInt(block.timestamp) >= record.expiry) { console.log(`Series ${item.seriesId} has expired; skipped.`); continue; }
     await seedSeries({ asset, registry, market, seeder, signer, item, priceUsdc, maxUsdc, maxPt, overrides, save,

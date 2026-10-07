@@ -30,6 +30,10 @@ try {
   for (const item of manifest.series) {
     let id = await registry.seriesIdByYieldToken(item.yieldToken) as bigint;
     if (!id) {
+      // registerSeries reverts with ExpiredSeries; skipping keeps later series registrable.
+      const block = await provider.getBlock("latest");
+      if (!block) throw new Error("BLOCK_UNAVAILABLE");
+      if (item.expiry <= block.timestamp) { console.log(`Series expiring ${item.expiry} has already expired; skipped.`); continue; }
       await send(item, "registrationTransactionHash", "registerSeries", [item.yieldToken]);
       id = await registry.seriesIdByYieldToken(item.yieldToken) as bigint;
       if (!id) throw new Error("REGISTRATION_NOT_OBSERVED");

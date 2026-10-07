@@ -14,7 +14,7 @@ const amount=(value,allowZero=false)=>{
   const n=parseUnits(value,6);if(n<0n||(!allowZero&&n===0n))throw new Error("INVALID_QUOTE_AMOUNT");return n;
 };
 const node=(tag,text,attributes={})=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;for(const [k,v]of Object.entries(attributes))e.setAttribute(k,v);return e;};
-const button=(text,action)=>{const e=node("button",text,{type:"button"});e.addEventListener("click",()=>run(action));return e;};
+const button=(text,action,attributes={})=>{const e=node("button",text,{type:"button",...attributes});e.addEventListener("click",()=>run(action));return e;};
 const notice=(text,kind="neutral")=>{$("notice").textContent=text;$("notice").dataset.state=kind;$("notice").setAttribute("role",kind==="error"?"alert":"status");};
 const interfaces=()=>Object.values(state.abis??{}).map(a=>new Interface(a));
 const contract=(name,address)=>new Contract(address,state.abis[name],state.wallet.provider);
@@ -47,6 +47,7 @@ async function refreshRates(){
   const result=await api("/api/rates");state.rates=result.series;
   $("variable-rate").textContent=result.variableRatePercent===null?`— · ${result.variableRateStatus}`:`${result.variableRatePercent}% variable APY`;
   $("rates-list").replaceChildren();$("maturity").replaceChildren(node("option","Choose a date",{value:""}));
+  let availableMaturities=0;
   for(const s of state.rates){
     const row=node("div",undefined,{class:"rate-row"});
     const label=node("div");label.append(node("h3",date(s.expiry)),node("p",`Series ${s.seriesId} · ${usdc(s.tvlUsdc)} / ${usdc(s.capUsdc)} entry TVL`,{class:"helper"}));row.append(label);
@@ -56,9 +57,11 @@ async function refreshRates(){
     const b=button(active?"Choose date":s.expiry<=result.timestamp?"Matured":"Unavailable",async()=>{$("maturity").value=String(s.seriesId);invalidateQuote();location.hash="lock";notice("Enter a face value, then request a quote.");});b.disabled=!active;row.append(b);
     if(!active)label.append(node("p",s.expiry<=result.timestamp?"Cash out your mature ticket in Positions.":!s.indexHealthy?"Vault index safety limit reached.":!s.entryOpen?"New purchases paused.":"Pool liquidity is currently unavailable.",{class:"helper"}));
     $("rates-list").append(row);
-    if(s.expiry>result.timestamp){const option=node("option",`${date(s.expiry)} · Series ${s.seriesId}`,{value:s.seriesId});option.disabled=!active;$("maturity").append(option);}
+    if(s.expiry>result.timestamp){const option=node("option",`${date(s.expiry)} · Series ${s.seriesId}`,{value:s.seriesId});option.disabled=!active;$("maturity").append(option);availableMaturities++;}
   }
   if(!state.rates.length)$("rates-list").append(node("p","No registered maturities yet. Rates appear after owner registration and pool seeding."));
+  $("lock-unavailable").hidden=availableMaturities>0;
+  $("face").disabled=$("maturity").disabled=$("get-quote").disabled=availableMaturities===0;
   invalidateQuote();notice(`Rates refreshed at block ${result.blockNumber}.`);
 }
 function invalidateQuote(){state.quote=null;$("lock-submit").disabled=true;$("quote-details").replaceChildren(node("h2","Your quote"),node("p","Request a fresh quote for this amount and date."));}
@@ -116,7 +119,7 @@ function renderPositions(container,result,treasury=false){
     const seconds=Math.max(0,p.expiry-result.timestamp),countdown=seconds>=86400?`${Math.ceil(seconds/86400)} days left`:`${Math.ceil(seconds/60)} minutes left`;
     row.append(node("h3",`Series ${p.seriesId} · ${date(p.expiry)}`),node("p",`${usdc(p.ptUsdc)} face · ${p.matured?"Matured":countdown} · Estimated exit value ${p.estimatedUsdc===null?"unavailable":usdc(p.estimatedUsdc)}`));
     const actions=node("div",undefined,{class:"actions"});
-    if(BigInt(p.ptRaw)>0n&&(p.matured||!treasury))actions.append(button(p.matured?"Cash out":"Sell early",()=>exitPosition(p,{treasury})));
+    if(BigInt(p.ptRaw)>0n&&(p.matured||!treasury))actions.append(button(p.matured?"Cash out":"Sell early",()=>exitPosition(p,{treasury}),p.matured?{class:"cta"}:{}));
     if(p.matured&&BigInt(p.ptRaw)>0n)actions.append(button("Take vault shares",()=>exitPosition(p,{treasury,toAssets:false})));
     if(!treasury&&!p.matured&&BigInt(p.ptRaw)>0n&&BigInt(p.ytRaw)>0n)actions.append(button("Merge tickets",()=>exitPosition(p,{merge:true})),button("Merge to shares",()=>exitPosition(p,{merge:true,toAssets:false})));
     if(BigInt(p.interestSharesRaw)>0n)actions.append(button("Claim interest",()=>exitPosition(p,{treasury,claim:true})),button("Claim as shares",()=>exitPosition(p,{treasury,claim:true,toAssets:false})));
