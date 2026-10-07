@@ -1,0 +1,24 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run compile && mkdir -p frontend/vendor && cp node_modules/ethers/dist/ethers.min.js frontend/vendor/ethers.min.js",
+  "outputDirectory": "frontend",
+  "cleanUrls": true,
+  "functions": {
+    "api/[...path].ts": {
+      "includeFiles": "{artifacts,deployments}/**"
+    }
+  },
+  "rewrites": [
+    { "source": "/ethers.mjs", "destination": "/vendor/ethers.min.js" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "no-referrer" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'" }
+      ]
+    }
+  ]
+}

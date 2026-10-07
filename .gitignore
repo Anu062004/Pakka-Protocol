@@ -13,3 +13,7 @@ playwright-report/
 test-results/
 .env.*.local
 .claude/
+
+# Build artifact copied next to the other static assets for serverless deploys.
+frontend/vendor/
+.vercel

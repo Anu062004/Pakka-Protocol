@@ -23,8 +23,14 @@ export interface CreateAppOptions {
   allowedOrigins?: string[] | null;
 }
 
-export function createApp({ getService, manifest, port = 4173, allowedHosts = DEFAULT_HOSTS, allowedOrigins = null }: CreateAppOptions): http.Server {
-  const server = http.createServer(async (req, res) => {
+// Routes return the value of their terminating res call, so the result is deliberately unused.
+export type RequestHandler = (req: http.IncomingMessage, res: http.ServerResponse) => Promise<unknown>;
+
+// Split out so a serverless host (which has no listening socket of its own) can serve the
+// same routes; resolvePort only supplies the dev-default origin allowlist when none is set.
+export function createHandler({ getService, manifest, port = 4173, allowedHosts = DEFAULT_HOSTS, allowedOrigins = null }: CreateAppOptions,
+  resolvePort: () => number = () => port): RequestHandler {
+  return async (req, res) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("Referrer-Policy", "no-referrer");
     res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
@@ -33,7 +39,7 @@ export function createApp({ getService, manifest, port = 4173, allowedHosts = DE
       const host = new URL(`http://${req.headers.host ?? "localhost"}`).hostname;
       if (!allowedHosts.includes(host)) return json(res, 403, { error: "HOST_NOT_ALLOWED" });
       if (req.method !== "GET") return json(res, 405, { error: "READ_ONLY_API" });
-      const boundPort = (server.address() as { port: number } | null)?.port ?? port;
+      const boundPort = resolvePort();
       // allowedOrigins lets an operator front this with a TLS reverse proxy on a public
       // hostname; without it, only the same-origin dev defaults for the bound port are allowed.
       const origins = allowedOrigins ?? [`http://127.0.0.1:${boundPort}`, `http://localhost:${boundPort}`];
@@ -68,7 +74,11 @@ export function createApp({ getService, manifest, port = 4173, allowedHosts = DE
       }
       const files: Record<string, string> = { "/": "frontend/index.html", "/landing.css": "frontend/landing.css",
         "/app": "frontend/app.html", "/app.mjs": "frontend/app.mjs", "/app.css": "frontend/app.css", "/fonts.css": "frontend/fonts.css",
-        "/errors.mjs": "frontend/errors.mjs", "/wallet.mjs": "frontend/wallet.mjs", "/ethers.mjs": "node_modules/ethers/dist/ethers.min.js" };
+        "/errors.mjs": "frontend/errors.mjs", "/wallet.mjs": "frontend/wallet.mjs",
+        // Serverless bundlers trace imports, not fs reads, so the build copies ethers next to
+        // the other static assets; node_modules stays the source of truth for local dev.
+        "/ethers.mjs": fs.existsSync(path.join(projectRoot, "frontend/vendor/ethers.min.js"))
+          ? "frontend/vendor/ethers.min.js" : "node_modules/ethers/dist/ethers.min.js" };
       const file = files[url.pathname];
       if (!file) return json(res, 404, { error: "NOT_FOUND" });
       const extension = path.extname(file);
@@ -86,7 +96,13 @@ export function createApp({ getService, manifest, port = 4173, allowedHosts = DE
       }
       json(res, 503, { error: code });
     }
-  });
+  };
+}
+
+export function createApp(options: CreateAppOptions): http.Server {
+  const server = http.createServer();
+  server.on("request", createHandler(options, () =>
+    (server.address() as { port: number } | null)?.port ?? options.port ?? 4173));
   return server;
 }
 
