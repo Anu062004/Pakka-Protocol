@@ -71,6 +71,7 @@ npm run dev        # http://127.0.0.1:4173
 | `npm run test:system` | Security and invariant suite. |
 | `npm run typecheck` | `tsc --noEmit`; type-checks without executing. |
 | `npm run security` | Static analysis and coverage gates. |
+| `npm run agent:setup` | Provision a treasury and agent wallet from the terminal. |
 
 Tests cover split/merge/transfer/maturity and loss-recovery paths, variable share
 decimals, illiquid exits, exact arithmetic, and thousands of deterministic random

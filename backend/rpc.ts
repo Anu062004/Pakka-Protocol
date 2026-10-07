@@ -38,3 +38,17 @@ export function rpcProvider(env: NodeJS.ProcessEnv = process.env, { chainId = 50
   primary.destroy = () => { backup?.destroy(); destroy(); };
   return primary;
 }
+
+// ethers keeps a block poller running after tx.wait(); destroying the provider rejects any
+// request still in flight, with nothing awaiting it. That surfaces as an unhandled rejection
+// after the work already succeeded, so a finished script looks like it crashed. Only this
+// exact shutdown signature is swallowed.
+export function shutdown(provider: { removeAllListeners: () => void; destroy: () => void }): void {
+  const ignore = (error: unknown): void => {
+    const e = error as { code?: string; operation?: string } | null;
+    if (e?.code !== "UNSUPPORTED_OPERATION" || !e.operation) throw error;
+  };
+  process.on("unhandledRejection", ignore);
+  provider.removeAllListeners();
+  provider.destroy();
+}

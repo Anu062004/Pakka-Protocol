@@ -31,6 +31,35 @@ immediately.
 
 ---
 
+## Setup from a terminal
+
+If you would rather not use a browser, one command does steps 1–2 below:
+
+```sh
+OWNER_PRIVATE_KEY=0xYourOwnerKey npm run agent:setup -- init --daily 5
+```
+
+It generates the agent wallet, creates a treasury you own, authorizes the agent
+on-chain, and writes the key to `runtime/agent-wallet.json` with mode `600`. The
+key is written to a file rather than printed, so it does not end up in your
+shell history or scrollback.
+
+```sh
+npm run agent:setup -- status --tijori 0xYourTreasury   # agent, caps, balance
+npm run agent:setup -- rotate --tijori 0xYourTreasury   # new key, old one dead
+```
+
+**Holding real value?** Do not put the owner key in an environment variable. Use
+`--unsigned` to generate the agent wallet and print the transaction, then sign it
+from a hardware wallet or multisig:
+
+```sh
+npm run agent:setup -- init --daily 5 --unsigned
+```
+
+Then deposit USDC (the app's **Add funds**, or a direct `deposit` call) and skip
+to step 3.
+
 ## Step 1 — Create your treasury
 
 1. Open the app and go to **Tijori**.
