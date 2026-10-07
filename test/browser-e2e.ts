@@ -22,7 +22,7 @@ before(async()=>{
   const service=new ReadService({provider,manifest:system.manifest});
   server=createApp({manifest:system.manifest,port:0,getService:()=>service});
   await new Promise<void>((resolve,reject)=>{server.once("error",reject);server.listen(0,"127.0.0.1",()=>resolve());});
-  baseURL=`http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+  baseURL=`http://127.0.0.1:${(server.address() as AddressInfo).port}/app`;
   snapshot=await hre.network.provider.send("evm_snapshot");
 });
 beforeEach(async()=>{

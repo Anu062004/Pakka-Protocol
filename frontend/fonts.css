@@ -1,0 +1,17 @@
+/* Self-hosted IBM Plex faces (latin subset only). Loaded same-origin so the
+   backend's CSP (style-src/default-src 'self') does not need to allow
+   fonts.googleapis.com / fonts.gstatic.com. */
+@font-face{font-family:"Plex Sans";font-style:normal;font-weight:400;font-display:swap;src:url("/fonts/plex-sans-400.woff2") format("woff2")}
+@font-face{font-family:"Plex Sans";font-style:normal;font-weight:500;font-display:swap;src:url("/fonts/plex-sans-500.woff2") format("woff2")}
+@font-face{font-family:"Plex Sans";font-style:normal;font-weight:600;font-display:swap;src:url("/fonts/plex-sans-600.woff2") format("woff2")}
+@font-face{font-family:"Plex Sans";font-style:normal;font-weight:700;font-display:swap;src:url("/fonts/plex-sans-700.woff2") format("woff2")}
+
+@font-face{font-family:"Plex Serif";font-style:normal;font-weight:400;font-display:swap;src:url("/fonts/plex-serif-400.woff2") format("woff2")}
+@font-face{font-family:"Plex Serif";font-style:normal;font-weight:500;font-display:swap;src:url("/fonts/plex-serif-500.woff2") format("woff2")}
+@font-face{font-family:"Plex Serif";font-style:normal;font-weight:600;font-display:swap;src:url("/fonts/plex-serif-600.woff2") format("woff2")}
+@font-face{font-family:"Plex Serif";font-style:normal;font-weight:700;font-display:swap;src:url("/fonts/plex-serif-700.woff2") format("woff2")}
+@font-face{font-family:"Plex Serif";font-style:italic;font-weight:400;font-display:swap;src:url("/fonts/plex-serif-400-italic.woff2") format("woff2")}
+
+@font-face{font-family:"Plex Mono";font-style:normal;font-weight:400;font-display:swap;src:url("/fonts/plex-mono-400.woff2") format("woff2")}
+@font-face{font-family:"Plex Mono";font-style:normal;font-weight:500;font-display:swap;src:url("/fonts/plex-mono-500.woff2") format("woff2")}
+@font-face{font-family:"Plex Mono";font-style:normal;font-weight:600;font-display:swap;src:url("/fonts/plex-mono-600.woff2") format("woff2")}

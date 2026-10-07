@@ -663,6 +663,11 @@ EIP-5792 batched-call path with a two-transaction approve/act/revoke fallback.
 npm run dev   # http://127.0.0.1:4173, reading deployments/arc-testnet.json
 ```
 
+`/` serves the marketing landing page (`frontend/index.html` + `landing.css`,
+static, no wallet code); `/app` serves the operational app (`frontend/app.html`
+— rates, lock, positions, Tijori). The landing page's "Launch app" links point
+to `/app`; the app's rail has an "← About Pakka" link back to `/`.
+
 | Route | Returns |
 | --- | --- |
 | `GET /api/deployment` | Public contract addresses and registered series from the manifest. Never includes keys or RPC URLs. |

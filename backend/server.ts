@@ -60,7 +60,14 @@ export function createApp({ getService, manifest, port = 4173, allowedHosts = DE
           tijori: url.searchParams.get("tijori") ?? undefined, fromBlock: url.searchParams.has("fromBlock") ? Number(url.searchParams.get("fromBlock")) : undefined }));
         return json(res, 404, { error: "NOT_FOUND" });
       }
-      const files: Record<string, string> = { "/": "frontend/index.html", "/app.mjs": "frontend/app.mjs", "/app.css": "frontend/app.css",
+      if (/^\/fonts\/[\w-]+\.woff2$/.test(url.pathname)) {
+        const file = path.join(projectRoot, "frontend", url.pathname);
+        if (!fs.existsSync(file)) return json(res, 404, { error: "NOT_FOUND" });
+        res.writeHead(200, { "Content-Type": "font/woff2", "Cache-Control": "no-store" });
+        return res.end(fs.readFileSync(file));
+      }
+      const files: Record<string, string> = { "/": "frontend/index.html", "/landing.css": "frontend/landing.css",
+        "/app": "frontend/app.html", "/app.mjs": "frontend/app.mjs", "/app.css": "frontend/app.css", "/fonts.css": "frontend/fonts.css",
         "/errors.mjs": "frontend/errors.mjs", "/wallet.mjs": "frontend/wallet.mjs", "/ethers.mjs": "node_modules/ethers/dist/ethers.min.js" };
       const file = files[url.pathname];
       if (!file) return json(res, 404, { error: "NOT_FOUND" });

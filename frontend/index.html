@@ -1,55 +1,177 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Pakka · Fixed-rate USDC</title><link rel="stylesheet" href="/app.css"><script type="module" src="/app.mjs"></script></head>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pakka · Fixed-rate USDC on Arc</title>
+<meta name="description" content="Pakka splits a Morpho USDC vault position on Arc into a fixed payout and a variable yield. Buy the fixed side at a discount and know exactly what you'll have, and when.">
+<link rel="stylesheet" href="/fonts.css">
+<link rel="stylesheet" href="/landing.css">
+</head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
-<div class="shell">
-  <aside class="rail"><a class="brand" href="#rates">Pakka<span>USDC, with a date.</span></a>
-    <nav aria-label="Main"><a href="#rates">Rates</a><a href="#lock">Lock</a><a href="#positions">Positions</a><a href="#tijori">Tijori</a></nav>
-    <p class="network">Arc Testnet<br><span>Faucet funds only</span></p>
-  </aside>
-  <div class="workspace"><header class="topbar"><span id="network-status">Waiting for deployment</span><button id="connect">Connect wallet</button></header>
-    <main id="main">
-      <p id="notice" role="status" aria-live="polite">Loading testnet configuration…</p>
-      <div id="transaction" aria-live="polite"></div>
-      <section id="rates" class="page"><h1>Choose your date.</h1><p>Buy a principal ticket today. Redeem it at maturity. Rates include the current pool quote.</p>
-        <div class="variable"><div><h2>Morpho variable rate</h2><p id="variable-rate">— · Live vault feed not configured</p></div><p>Fixed quotes below are simple annualized rates, not APY. Vault losses and withdrawal limits still apply.</p></div>
-        <div id="rates-list" class="list"><p>No rates loaded yet.</p></div>
-        <button id="refresh-rates" class="text-button">Refresh rates</button>
-      </section>
-      <section id="lock" class="page" hidden><h1>Lock a future payout.</h1><p>Your ticket’s face value is measured in USDC. The amount you pay today comes from a fresh quote.</p>
-        <div class="split"><form id="lock-form"><label for="face">Face value at maturity · USDC</label><input id="face" inputmode="decimal" value="1" required pattern="[0-9]+(\.[0-9]{1,6})?">
-          <label for="maturity">Maturity</label><select id="maturity" required><option value="">Choose a date</option></select>
-          <button id="get-quote" type="button">Get quote</button><button id="lock-submit" type="submit" disabled>Lock USDC</button>
-          <p id="approval-note" class="helper">Compatible wallets batch approval and purchase. Other wallets confirm two transactions.</p>
-        </form><div class="quote" id="quote-details"><h2>Your quote</h2><p>Choose a maturity and amount to see the cost, payout and rate.</p></div></div>
-      </section>
-      <section id="positions" class="page" hidden><h1>Your dated tickets.</h1><p>Early sales depend on pool liquidity. Mature tickets can be cashed out in USDC or vault shares.</p><div id="positions-list" class="list"><p>Connect your wallet to see your positions.</p></div><button id="refresh-positions" class="text-button">Refresh positions</button></section>
-      <section id="tijori" class="page" hidden><h1>A treasury with limits.</h1><p>You own the funds. Your agent can buy tickets and pay only approved payees within your limits.</p>
-        <div id="treasury-status">Connect your wallet to open your Tijori.</div>
-        <form id="create-form" hidden><h2>Create your Tijori</h2><label for="initial-agent">Agent address</label><input id="initial-agent" placeholder="0x…" required>
-          <label for="initial-daily">Daily payment limit · USDC</label><input id="initial-daily" value="5" inputmode="decimal" required><button>Create Tijori</button></form>
-        <div id="treasury-controls" hidden>
-          <div class="owner-grid"><form id="deposit-form"><h2>Add funds</h2><label for="deposit-amount">USDC</label><input id="deposit-amount" inputmode="decimal" value="1" required><button>Deposit USDC</button></form>
-            <form id="payee-form"><h2>Approve a payee</h2><label for="payee-address">Payee address</label><input id="payee-address" placeholder="0x…" required>
-              <label for="payee-cap">Rolling 30-day limit · USDC</label><input id="payee-cap" inputmode="decimal" value="5" required><button>Save payee limit</button><p class="helper">A zero limit revokes future payments. Previous spending remains counted.</p></form>
-            <form id="policy-form"><h2>Agent controls</h2><label for="daily-cap">Daily payment limit · USDC</label><input id="daily-cap" inputmode="decimal" required><button>Save daily limit</button>
-              <button id="pause-agent" type="button">Pause agent</button><label for="new-agent">Replace agent address</label><input id="new-agent" placeholder="0x…"><button id="rotate-agent" type="button">Replace agent</button></form>
-            <form id="withdraw-form"><h2>Owner withdrawal</h2><label for="withdraw-amount">USDC</label><input id="withdraw-amount" inputmode="decimal" value="1" required><button>Withdraw USDC</button><p class="helper">Owner recovery stays available while your agent is paused.</p></form></div>
-          <section class="agent-setup"><h2>Connect your AI agent</h2><p>Generate a new key in this browser. Save it once on your device, authorize its public address, then fund its testnet gas.</p><button id="connect-agent">Connect your AI agent</button>
-            <div id="agent-secret" hidden><label for="one-time-key">Private key · shown only in this session</label><input id="one-time-key" type="password" readonly autocomplete="off" spellcheck="false">
-              <button id="show-key">Show key</button><button id="copy-key">Copy key</button><p id="agent-public"></p>
-              <label for="mcp-config">Claude Desktop MCP configuration</label><textarea id="mcp-config" readonly rows="9" spellcheck="false"></textarea><button id="copy-config">Copy config</button><button id="hide-key">Clear private key</button>
-              <p class="helper">The key stays in browser memory until cleared. Paste it only into your local configuration. Never share it in chat or commit it.</p></div>
-          </section>
-          <h2>Tijori positions</h2><div id="treasury-positions" class="list"></div>
-          <section><h2>Upcoming bills</h2><p class="helper">This calendar stays on this device. It does not schedule automatic payments.</p>
-            <form id="bill-form" class="bill-form"><label for="bill-payee">Payee address<input id="bill-payee" required placeholder="0x…"></label><label for="bill-amount">USDC<input id="bill-amount" inputmode="decimal" value="1" required></label><label for="bill-date">Due date<input id="bill-date" type="date" required></label><button>Add bill</button></form><div id="bills"></div></section>
-          <h2>Activity</h2><div id="activity" class="list"></div><button id="refresh-treasury" class="text-button">Refresh Tijori</button>
+
+<header class="site">
+  <a class="wordmark" href="/">Pakka<span>USDC, with a date.</span></a>
+  <nav class="nav-menu" aria-label="Main">
+    <a href="#how-it-works">How it works</a>
+    <a href="#agents">For agents</a>
+    <a href="#safety">Safety</a>
+    <a href="https://github.com/Anu062004/Pakka-Protocol" rel="noopener noreferrer">GitHub</a>
+  </nav>
+  <a class="cta" href="/app">Launch app</a>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <div>
+      <p class="eyebrow">Arc Testnet · Built for agents</p>
+      <h1>USDC, with a date.</h1>
+      <p class="lede">Pakka splits a Morpho USDC vault position into a fixed payout and a variable yield. Buy the fixed side at a discount, and you know exactly what you'll have — and when.</p>
+      <div class="ctas">
+        <a class="cta" href="/app">Launch app</a>
+        <a class="cta ghost" href="https://github.com/Anu062004/Pakka-Protocol" rel="noopener noreferrer">View contracts</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <svg class="ticket" viewBox="0 0 162 66" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="An illustrative ticket: PT-USDC-31DEC26, redeems for 1.000000 USDC on 31 December 2026, fixed rate 4.9% bought at 0.9889 USDC">
+        <defs>
+          <mask id="notch">
+            <rect x="0" y="0" width="162" height="66" fill="#fff" />
+            <circle cx="116" cy="0" r="4.2" fill="#000" />
+            <circle cx="116" cy="66" r="4.2" fill="#000" />
+          </mask>
+          <pattern id="guil" width="6" height="6" patternUnits="userSpaceOnUse">
+            <path d="M0 3 Q1.5 0 3 3 T6 3" fill="none" stroke="#3A4BA8" stroke-width="0.35" />
+          </pattern>
+        </defs>
+        <g mask="url(#notch)">
+          <rect x="0" y="0" width="162" height="66" rx="2.2" fill="#23338A" />
+          <rect x="0" y="0" width="116" height="66" fill="url(#guil)" opacity="0.55" />
+          <rect x="116" y="0" width="46" height="66" fill="#1B2870" />
+        </g>
+        <line x1="116" y1="5" x2="116" y2="61" stroke="#EEF1FA" stroke-width="0.5" stroke-dasharray="1.4 1.6" />
+        <rect x="6" y="6" width="104" height="54" rx="1.2" fill="none" stroke="#EEF1FA" stroke-opacity="0.35" stroke-width="0.35" />
+        <text x="11" y="15" font-size="3.6" fill="#C9D1EE">Principal token</text>
+        <text x="11" y="21.5" font-size="5" font-weight="600" fill="#ffffff" letter-spacing="0.2">PT-USDC-31DEC26</text>
+        <text x="11" y="33" font-size="3.6" fill="#C9D1EE">Redeems for</text>
+        <text x="11" y="44" font-size="10.5" font-weight="600" fill="#ffffff">1.000000 USDC</text>
+        <text x="11" y="50.5" font-size="4.6" fill="#ffffff">on 31 December 2026</text>
+        <text x="11" y="56.5" font-size="2.9" fill="#C9D1EE">Backed by Morpho USDC vault shares on Arc</text>
+        <text x="139" y="17" font-size="3.6" fill="#C9D1EE" text-anchor="middle">Fixed rate</text>
+        <text x="139" y="33" font-size="13" font-weight="600" fill="#E3A63B" text-anchor="middle">4.9%</text>
+        <text x="139" y="39.5" font-size="3.1" fill="#C9D1EE" text-anchor="middle">bought at 0.9889 USDC</text>
+        <text x="139" y="55" font-size="2.7" fill="#8F9BCB" text-anchor="middle">Illustrative ticket</text>
+      </svg>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="band-inner problem">
+      <div>
+        <p class="kicker">The problem</p>
+        <h2>Every rate on Arc changes daily.</h2>
+        <p class="intro">Morpho might pay 5% this week and 3% next month. Fine for a saver who checks in. Not fine for an AI agent that owes 50&nbsp;USDC for an API bill in exactly 30 days and has to know today, with certainty, that it will have it.</p>
+      </div>
+      <blockquote>In Hindi, <em>pakka</em> means certain — a deal that is settled and will not change. That is the promise a fixed rate makes.</blockquote>
+    </div>
+  </section>
+
+  <section class="band alt" id="agents">
+    <div class="band-inner">
+      <p class="kicker">Who it's for</p>
+      <h2>A saver, an agent, and the market that connects them.</h2>
+      <p class="intro">Pakka works the same way for a person with idle USDC and for software managing its own budget.</p>
+      <div class="cards">
+        <article class="card">
+          <p class="who">Priya saves</p>
+          <h3>Picks a date, signs once.</h3>
+          <p>She has 100&nbsp;USDC she won't need for three months. She picks 31 January, signs once, and gets a ticket that pays a known amount on that date — or she sells it early if plans change.</p>
+        </article>
+        <article class="card">
+          <p class="who">Rahul's agent budgets</p>
+          <h3>Builds its own bond ladder.</h3>
+          <p>His agent spends ~50&nbsp;USDC a month on paid APIs. One call books three tickets, one per month. Each matures exactly when a bill is due, inside a Tijori the agent can't empty.</p>
+        </article>
+        <article class="card">
+          <p class="who">Arjun buys the variable side</p>
+          <h3>Takes the other side of the trade.</h3>
+          <p>He thinks Morpho's rate is going up, so he buys the yield token instead. The two sides always add up to one asset — that's what makes the fixed rate possible in the first place.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="band" id="how-it-works">
+    <div class="band-inner">
+      <p class="kicker">How it works</p>
+      <h2>Three steps, no rate guessing.</h2>
+      <p class="intro">The mechanism is Pendle's split-yield design, applied to a Morpho vault on Arc — nothing like it exists on Arc yet.</p>
+      <div class="steps">
+        <div class="step"><span class="num">01</span><div><h3>Split</h3><p>A vault position splits into a principal ticket (PT), worth exactly 1&nbsp;USDC at maturity, and a yield token (YT) that collects every bit of variable interest until then.</p></div></div>
+        <div class="step"><span class="num">02</span><div><h3>Buy at a discount</h3><p>Buy PT below 1&nbsp;USDC on the open market. The discount <em>is</em> your fixed rate — known the moment you buy, not estimated from a changing pool rate.</p></div></div>
+        <div class="step"><span class="num">03</span><div><h3>Redeem on the date</h3><p>On maturity day, redeem PT for exactly 1&nbsp;USDC. No rate math, no checking back — the ticket already told you the number.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band alt" id="safety">
+    <div class="band-inner safety">
+      <div>
+        <p class="kicker">Built for agents</p>
+        <h2>A safe your agent can't empty.</h2>
+        <p class="intro">Agents shouldn't hold a budget freely. A Tijori (Hindi for safe) is a small contract the owner deploys. The agent can act inside it — never outside it.</p>
+      </div>
+      <div class="safety-grid">
+        <div class="rules can">
+          <h3>The agent can</h3>
+          <ul>
+            <li>Buy PT through the router, for registered series only</li>
+            <li>Cash out matured PT, claim YT interest</li>
+            <li>Pay owner-approved payees, within per-payee and daily caps</li>
+          </ul>
         </div>
-      </section>
-    </main><footer>Pakka · Testnet build · 500 USDC maximum new-entry TVL per series</footer>
+        <div class="rules cannot">
+          <h3>The agent cannot</h3>
+          <ul>
+            <li>Send USDC, PT or YT to any address it chooses</li>
+            <li>Change its own limits, payees, or the router</li>
+            <li>Act after the owner pauses it or replaces its key</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <div class="band-inner">
+      <p class="kicker">Why Arc</p>
+      <h2>USDC is the money and the gas.</h2>
+      <p class="intro">An agent never needs a second, volatile token just to keep transacting — and running out of gas is a real way for a bot to stall on other chains.</p>
+      <div class="stats">
+        <div class="stat-item"><strong>&lt;1s</strong><span>Deterministic finality on Arc</span></div>
+        <div class="stat-item"><strong>$0.001</strong><span>Target cost per ERC-20 transfer</span></div>
+        <div class="stat-item"><strong>$500M+</strong><span>Deposited into Morpho on Arc within weeks of launch</span></div>
+        <div class="stat-item"><strong>1 asset</strong><span>USDC pays for everything — no gas token to hold</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="closing">
+    <h2>Pick a date. Know the number.</h2>
+    <p>Live on Arc Testnet — unaudited, demo liquidity, testnet funds only.</p>
+    <div class="ctas">
+      <a class="cta" href="/app">Launch app</a>
+      <a class="cta ghost" href="https://github.com/Anu062004/Pakka-Protocol" rel="noopener noreferrer">View on GitHub</a>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="footer-inner">
+    <span>Pakka · Unaudited testnet software, built for the Arc Microgrants program.</span>
+    <span><a href="https://github.com/Anu062004/Pakka-Protocol" rel="noopener noreferrer">GitHub</a> · <a href="/app">Launch app</a></span>
   </div>
-</div>
-</body></html>
+</footer>
+</body>
+</html>
