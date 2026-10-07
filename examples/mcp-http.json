@@ -1,0 +1,11 @@
+{
+  "_comment": "Config for any MCP client that connects over HTTP (Hermes, OpenClaw, custom agents). Start the endpoint first with: AGENT_TIJORI_ADDRESS=0x... AGENT_PRIVATE_KEY=0x... AGENT_HTTP_TOKEN=$(openssl rand -hex 24) npm run agent:http",
+  "mcpServers": {
+    "pakka": {
+      "url": "http://127.0.0.1:4174/mcp",
+      "headers": {
+        "Authorization": "Bearer REPLACE_WITH_YOUR_AGENT_HTTP_TOKEN"
+      }
+    }
+  }
+}

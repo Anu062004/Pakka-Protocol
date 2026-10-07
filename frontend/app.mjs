@@ -151,7 +151,17 @@ async function refreshTreasury(){
   notice("Tijori refreshed.");
 }
 async function treasuryWrite(method,args){const wallet=requireWallet();const receipt=await wallet.write(contract("Tijori",state.treasury.address),method,args);await showReceipt(receipt,wallet);await refreshTreasury();}
-function clearKey(){$("one-time-key").value="";$("one-time-key").type="password";$("mcp-config").value="";$("agent-secret").hidden=true;}
+function clearKey(){$("one-time-key").value="";$("one-time-key").type="password";$("mcp-config").value="";$("agent-secret").hidden=true;
+  $("new-agent-key").value="";$("new-agent-key").type="password";$("new-agent-secret").hidden=true;$("show-new-key").disabled=false;}
+// A treasury cannot be created without an agent address, so the wallet is generated here
+// rather than leaving a first-time owner with nothing valid to enter.
+function generateAgent(){
+  const generated=Wallet.createRandom();
+  $("initial-agent").value=generated.address;
+  $("new-agent-key").value=generated.privateKey;$("new-agent-key").type="password";
+  $("new-agent-secret").hidden=false;$("show-new-key").disabled=false;
+  notice("Agent wallet generated in this browser. Save the key, then create your treasury.");
+}
 async function connectAgent(){
   const wallet=requireWallet();if(!state.treasury?.address)throw new Error("AlreadyExists");
   clearKey();const generated=Wallet.createRandom();
@@ -185,6 +195,9 @@ form("policy-form",()=>treasuryWrite("setDailyCap",[amount($("daily-cap").value,
 $("pause-agent").onclick=()=>run(()=>treasuryWrite("setPaused",[!state.treasury.paused]));$("rotate-agent").onclick=()=>run(()=>treasuryWrite("setAgent",[getAddress($("new-agent").value)]));
 form("withdraw-form",()=>treasuryWrite("withdraw",[state.manifest.usdc,amount($("withdraw-amount").value)]));
 $("connect-agent").onclick=()=>run(connectAgent);$("hide-key").onclick=clearKey;$("show-key").onclick=()=>{$("one-time-key").type="text";$("show-key").disabled=true;};
+$("generate-agent").onclick=()=>run(async()=>generateAgent());
+$("show-new-key").onclick=()=>{$("new-agent-key").type="text";$("show-new-key").disabled=true;};
+$("copy-new-key").onclick=()=>run(async()=>{if(!$("new-agent-key").value)return;await navigator.clipboard.writeText($("new-agent-key").value);notice("Agent key copied. Save it before creating the treasury.");});
 $("copy-key").onclick=()=>run(async()=>{if(!$("one-time-key").value)return;await navigator.clipboard.writeText($("one-time-key").value);$("one-time-key").value="";notice("Key copied and cleared from the field. Save it in your local configuration.");});
 $("copy-config").onclick=()=>run(async()=>{await navigator.clipboard.writeText($("mcp-config").value);notice("MCP config copied. Replace the key placeholder only in your local file.");});
 form("bill-form",async()=>{const bills=readBills();if(bills.length>=100)throw new Error("InvalidAmount");const bill={id:crypto.randomUUID(),payee:getAddress($("bill-payee").value),amount:formatUnits(amount($("bill-amount").value),6),date:$("bill-date").value};localStorage.setItem(billsKey(),JSON.stringify([...bills,bill]));renderBills();notice("Bill added to this device's calendar.");});

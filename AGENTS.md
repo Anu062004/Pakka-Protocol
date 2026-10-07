@@ -1,224 +1,223 @@
 # Connect your agent to Pakka
 
-Pakka exposes its treasury as an **MCP server**, so any agent that speaks MCP —
-Claude Desktop, Hermes, OpenClaw, or something you wrote yourself — can use it
-without a custom integration.
+Give your AI agent a budget it can spend on fixed-rate USDC positions, without
+giving it your wallet.
 
-Your agent never holds your money. It gets a key that can only do what your
-treasury contract allows, and you can revoke it at any time.
-
----
-
-## How the safety model works
-
-Read this first; it explains why the setup has the steps it has.
-
-A **Tijori** is a treasury contract you own. You deposit USDC into it and
-authorize one agent address. The contract — not the agent, and not this
-software — decides what that agent can do.
-
-| Your agent can | Your agent cannot |
-| --- | --- |
-| Buy principal tokens for registered maturities | Send funds to any address it chooses |
-| Redeem matured positions back into your treasury | Change its own spending limits |
-| Claim earned interest into your treasury | Withdraw to itself or to you |
-| Pay payees **you** approved, within your caps | Add a new payee |
-| | Act at all once you pause it |
-
-So the agent key is a **limited permission**, not ownership. If it leaks, the
-worst case is bounded by the caps you set, and you can pause the agent on-chain
-immediately.
+Works with anything that speaks MCP — Claude Desktop, Hermes, OpenClaw, or your
+own code.
 
 ---
 
-## Setup from a terminal
+## What you are setting up
 
-If you would rather not use a browser, one command does steps 1–2 below:
+Three separate things. Keeping them straight makes the rest obvious.
+
+| | What it is | Holds |
+| --- | --- | --- |
+| **Your wallet** | The MetaMask you already have | Your real money |
+| **Your Tijori** | A treasury contract you own | The USDC your agent may use |
+| **Agent wallet** | A throwaway key you create in step 2 | Only gas — never your funds |
+
+Your agent gets the third one. It is a **permission**, not ownership. The
+treasury contract enforces the limits, so even a leaked agent key cannot drain
+you, and you can pause it instantly.
+
+---
+
+# Part 1 — Create your treasury
+
+Pick **A** if you use MetaMask. Pick **B** if you live in a terminal.
+
+## A. In the browser (recommended)
+
+1. Open the app and select **Tijori**.
+2. Select **Connect wallet** and approve in MetaMask. Use Arc Testnet.
+3. Under **Create your Tijori**, select **Generate agent wallet**.
+   - This creates a keypair *in your browser*. It is never sent to any server.
+   - The private key appears once. Select **Copy** and save it somewhere safe.
+   - The agent address fills in automatically.
+4. Set a **daily payment limit** (start at 5 USDC).
+5. Select **Create Tijori** and confirm in MetaMask.
+6. Select **Add funds** and deposit USDC into the treasury.
+
+You now have a treasury address and an agent key. Keep both.
+
+## B. In the terminal
 
 ```sh
 OWNER_PRIVATE_KEY=0xYourOwnerKey npm run agent:setup -- init --daily 5
 ```
 
-It generates the agent wallet, creates a treasury you own, authorizes the agent
-on-chain, and writes the key to `runtime/agent-wallet.json` with mode `600`. The
-key is written to a file rather than printed, so it does not end up in your
-shell history or scrollback.
+Generates the agent wallet, creates the treasury, authorizes the agent, and
+writes the key to `runtime/agent-wallet.json` with mode `600`. It prints the
+treasury and agent addresses; the key stays in the file so it never reaches your
+shell history.
+
+**Holding real value?** Don't put your owner key in an environment variable:
+
+```sh
+npm run agent:setup -- init --daily 5 --unsigned
+```
+
+This generates the agent wallet and prints the transaction for you to sign from
+a hardware wallet or multisig.
+
+Useful afterwards:
 
 ```sh
 npm run agent:setup -- status --tijori 0xYourTreasury   # agent, caps, balance
 npm run agent:setup -- rotate --tijori 0xYourTreasury   # new key, old one dead
 ```
 
-**Holding real value?** Do not put the owner key in an environment variable. Use
-`--unsigned` to generate the agent wallet and print the transaction, then sign it
-from a hardware wallet or multisig:
+---
+
+# Part 2 — Fund the agent's gas
+
+**Do not skip this.** Your agent submits its own transactions, so it pays its
+own gas. With an empty agent wallet, every write fails.
+
+Send a small amount of gas to the **agent address** (not the treasury). On Arc,
+gas is USDC. About 1 USDC is plenty for testing.
+
+Check it worked:
 
 ```sh
-npm run agent:setup -- init --daily 5 --unsigned
+npm run agent:setup -- status --tijori 0xYourTreasury
 ```
 
-Then deposit USDC (the app's **Add funds**, or a direct `deposit` call) and skip
-to step 3.
+---
 
-## Step 1 — Create your treasury
+# Part 3 — Connect your agent
 
-1. Open the app and go to **Tijori**.
-2. Connect the wallet you want to *own* the treasury.
-3. Enter a daily payment limit and select **Create Tijori**.
-4. Add funds with **Deposit USDC**.
+## Claude Desktop
 
-You now have a treasury address. Everything below is scoped to it.
+Copy [`examples/claude-desktop.json`](examples/claude-desktop.json) into your
+Claude Desktop config and replace the three `REPLACE_` values:
 
-## Step 2 — Register your agent and get its wallet
+| Replace | With |
+| --- | --- |
+| the path in `args` | absolute path to `agent/mcp-server.ts` |
+| `AGENT_TIJORI_ADDRESS` | your treasury address |
+| `AGENT_PRIVATE_KEY` | your agent private key |
 
-Still on the **Tijori** page, select **Connect your AI agent**.
+The config file lives at:
 
-This generates a fresh keypair **in your browser**. The private key is never
-sent anywhere — not to a server, not into storage. You will see it exactly once.
-
-- **Copy the private key now** and keep it somewhere safe. Closing the panel
-  loses it, and you would have to generate a new one.
-- The matching public address is authorized on-chain as your agent.
-
-If you ever need to revoke it, use **Replace agent** or **Pause agent** on that
-same page. Replacing the key makes the old one useless immediately.
-
-## Step 3 — Configure the connection
-
-Pick the option that matches your agent.
-
-### Option A — Claude Desktop (runs the server for you)
-
-Claude Desktop launches the server as a local process. Use the config shown in
-the app under **Claude Desktop MCP configuration**, and paste your agent key
-into it where indicated:
-
-```json
-{
-  "mcpServers": {
-    "pakka": {
-      "command": "node",
-      "args": ["/absolute/path/to/pakka/agent/mcp-server.ts"],
-      "env": {
-        "AGENT_TIJORI_ADDRESS": "0xYourTreasuryAddress",
-        "AGENT_PRIVATE_KEY": "0xYourAgentPrivateKey"
-      }
-    }
-  }
-}
-```
+- **macOS** — `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows** — `%APPDATA%\Claude\claude_desktop_config.json`
 
 Restart Claude Desktop. The Pakka tools appear automatically.
 
-### Option B — Any other agent (Hermes, OpenClaw, your own)
+## Hermes, OpenClaw, or your own agent
 
-Agents that connect over the network need an endpoint rather than a subprocess.
-Run the gateway yourself:
+These connect over the network, so run the endpoint yourself:
 
 ```sh
-AGENT_TIJORI_ADDRESS=0xYourTreasuryAddress \
-AGENT_PRIVATE_KEY=0xYourAgentPrivateKey \
+AGENT_TIJORI_ADDRESS=0xYourTreasury \
+AGENT_PRIVATE_KEY=0xYourAgentKey \
 AGENT_HTTP_TOKEN=$(openssl rand -hex 24) \
 npm run agent:http
 ```
 
-It prints:
+It prints the token and the URL:
 
 ```
 Pakka agent MCP endpoint: http://127.0.0.1:4174/mcp
 ```
 
-Point your agent at that URL with the token as a bearer header. Most MCP clients
-take this shape:
-
-```json
-{
-  "mcpServers": {
-    "pakka": {
-      "url": "http://127.0.0.1:4174/mcp",
-      "headers": { "Authorization": "Bearer YOUR_TOKEN_HERE" }
-    }
-  }
-}
-```
-
-Keep these two values in mind:
+Then use [`examples/mcp-http.json`](examples/mcp-http.json), replacing the token.
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `AGENT_HTTP_PORT` | `4174` | Port to listen on. |
-| `AGENT_HTTP_HOST` | `127.0.0.1` | Loopback only. Change this only if you understand the consequence below. |
+| `AGENT_HTTP_PORT` | `4174` | Port to listen on |
+| `AGENT_HTTP_HOST` | `127.0.0.1` | Loopback only — see the warning below |
 
-**The endpoint signs transactions.** Anyone who can reach it *and* holds the
-token has your agent's permissions. It listens on loopback so that, by default,
-only programs on your own machine can use it. If you expose it to a network, put
-it behind TLS and treat the token like a password. Do not hand your agent key to
-a third party to run this for you — running it yourself is the point.
+**This endpoint signs transactions.** Anyone who can reach it *and* has the token
+has your agent's permissions. It binds to loopback so only programs on your own
+machine can use it. Expose it to a network only behind TLS, and treat the token
+like a password. Do not hand your agent key to someone else to run this for you.
 
-## Step 4 — Check that it works
+## ChatGPT
 
-Ask your agent for the treasury status. A healthy connection returns your
-balance, positions, pause state and limits.
+ChatGPT cannot reach `127.0.0.1` — its servers run remotely, so a local endpoint
+is invisible to it. You would need to host the endpoint on a public HTTPS URL and
+add it as a connector. That means a machine you control, with TLS, exposing a
+signing endpoint to the internet. **Not recommended for a key with real value.**
+Claude Desktop or a local agent is the safer path today.
 
-Good first requests:
+## Brief your agent
 
-- *"What's in my Pakka treasury?"*
-- *"Quote 10 USDC of principal for series 2."*
-- *"Plan a 3-month ladder paying 50 USDC per month."*
-
-A plan is just a plan — nothing is sent until you tell the agent to execute it.
+Once connected, give your agent [`examples/agent-brief.md`](examples/agent-brief.md)
+— paste it into the chat or add it as project context. It explains what the
+treasury is, which tools spend money, how to retry safely, and what the error
+codes mean.
 
 ---
 
-## What your agent can call
+# Part 4 — Check it works
 
-| Tool | Sends a transaction? | Purpose |
-| --- | --- | --- |
-| `treasuryStatus` | No | Balance, positions, pause state, payee limits. |
-| `quotePT` | No | Price a maturity. A quote does not reserve that price. |
-| `planTreasury` | No | Build a ladder across maturities and save it. |
-| `executePlan` | **Yes** | Submit a saved, unexpired plan. |
-| `cashOut` | **Yes** | Redeem matured principal into the treasury. |
-| `claimInterest` | **Yes** | Claim earned interest into the treasury. |
-| `pay` | **Yes** | Pay an approved payee within your caps. |
-| `transactionStatus` | No | Check a submitted operation without resending. |
+Ask your agent:
 
-Every transaction is written to a journal *before* it is broadcast and is keyed
-by an operation ID. If a response is lost, retrying with the same ID resumes the
-original transaction rather than sending a second one — so a timeout cannot
-cause a double payment.
+> What's in my Pakka treasury?
 
-## Tuning limits
+A healthy connection returns your balance, remaining daily allowance, pause
+state and positions. Then try:
 
-Set these where you run the server:
+> Quote 1 USDC of principal for series 2.
 
-| Variable | Default | Effect |
-| --- | --- | --- |
-| `AGENT_SLIPPAGE_BPS` | `50` | Maximum price movement tolerated, in basis points. |
-| `AGENT_CONFIRMATIONS` | `2` | Confirmations required before the next write proceeds. |
-| `AGENT_PLAN_TTL_SECONDS` | `300` | How long a saved plan stays executable. |
-| `AGENT_MAX_GAS_PRICE_GWEI` | `250` | Refuse to sign above this gas price. |
-| `AGENT_GAS_LIMIT_CAP` | `1500000` | Per-transaction gas ceiling. |
+Quotes and plans never spend anything. Nothing moves until you approve an action
+that sends a transaction.
 
-These bound the agent process. Your on-chain caps bound it regardless of what
-the process is configured to do.
+---
 
-## If something goes wrong
+## Where the agent wallet comes from
 
-| Message | Meaning |
+Common question, short answer: **it is an ordinary Ethereum keypair, generated
+locally.** Nothing about it is Pakka-specific.
+
+A private key is 32 random bytes. The public key derives from it over the
+secp256k1 curve, and the address is the last 20 bytes of the public key's
+keccak256 hash. Every wallet works this way.
+
+Three ways to produce one, all equivalent:
+
+| Method | Where the key is generated |
 | --- | --- |
-| `UNAUTHORIZED` | Wrong or missing bearer token. |
-| `AGENT_TIJORI_NOT_CONFIGURED` | `AGENT_TIJORI_ADDRESS` is not set. |
-| `AGENT_DEPLOYMENT_MISMATCH` | The address is not a treasury from this deployment. |
-| `AGENT_SIGNER_REQUIRED` | No `AGENT_PRIVATE_KEY`, so write tools are unavailable. |
-| `AGENT_KEY_NOT_AUTHORIZED` | This key is not the treasury's current agent. Re-register it. |
-| `AGENT_PAUSED` | You paused the agent. Unpause it in the app. |
-| `UNSUPPORTED_CHAIN` | The configured RPC is not Arc Testnet. |
+| **Generate agent wallet** button | In your browser, via `Wallet.createRandom()` |
+| `npm run agent:setup -- init` | On your machine, written to an `0600` file |
+| Any wallet tool | e.g. `cast wallet new`, or a fresh MetaMask account |
 
-Errors are returned as codes on purpose. The server never echoes RPC URLs, key
-material or raw signed transactions back to an agent.
+What makes it *your agent's* wallet is a single on-chain step: your owner wallet
+calls `setAgent(address)` on your treasury. That authorizes it. Before that call
+it is just an address like any other.
+
+So the key never touches a server — not ours, not anyone's. Which is also why
+nobody can recover it for you. If you lose it, generate a new one and rotate:
+
+```sh
+npm run agent:setup -- rotate --tijori 0xYourTreasury
+```
+
+The old key stops working the moment that lands.
 
 ---
 
-Testnet software, funded only from a faucet. Never point this at a wallet that
-holds real money.
+## When things go wrong
+
+| Message | Fix |
+| --- | --- |
+| `UNAUTHORIZED` | Wrong or missing bearer token |
+| `AGENT_TIJORI_NOT_CONFIGURED` | `AGENT_TIJORI_ADDRESS` is not set |
+| `AGENT_DEPLOYMENT_MISMATCH` | That address is not a treasury from this deployment |
+| `AGENT_SIGNER_REQUIRED` | No `AGENT_PRIVATE_KEY`; writes unavailable |
+| `AGENT_KEY_NOT_AUTHORIZED` | This key is not the treasury's current agent — rotate |
+| `AgentPaused` | You paused the agent. Unpause it in the app |
+| `UNSUPPORTED_CHAIN` | The RPC is not Arc Testnet |
+| Agent transactions fail instantly | The agent wallet has no gas — see Part 2 |
+
+Errors are returned as codes deliberately. The server never echoes RPC URLs, key
+material or signed transactions back to an agent.
+
+---
+
+Testnet software, funded from a faucet. Never point this at a wallet holding
+real money.

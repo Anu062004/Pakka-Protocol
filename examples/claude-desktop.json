@@ -1,0 +1,14 @@
+{
+  "_comment": "Claude Desktop config. Copy into claude_desktop_config.json, replace the three REPLACE_ values, then restart Claude Desktop. On macOS the file is at ~/Library/Application Support/Claude/claude_desktop_config.json; on Windows %APPDATA%\\Claude\\claude_desktop_config.json.",
+  "mcpServers": {
+    "pakka": {
+      "command": "node",
+      "args": ["REPLACE_WITH_ABSOLUTE_PATH_TO/pakka/agent/mcp-server.ts"],
+      "env": {
+        "AGENT_TIJORI_ADDRESS": "REPLACE_WITH_YOUR_TREASURY_ADDRESS",
+        "AGENT_PRIVATE_KEY": "REPLACE_WITH_YOUR_AGENT_PRIVATE_KEY",
+        "ARC_TESTNET_RPC_URL": "https://rpc.testnet.arc.io"
+      }
+    }
+  }
+}
