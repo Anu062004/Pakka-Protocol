@@ -140,7 +140,7 @@ npm run agent:setup -- status --tijori 0xYourTreasury
 
 ## Claude Desktop
 
-Copy [`examples/claude-desktop.json`](examples/claude-desktop.json) into your
+Copy [`examples/claude-desktop.json`](../examples/claude-desktop.json) into your
 Claude Desktop config and replace the three `REPLACE_` values:
 
 | Replace | With |
@@ -173,7 +173,7 @@ It prints the token and the URL:
 Pakka agent MCP endpoint: http://127.0.0.1:4174/mcp
 ```
 
-Then use [`examples/mcp-http.json`](examples/mcp-http.json), replacing the token.
+Then use [`examples/mcp-http.json`](../examples/mcp-http.json), replacing the token.
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
@@ -195,7 +195,7 @@ Claude Desktop or a local agent is the safer path today.
 
 ## Brief your agent
 
-Once connected, give your agent [`examples/agent-brief.md`](examples/agent-brief.md)
+Once connected, give your agent [`examples/agent-brief.md`](../examples/agent-brief.md)
 — paste it into the chat or add it as project context. It explains what the
 treasury is, which tools spend money, how to retry safely, and what the error
 codes mean.

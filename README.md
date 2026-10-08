@@ -27,7 +27,7 @@ not a parameter anyone controls.
 | `DemoVault.sol` | Testnet-only ERC-4626 vault over faucet USDC. Yield is simulated by direct donation; it does not lend. |
 
 Entrypoint constructors accept only Arc Testnet (`5042002`) and local
-Hardhat/Anvil (`31337`). Deployed addresses live in [DEPLOYMENTS.md](DEPLOYMENTS.md);
+Hardhat/Anvil (`31337`). Deployed addresses live in [docs/deployments.md](docs/deployments.md);
 `deployments/arc-testnet.json` is the source of truth that code actually reads.
 
 ## Layout
@@ -40,6 +40,8 @@ agent/          MCP server exposing scoped treasury tools
 scripts/        Compile, deploy, register, seed, keeper, security checks
 test/           Contract, backend, agent and browser end-to-end tests
 api/            Serverless entrypoint for platform deploys
+docs/           Agent connection guide and deployed addresses
+examples/       Drop-in MCP client configs, agent brief, keeper service template
 vendor/         Pinned OpenZeppelin and Uniswap v4 sources
 ```
 
@@ -148,7 +150,7 @@ serves `frontend/` from the CDN.
 
 ## Agent treasury
 
-See [AGENTS.md](AGENTS.md) to connect an agent — Claude Desktop over stdio, or
+See [docs/connect-an-agent.md](docs/connect-an-agent.md) to connect an agent — Claude Desktop over stdio, or
 any other MCP client over HTTP.
 
 `agent/` runs an MCP server whose tools are scoped to a single `Tijori`. The

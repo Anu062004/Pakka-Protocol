@@ -320,7 +320,7 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
     console.log(`\nFund ${agent.address} with a little gas, then point your agent at:`);
     console.log(`  AGENT_TIJORI_ADDRESS=${tijoriAddress}`);
     console.log("  AGENT_PRIVATE_KEY=<privateKey from that file>");
-    console.log("\nSee AGENTS.md to connect over stdio or HTTP.");
+    console.log("\nSee docs/connect-an-agent.md to connect over stdio or HTTP.");
   } finally {
     shutdown(provider);
   }
