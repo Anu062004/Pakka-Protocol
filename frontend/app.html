@@ -31,7 +31,7 @@
       <section id="tijori" class="page" hidden><h1>A treasury with limits.</h1><p>You own the funds. Your agent can buy tickets and pay only approved payees within your limits.</p>
         <div id="treasury-status">Connect your wallet to open your Tijori.</div>
         <form id="create-form" hidden><h2>Create your Tijori</h2>
-          <p class="helper">Your treasury needs an agent address. Generate a wallet here if you do not already have one — it is created in this browser and never sent anywhere.</p>
+          <p id="create-helper" class="helper">Your treasury needs an agent address. Generate a wallet here if you do not already have one — it is created in this browser and never sent anywhere.</p>
           <label for="initial-agent">Agent address</label><input id="initial-agent" placeholder="0x…" required>
           <button id="generate-agent" type="button">Generate agent wallet</button>
           <div id="new-agent-secret" hidden>
@@ -40,7 +40,11 @@
             <button id="show-new-key" type="button">Show</button><button id="copy-new-key" type="button">Copy</button>
             <p class="helper">Save this before creating the treasury. It is cleared when you leave the page and cannot be recovered — you would have to generate another and update the treasury.</p>
           </div>
-          <label for="initial-daily">Daily payment limit · USDC</label><input id="initial-daily" value="5" inputmode="decimal" required><button class="cta">Create Tijori</button></form>
+          <label for="initial-daily">Daily payment limit · USDC</label><input id="initial-daily" value="5" inputmode="decimal" required>
+          <div id="setup-fields" hidden><label for="initial-deposit">First deposit · USDC</label><input id="initial-deposit" value="5" inputmode="decimal" required>
+            <p class="helper">Your wallet will ask a few times: once to create the treasury, once to send the agent 1 USDC of gas, then to deposit. Enter 0 to skip the deposit.</p></div>
+          <button class="cta">Create Tijori</button></form>
+        <section id="setup-authorize" class="agent-setup" hidden><h2>Finish your terminal setup</h2><p id="setup-authorize-text"></p><button id="setup-authorize-button" class="cta" type="button">Authorize agent</button></section>
         <div id="treasury-controls" hidden>
           <div class="owner-grid"><form id="deposit-form"><h2>Add funds</h2><label for="deposit-amount">USDC</label><input id="deposit-amount" inputmode="decimal" value="1" required><button>Deposit USDC</button></form>
             <form id="payee-form"><h2>Approve a payee</h2><label for="payee-address">Payee address</label><input id="payee-address" placeholder="0x…" required>

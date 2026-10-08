@@ -71,6 +71,7 @@ npm run dev        # http://127.0.0.1:4173
 | `npm run test:system` | Security and invariant suite. |
 | `npm run typecheck` | `tsc --noEmit`; type-checks without executing. |
 | `npm run security` | Static analysis and coverage gates. |
+| `npm run agent:connect` | Connect Claude Desktop: agent wallet, browser approval, Claude config. |
 | `npm run agent:setup` | Provision a treasury and agent wallet from the terminal. |
 
 Tests cover split/merge/transfer/maturity and loss-recovery paths, variable share

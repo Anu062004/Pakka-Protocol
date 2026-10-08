@@ -4,13 +4,14 @@ import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { before,after,beforeEach,afterEach,test } from "node:test";
 import hre from "hardhat";
-import { BrowserProvider } from "ethers";
+import { BrowserProvider, Wallet } from "ethers";
 import { chromium,expect } from "@playwright/test";
 import type { Browser, BrowserContext, Page } from "@playwright/test";
 import { createApp } from "../backend/server.ts";
 import { ReadService } from "../backend/read-service.ts";
 import { deploySystem,localSigner } from "./helpers/system.ts";
 import type { System } from "./helpers/system.ts";
+import { findAuthorization } from "../scripts/agent-cli.ts";
 
 let browser: Browser, context: BrowserContext | null, page: Page, server: Server, provider: BrowserProvider, system: System, snapshot: string, baseURL: string;
 const sent=async (tx: Promise<{ wait: () => Promise<unknown> }>)=>(await tx).wait();
@@ -92,6 +93,51 @@ test("Tijori owner can pause the agent, withdraw, and generate a browser-only ag
   assert.equal(await page.evaluate(()=>(document.getElementById("mcp-config") as HTMLInputElement).value.includes((document.getElementById("one-time-key") as HTMLInputElement).value)),false);
   assert.equal(await page.evaluate(()=>Object.values(localStorage).some(v=>/0x[\da-f]{64}/i.test(v))),false);
   await page.locator("#hide-key").click();await expect(page.locator("#one-time-key")).toHaveValue("");
+});
+
+test("a new owner following the terminal setup link creates, funds gas and deposits without seeing a key",async()=>{
+  const agent=Wallet.createRandom().address,owner=(system.priya as any).address as string,start=await provider.getBlockNumber();
+  await page.goto(`${baseURL}?agent=${agent}#tijori`);await expect(page.locator("#notice")).toContainText("Rates refreshed",{timeout:30000});
+  await expect(page.locator("#treasury-status")).toContainText("terminal setup");
+  await page.locator("#connect").click();await expect(page.locator("#create-form")).toBeVisible();
+  // The address comes from the terminal; the browser must neither replace it nor mint a key of its own.
+  await expect(page.locator("#initial-agent")).toHaveValue(agent);
+  assert.equal(await page.locator("#initial-agent").evaluate(e=>(e as HTMLInputElement).readOnly),true);
+  await expect(page.locator("#generate-agent")).toBeHidden();await expect(page.locator("#new-agent-secret")).toBeHidden();
+  await page.locator("#initial-deposit").fill("2");await page.locator("#create-form button.cta").click();
+  await expect(page.locator("#notice")).toContainText("Return to your terminal",{timeout:30000});
+  const tijori=await system.factory.tijoriOf(owner) as string;
+  assert.equal(await findAuthorization(provider,system.manifest,agent,start),tijori);
+  assert.equal(await system.asset.balanceOf(tijori),2_000000n);
+  assert.equal(await provider.getBalance(agent),10n**18n);
+  assert.equal(await system.asset.allowance(owner,tijori),0n);
+  await expect(page.locator("#setup-authorize-text")).toContainText("authorized and has gas");
+  await expect(page.locator("#setup-authorize-button")).toBeHidden();
+});
+
+test("an existing owner following the setup link swaps in the terminal's agent and funds it once",async()=>{
+  const agent=Wallet.createRandom().address,start=await provider.getBlockNumber();
+  await page.evaluate((address: string)=>(window as any).pakkaSelectAccount(address),(system.treasuryOwner as any).address);
+  await page.goto(`${baseURL}?agent=${agent}#tijori`);await expect(page.locator("#notice")).toContainText("Rates refreshed",{timeout:30000});
+  await page.evaluate((address: string)=>(window as any).pakkaSelectAccount(address),(system.treasuryOwner as any).address);
+  await page.locator("#connect").click();await expect(page.locator("#setup-authorize")).toBeVisible();
+  // The owner is trusting a value from a link, so the whole address must be on screen.
+  await expect(page.locator("#setup-authorize-text")).toContainText(agent);
+  assert.equal(await findAuthorization(provider,system.manifest,agent,start),null);
+  await page.locator("#setup-authorize-button").click();
+  await expect(page.locator("#notice")).toContainText("Return to your terminal",{timeout:30000});
+  assert.equal(await system.tijori.agent(),agent);
+  assert.equal(await findAuthorization(provider,system.manifest,agent,start),system.tijori.target);
+  assert.equal(await provider.getBalance(agent),10n**18n);
+  assert.equal(await system.asset.balanceOf(system.tijori.target),20_000000n);
+  await expect(page.locator("#setup-authorize-button")).toBeHidden();
+});
+
+test("a malformed agent in the link is ignored rather than offered for approval",async()=>{
+  await page.goto(`${baseURL}?agent=0x1234#tijori`);await expect(page.locator("#notice")).toContainText("Rates refreshed",{timeout:30000});
+  await page.locator("#connect").click();await expect(page.locator("#create-form")).toBeVisible();
+  await expect(page.locator("#initial-agent")).toHaveValue("");await expect(page.locator("#generate-agent")).toBeVisible();
+  await expect(page.locator("#setup-fields")).toBeHidden();
 });
 
 test("atomic wallet request requires atomicity and preserves an ambiguous batch instead of resending",async()=>{

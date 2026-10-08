@@ -14,6 +14,7 @@
     "agent:mcp": "node --env-file-if-exists=.env agent/mcp-server.ts",
     "agent:http": "node --env-file-if-exists=.env agent/http-server.ts",
     "agent:setup": "node --env-file-if-exists=.env scripts/agent-cli.ts",
+    "agent:connect": "node --env-file-if-exists=.env scripts/agent-cli.ts connect",
     "register:testnet": "node --env-file-if-exists=.env scripts/register-testnet.ts",
     "add:series": "node --env-file-if-exists=.env scripts/add-series.ts",
     "dev": "node --env-file-if-exists=.env backend/server.ts",
@@ -23,10 +24,11 @@
     "test:fork": "node --env-file-if-exists=.env scripts/fork-e2e.ts",
     "security": "node --env-file-if-exists=.env scripts/security-check.ts",
     "security:status": "node scripts/security-check.ts --status",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "package:build": "node scripts/build-package.ts"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.30.1",
+    "@modelcontextprotocol/sdk": "1.32.1",
     "@openzeppelin/contracts": "file:vendor/openzeppelin-contracts",
     "ethers": "6.17.0",
     "zod": "4.6.5"

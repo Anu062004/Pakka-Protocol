@@ -5,6 +5,10 @@ import { humanError } from "/errors.mjs";
 const $=id=>document.getElementById(id);
 const state={manifest:null,abis:null,wallet:null,rates:[],quote:null,treasury:null,busy:false};
 const pages=["rates","lock","positions","tijori"];
+// The terminal setup command keeps the agent key on the user's machine and passes only its
+// address here, so the owner's wallet can approve it without the key ever reaching a browser.
+const setupAgent=(()=>{try{return getAddress(new URLSearchParams(location.search).get("agent")??"");}catch{return null;}})();
+const agentGas=parseUnits("1",18);
 const tokenAbi=["function balanceOf(address) view returns(uint256)","function approve(address,uint256) returns(bool)"];
 const short=a=>`${a.slice(0,6)}…${a.slice(-4)}`;
 const date=t=>new Date(t*1000).toLocaleString(undefined,{dateStyle:"medium",timeStyle:"short"});
@@ -139,6 +143,7 @@ async function refreshPositions(){const wallet=requireWallet();renderPositions($
 async function refreshTreasury(){
   const wallet=requireWallet();const t=await api(`/api/treasury?owner=${wallet.account}`);state.treasury=t;
   $("create-form").hidden=Boolean(t.address);$("treasury-controls").hidden=!t.address;
+  await renderSetup();
   $("treasury-status").replaceChildren(node("p",t.address?`${short(t.address)} · ${usdc(t.usdc)} available · Agent ${short(t.agent)} · ${t.paused?"Agent paused":"Agent active"}`:"You do not have a Tijori yet. Choose an agent address and payment limit to create one."));
   if(!t.address)return;
   $("daily-cap").value=t.dailyCapUsdc;$("pause-agent").textContent=t.paused?"Resume agent":"Pause agent";
@@ -149,6 +154,44 @@ async function refreshTreasury(){
     row.append(node("p",detail,{class:"helper"}));if(state.manifest.chainId===5042002)row.append(node("a","View transaction",{href:`https://testnet.arcscan.app/tx/${item.transactionHash}`,target:"_blank",rel:"noopener noreferrer"}));$("activity").append(row);}
   if(!feed.items.length)$("activity").append(node("p","No recent activity. This feed reads application events from the most recent 5,000 blocks."));
   notice("Tijori refreshed.");
+}
+const agentFunded=async wallet=>await wallet.provider.getBalance(setupAgent)>=agentGas/2n;
+async function renderSetup(){
+  if(!setupAgent)return;const t=state.treasury;
+  $("setup-authorize").hidden=!t.address;
+  if(!t.address){
+    $("initial-agent").value=setupAgent;$("initial-agent").readOnly=true;$("generate-agent").hidden=true;$("setup-fields").hidden=false;
+    $("create-helper").textContent="This agent address came from your terminal setup command. Its key stays on your computer. Only continue if it matches the address your terminal printed.";
+    return;
+  }
+  const authorized=getAddress(t.agent)===setupAgent,funded=await agentFunded(state.wallet);
+  // The full address is shown because the owner is being asked to trust a value from a link.
+  $("setup-authorize-text").textContent=!authorized?`Your terminal setup command made agent ${setupAgent}. Authorizing it replaces the current agent ${short(t.agent)}, which stops working at once. Only continue if this matches the address your terminal printed.`
+    :funded?`Agent ${setupAgent} is authorized and has gas. Return to your terminal — setup finishes there.`
+    :`Agent ${setupAgent} is authorized but has no gas, so its transactions would fail.`;
+  $("setup-authorize-button").hidden=authorized&&funded;$("setup-authorize-button").textContent=authorized?"Send agent 1 USDC of gas":"Authorize agent";
+}
+async function fundAgent(wallet){if(!await agentFunded(wallet))await showReceipt(await wallet.send(setupAgent,agentGas),wallet);}
+async function authorizeSetup(){
+  const wallet=requireWallet();
+  try{
+    if(getAddress(state.treasury.agent)!==setupAgent)await showReceipt(await wallet.write(contract("Tijori",state.treasury.address),"setAgent",[setupAgent]),wallet);
+    await fundAgent(wallet);
+  }finally{await refreshTreasury();}
+  notice("Agent ready. Return to your terminal — setup finishes there.","success");
+}
+async function createTreasury(){
+  const wallet=requireWallet(),factory=contract("TijoriFactory",state.manifest.tijoriFactory);
+  const deposit=setupAgent?amount($("initial-deposit").value,true):0n;
+  await showReceipt(await wallet.write(factory,"create",[getAddress($("initial-agent").value),amount($("initial-daily").value,true)]),wallet);
+  if(!setupAgent)return refreshTreasury();
+  // The treasury exists from here on, so a declined later step must still land on its page.
+  try{
+    await fundAgent(wallet);
+    // Read from the wallet's own node: the API may not have seen the new treasury yet.
+    if(deposit>0n)await showReceipt(await wallet.approved(contract("Tijori",await factory.tijoriOf(wallet.account)),"deposit",[deposit],state.manifest.usdc,deposit),wallet);
+  }finally{await refreshTreasury();}
+  notice("Treasury ready. Return to your terminal — setup finishes there.","success");
 }
 async function treasuryWrite(method,args){const wallet=requireWallet();const receipt=await wallet.write(contract("Tijori",state.treasury.address),method,args);await showReceipt(receipt,wallet);await refreshTreasury();}
 function clearKey(){$("one-time-key").value="";$("one-time-key").type="password";$("mcp-config").value="";$("agent-secret").hidden=true;
@@ -188,7 +231,7 @@ $("connect").addEventListener("click",()=>run(async()=>{
 $("refresh-rates").onclick=()=>run(refreshRates);$("get-quote").onclick=()=>run(getQuote);form("lock-form",lock);
 $("face").oninput=invalidateQuote;$("maturity").onchange=invalidateQuote;
 $("refresh-positions").onclick=()=>run(refreshPositions);$("refresh-treasury").onclick=()=>run(refreshTreasury);
-form("create-form",async()=>{const wallet=requireWallet();await showReceipt(await wallet.write(contract("TijoriFactory",state.manifest.tijoriFactory),"create",[getAddress($("initial-agent").value),amount($("initial-daily").value,true)]),wallet);await refreshTreasury();});
+form("create-form",createTreasury);$("setup-authorize-button").onclick=()=>run(authorizeSetup);
 form("deposit-form",async()=>{const wallet=requireWallet(),value=amount($("deposit-amount").value);await showReceipt(await wallet.approved(contract("Tijori",state.treasury.address),"deposit",[value],state.manifest.usdc,value),wallet);await refreshTreasury();});
 form("payee-form",()=>treasuryWrite("setPayeeCap",[getAddress($("payee-address").value),amount($("payee-cap").value,true)]));
 form("policy-form",()=>treasuryWrite("setDailyCap",[amount($("daily-cap").value,true)]));
@@ -202,9 +245,10 @@ $("copy-key").onclick=()=>run(async()=>{if(!$("one-time-key").value)return;await
 $("copy-config").onclick=()=>run(async()=>{await navigator.clipboard.writeText($("mcp-config").value);notice("MCP config copied. Replace the key placeholder only in your local file.");});
 form("bill-form",async()=>{const bills=readBills();if(bills.length>=100)throw new Error("InvalidAmount");const bill={id:crypto.randomUUID(),payee:getAddress($("bill-payee").value),amount:formatUnits(amount($("bill-amount").value),6),date:$("bill-date").value};localStorage.setItem(billsKey(),JSON.stringify([...bills,bill]));renderBills();notice("Bill added to this device's calendar.");});
 window.addEventListener("hashchange",navigate);window.addEventListener("pagehide",clearKey);
-window.ethereum?.on?.("accountsChanged",()=>{clearKey();state.wallet=null;state.treasury=null;$("connect").textContent="Connect wallet";$("treasury-controls").hidden=true;$("create-form").hidden=true;$("positions-list").replaceChildren(node("p","Wallet changed. Reconnect to refresh positions."));notice("Wallet changed. Reconnect before continuing.");});
+window.ethereum?.on?.("accountsChanged",()=>{clearKey();state.wallet=null;state.treasury=null;$("connect").textContent="Connect wallet";$("treasury-controls").hidden=true;$("create-form").hidden=true;$("setup-authorize").hidden=true;$("positions-list").replaceChildren(node("p","Wallet changed. Reconnect to refresh positions."));notice("Wallet changed. Reconnect before continuing.");});
 window.ethereum?.on?.("chainChanged",()=>{clearKey();state.wallet=null;$("connect").textContent="Connect wallet";invalidateQuote();notice("Network changed. Reconnect on Arc Testnet.");});
 navigate();
+if(setupAgent)$("treasury-status").textContent="Connect your wallet to approve the agent from your terminal setup.";
 try{
   const [manifest,abis]=await Promise.all([api("/api/deployment"),api("/api/abis")]);state.manifest=manifest;state.abis=abis;
   $("network-status").textContent=manifest.chainId===31337?"Local test chain":"Arc Testnet · USDC gas";

@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "../dist/pakka-agent",
+    "rootDir": "..",
+    "rewriteRelativeImportExtensions": true,
+    "declaration": false,
+    "sourceMap": false
+  },
+  "include": ["../agent/mcp-server.ts", "agent-cli.ts"]
+}

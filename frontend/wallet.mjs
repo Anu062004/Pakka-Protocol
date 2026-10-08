@@ -24,6 +24,10 @@ export class AppWallet {
     const connected=contract.connect(this.signer);await connected[method].staticCall(...args);
     const tx=await connected[method](...args);return tx.wait();
   }
+  async send(to,value){
+    if(this.pending()) fail("BATCH_PENDING");await this.check();
+    const tx=await this.signer.sendTransaction({to,value});return tx.wait();
+  }
   async status(){
     const pending=this.pending();if(!pending)return null;
     if(pending.account!==this.account || pending.chainId!==this.manifest.chainId) fail("BATCH_PENDING");

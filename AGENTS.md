@@ -24,6 +24,55 @@ you, and you can pause it instantly.
 
 ---
 
+# Fastest path — one command
+
+```sh
+npm run agent:connect
+```
+
+1. It makes the agent wallet and saves the key in `runtime/agent-wallet.json`
+   (mode `600`). You never see or copy the key.
+2. It opens the app with the agent address filled in. Check the address matches
+   the one in your terminal, then confirm in your wallet. New owners create the
+   treasury, send the agent 1 USDC of gas and make a first deposit; existing
+   owners just authorize the new agent.
+3. The terminal sees the approval on-chain and adds Pakka to your Claude Desktop
+   config, keeping any other servers already there.
+4. Quit and reopen Claude Desktop, then ask: *What's in my Pakka treasury?*
+
+It needs no owner key. If you stop it partway, run it again: it resumes with the
+same agent address. If the saved key is already your treasury's agent, it skips
+the browser and only writes the config.
+
+Using something other than Claude Desktop? Add `--client`:
+
+```sh
+npm run agent:connect -- --client codex
+```
+
+| `--client` | What happens after you approve |
+| --- | --- |
+| `claude` (default), `cursor` | The client's config file is updated for you |
+| `codex`, `opencode`, `hermes` | The settings are printed in that client's format, with the file to paste them into |
+| `openclaw`, `other` | The standard `mcpServers` JSON is printed for the client's MCP settings |
+
+The printed settings name the key file, never the key, so they are safe to paste.
+
+| Option | Meaning |
+| --- | --- |
+| `--app <url>` | Open a different copy of the app, e.g. `http://127.0.0.1:4173` with `npm run dev` |
+| `--no-open` | Print the approval link instead of opening a browser |
+| `--config <path>` | Write a different Claude config file |
+
+`npm run agent:setup -- uninstall` removes Pakka from the Claude config. It does
+not touch the key or the treasury; pause or replace the agent in the app to cut
+it off.
+
+You still approve payees in the app — the agent cannot pay anyone until you do.
+The rest of this page is the manual route, and the route for other MCP clients.
+
+---
+
 # Part 1 — Create your treasury
 
 Pick **A** if you use MetaMask. Pick **B** if you live in a terminal.
@@ -208,7 +257,10 @@ The old key stops working the moment that lands.
 | `UNAUTHORIZED` | Wrong or missing bearer token |
 | `AGENT_TIJORI_NOT_CONFIGURED` | `AGENT_TIJORI_ADDRESS` is not set |
 | `AGENT_DEPLOYMENT_MISMATCH` | That address is not a treasury from this deployment |
-| `AGENT_SIGNER_REQUIRED` | No `AGENT_PRIVATE_KEY`; writes unavailable |
+| `AGENT_SIGNER_REQUIRED` | No `AGENT_PRIVATE_KEY` or `AGENT_KEY_FILE`; writes unavailable |
+| `INVALID_AGENT_KEY` | The key, or the file `AGENT_KEY_FILE` points at, is missing or malformed |
+| `MCP_CONFIG_UNREADABLE` | The client's config is not valid JSON. Fix it; setup will not overwrite it |
+| `CONNECT_TIMED_OUT` | No wallet approval was seen. Run `npm run agent:connect` again to resume |
 | `AGENT_KEY_NOT_AUTHORIZED` | This key is not the treasury's current agent — rotate |
 | `AgentPaused` | You paused the agent. Unpause it in the app |
 | `UNSUPPORTED_CHAIN` | The RPC is not Arc Testnet |

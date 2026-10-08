@@ -8,7 +8,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { AgentError, TreasuryService, fail, projectRoot, type AgentOptions } from "./treasury-service.ts";
 import { lockKeeper } from "../scripts/expiry-keeper.ts";
-import { loadDeployment } from "../backend/project.ts";
+import { dataRoot, loadDeployment } from "../backend/project.ts";
 import { rpcProvider } from "../backend/rpc.ts";
 
 const address = z.string().regex(/^0x[0-9a-fA-F]{40}$/).refine((v) => {
@@ -77,7 +77,7 @@ export function agentConfig(env: NodeJS.ProcessEnv = process.env): AgentOptions 
   return { confirmations: integer("AGENT_CONFIRMATIONS", 2),
     slippageBps: integer("AGENT_SLIPPAGE_BPS", 50), planTtlSeconds: integer("AGENT_PLAN_TTL_SECONDS", 300),
     maxGasLimit: BigInt(integer("AGENT_GAS_LIMIT_CAP", 1500000)), maxGasPrice,
-    stateFile: path.resolve(projectRoot, env.AGENT_STATE_FILE || "runtime/agent-state.json") };
+    stateFile: path.resolve(dataRoot, env.AGENT_STATE_FILE || "runtime/agent-state.json") };
 }
 
 export function createServer(getService: () => TreasuryService | Promise<TreasuryService>): McpServer {
@@ -130,15 +130,23 @@ export function createRuntime(env: NodeJS.ProcessEnv = process.env): AgentRuntim
     if (manifest.chainId !== 5042002) fail("UNSUPPORTED_CHAIN");
     const config = agentConfig(env);
     let signer: Wallet | null = null;
-    if (env.AGENT_PRIVATE_KEY) {
-      try { signer = new Wallet(env.AGENT_PRIVATE_KEY); }
+    // A key file keeps the secret out of an MCP client's own config, which is not owner-only
+    // and is routinely read, synced and pasted into bug reports.
+    let key = env.AGENT_PRIVATE_KEY;
+    if (!key && env.AGENT_KEY_FILE) {
+      try { key = (JSON.parse(fs.readFileSync(path.resolve(dataRoot, env.AGENT_KEY_FILE), "utf8")) as { privateKey?: string }).privateKey; }
+      catch { return fail("INVALID_AGENT_KEY"); }
+      if (!key) return fail("INVALID_AGENT_KEY");
+    }
+    if (key) {
+      try { signer = new Wallet(key); }
       catch { return fail("INVALID_AGENT_KEY"); }
     }
     const candidateProvider = rpcProvider(env);
     let candidateUnlock: (() => void) | undefined, candidateWalletUnlock: (() => void) | undefined;
     try {
       candidateUnlock = lockKeeper(`${config.stateFile}.lock`);
-      if (signer) candidateWalletUnlock = lockKeeper(path.join(projectRoot, `runtime/wallet-${signer.address.toLowerCase()}.lock`));
+      if (signer) candidateWalletUnlock = lockKeeper(path.join(dataRoot, `runtime/wallet-${signer.address.toLowerCase()}.lock`));
       const candidate = new TreasuryService({ ...config, provider: candidateProvider,
         signer: signer?.connect(candidateProvider), manifest, tijoriAddress });
       provider = candidateProvider; unlock = candidateUnlock; unlockWallet = candidateWalletUnlock; service = candidate;

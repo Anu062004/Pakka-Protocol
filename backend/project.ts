@@ -6,6 +6,9 @@ import type { InterfaceAbi } from "ethers";
 import type { ContractArtifact, Manifest, PublicManifest } from "./types.ts";
 
 export const projectRoot = fileURLToPath(new URL("../", import.meta.url));
+// Where keys, journals and locks live. The repo keeps them beside the code. An installed
+// package cannot: its own directory is a disposable download cache.
+export const dataRoot = process.env.PAKKA_HOME ? path.resolve(process.env.PAKKA_HOME) : projectRoot;
 
 export const abi = (name: string): InterfaceAbi => {
   const artifact = JSON.parse(fs.readFileSync(path.join(projectRoot, `artifacts/${name}.json`), "utf8")) as ContractArtifact;
