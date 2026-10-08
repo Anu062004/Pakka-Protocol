@@ -20,6 +20,7 @@ loadDeployment(); // refuse to package a manifest the agent itself would reject
 fs.mkdirSync(path.join(out, "deployments"));
 fs.copyFileSync(deploymentFile, path.join(out, "deployments/arc-testnet.json"));
 
+fs.copyFileSync(path.join(projectRoot, "LICENSE"), path.join(out, "LICENSE"));
 fs.writeFileSync(path.join(out, "bin.js"), `#!/usr/bin/env node
 import fs from "node:fs";
 import os from "node:os";
@@ -74,7 +75,7 @@ Unaudited testnet software. Never use it with a wallet that holds real funds.
 
 fs.writeFileSync(path.join(out, "package.json"), `${JSON.stringify({
   name, version: root.version, description: "Connect an MCP client to a Pakka Tijori treasury on Arc Testnet",
-  type: "module", bin: { "pakka-agent": "bin.js" },
+  license: "MIT", type: "module", bin: { "pakka-agent": "bin.js" },
   // An allowlist: a file that is not named here cannot be published, whatever lands in this folder.
   files: ["bin.js", "agent/*.js", "scripts/*.js", "backend/*.js", "artifacts/*.json", "deployments/arc-testnet.json"],
   engines: { node: ">=22" },
