@@ -9,7 +9,7 @@ buying it below par on the open market *is* the fixed rate — the discount you
 pay is the return you lock in. Rates are therefore a property of the pool price,
 not a parameter anyone controls.
 
-> Unaudited testnet software. Mainnet deployment is deliberately disabled.
+> Unaudited software. Every command runs on Arc Testnet unless mainnet is selected explicitly.
 
 ## Contracts
 
@@ -23,12 +23,30 @@ not a parameter anyone controls.
 | `Tijori.sol` | User-owned treasury that restricts an agent to capped purchases, redemptions, interest claims and payments to approved payees. |
 | `TijoriFactory.sol` | One minimal clone per owner, over a locked shared implementation. |
 | `PoolSeeder.sol` | Owner-operated pool initialization, bounded liquidity adds, fee collection, post-expiry withdrawal. |
-| `TestnetPoolManager.sol` | Testnet-only wrapper around the vendored Uniswap v4 PoolManager. |
-| `DemoVault.sol` | Testnet-only ERC-4626 vault over faucet USDC. Yield is simulated by direct donation; it does not lend. |
+| `TestnetPoolManager.sol` | Self-hosted wrapper around the vendored Uniswap v4 PoolManager, used when no existing manager is configured. |
+| `DemoVault.sol` | Demo ERC-4626 vault. Yield is simulated by direct donation; it does not lend. Never deployed on mainnet unless explicitly allowed. |
 
-Entrypoint constructors accept only Arc Testnet (`5042002`) and local
-Hardhat/Anvil (`31337`). Deployed addresses live in [docs/deployments.md](docs/deployments.md);
-`deployments/arc-testnet.json` is the source of truth that code actually reads.
+Entrypoint constructors accept only Arc mainnet (`5042`), Arc Testnet (`5042002`)
+and local Hardhat/Anvil (`31337`), and on both Arc networks they require the canonical
+USDC contract. Deployed addresses live in [docs/deployments.md](docs/deployments.md);
+`deployments/arc-testnet.json` (or `arc-mainnet.json`) is the source of truth that code actually reads.
+
+## Networks
+
+Testnet is the default everywhere. Mainnet is selected with `PAKKA_NETWORK=mainnet`, which
+the `*:mainnet` npm scripts set:
+
+```sh
+VAULT_ADDRESS=0x… npm run deploy:mainnet   # then register:mainnet and seed:mainnet
+npm run keeper:mainnet                      # settles maturities on time
+npm run dev:mainnet                         # serve the app against the mainnet manifest
+```
+
+A mainnet deployment needs `VAULT_ADDRESS` set to an ERC-4626 USDC vault. `ALLOW_DEMO_VAULT=1`
+deploys the simulated-yield `DemoVault` with real USDC instead; that must be a deliberate choice.
+Set `UNISWAP_V4_POOL_MANAGER_ADDRESS` to use an existing PoolManager after verifying it yourself,
+or leave it blank to self-host one. A hosted frontend picks its network from the same
+`PAKKA_NETWORK` variable. Mainnet funds are real and the contracts are unaudited.
 
 ## Layout
 
@@ -176,10 +194,15 @@ It holds the agent key and signs, so run it yourself rather than delegating it.
 - Read path and write path are separated: the backend holds no keys and cannot sign.
 - Owner actions require a signer distinct from the deployer.
 - `YieldToken.SERIES_TVL_CAP` caps entry TVL per series at compile time.
-- Index movement bounds reject entries on sudden vault index jumps without blocking exits.
+- Index movement bounds reject entries on sudden vault index jumps without blocking exits. The
+  band is 1% plus 0.25% per day since the last accepted observation, so ordinary growth never
+  trips it and a persistent move is accepted later rather than freezing the series.
+- Entries close one hour before maturity (`SeriesRegistry.MIN_ENTRY_WINDOW`); exits never close.
+- The registry owner is immutable. It can register series, attach one pool per series, pause
+  entries and manage its own liquidity. It cannot move backing, block exits or alter a series.
 - Per-payee rolling windows and daily caps are enforced on-chain and cannot reset at a boundary.
 - `.env` is gitignored and excluded from deploy uploads. Never commit a key.
 
-Before any mainnet consideration: pin official dependencies, resolve exact
-maturity settlement, validate the target vault and market infrastructure against
-a fork, and get the contracts reviewed.
+Still open before real size: the contracts are unreviewed, the owner is a single key with no
+timelock, maturity settles on the first call after expiry (run the keeper), and the target
+vault and market infrastructure have not been validated against a fork.

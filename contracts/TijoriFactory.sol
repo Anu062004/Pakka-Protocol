@@ -17,12 +17,12 @@ contract TijoriFactory {
     event TijoriCreated(address indexed owner, address indexed tijori, address indexed agent);
 
     constructor(PakkaRouter router) {
-        if (block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
+        if (block.chainid != 5042 && block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
         implementation = address(new Tijori(router));
     }
 
     function create(address agent, uint256 dailyCap) external returns (address tijori) {
-        if (block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
+        if (block.chainid != 5042 && block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
         if (tijoriOf[msg.sender] != address(0)) revert AlreadyExists();
         tijori = Clones.clone(implementation);
         tijoriOf[msg.sender] = tijori;

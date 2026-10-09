@@ -229,9 +229,9 @@ test("runtime share decimals support both 6 and 18 decimal vaults", async () => 
   assert.ok(await f.vault.balanceOf(f.yt.target) <= 2n);
 });
 
-test("mainnet constructors are rejected by the contracts themselves", () => {
+test("constructors reject every chain other than Arc mainnet, Arc Testnet and local", () => {
   const result = execFileSync(process.execPath, ["test/chain-guard.ts"], { encoding: "utf8" });
-  assert.match(result, /Mainnet constructors rejected/);
+  assert.match(result, /Unsupported-chain constructors rejected/);
 });
 
 test("lazy expiry freezes on the first post-expiry interaction and stays immutable", async () => {

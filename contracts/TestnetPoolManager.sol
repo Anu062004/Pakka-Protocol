@@ -9,7 +9,7 @@ contract TestnetPoolManager is PoolManager {
     error InvalidOwner();
 
     constructor(address owner_) PoolManager(owner_) {
-        if (block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
+        if (block.chainid != 5042 && block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
         if (owner_ == address(0)) revert InvalidOwner();
     }
 }

@@ -30,7 +30,7 @@ abstract contract V4Client is IUnlockCallback, ReentrancyGuard {
     error SlippageExceeded();
 
     constructor(IPoolManager manager_, SeriesRegistry registry_) {
-        if (block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
+        if (block.chainid != 5042 && block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
         if (address(manager_).code.length == 0 || address(registry_).code.length == 0) revert InvalidConfiguration();
         // The supplied manager is a trusted dependency; code presence alone is not verification.
         poolManager = manager_;

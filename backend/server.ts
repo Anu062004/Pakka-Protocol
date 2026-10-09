@@ -74,7 +74,7 @@ export function createHandler({ getService, manifest, port = 4173, allowedHosts 
       }
       const files: Record<string, string> = { "/": "frontend/index.html", "/docs": "frontend/docs.html", "/landing.css": "frontend/landing.css",
         "/app": "frontend/app.html", "/app.mjs": "frontend/app.mjs", "/app.css": "frontend/app.css", "/fonts.css": "frontend/fonts.css",
-        "/errors.mjs": "frontend/errors.mjs", "/wallet.mjs": "frontend/wallet.mjs",
+        "/errors.mjs": "frontend/errors.mjs", "/wallet.mjs": "frontend/wallet.mjs", "/network.mjs": "frontend/network.mjs",
         // Serverless bundlers trace imports, not fs reads, so the build copies ethers next to
         // the other static assets; node_modules stays the source of truth for local dev.
         "/ethers.mjs": fs.existsSync(path.join(projectRoot, "frontend/vendor/ethers.min.js"))

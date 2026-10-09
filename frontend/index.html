@@ -7,6 +7,7 @@
 <meta name="description" content="Pakka splits a Morpho USDC vault position on Arc into a fixed payout and a variable yield. Buy the fixed side at a discount and know exactly what you'll have, and when.">
 <link rel="stylesheet" href="/fonts.css">
 <link rel="stylesheet" href="/landing.css">
+<script type="module" src="/network.mjs"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -27,7 +28,7 @@
 
 <main id="main">
   <section class="hero wrap">
-    <p class="eyebrow">Arc Testnet · Built for agents</p>
+    <p class="eyebrow"><span data-network>Arc</span> · Built for agents</p>
     <h1>USDC,<br>with a date.</h1>
     <div class="hero-grid">
       <div>
@@ -210,7 +211,7 @@
   <section class="closing">
     <div class="wrap">
       <h2>Pick a date.<br>Know the number.</h2>
-      <p>Live on Arc Testnet — unaudited, demo liquidity, testnet funds only.</p>
+      <p data-network-note>Unaudited software with small caps. Only use funds you can afford to lose.</p>
       <div class="ctas">
         <a class="cta" href="/app">Launch app</a>
         <a class="cta ghost" href="https://github.com/Anu062004/Pakka-Protocol" rel="noopener noreferrer">View on GitHub</a>
@@ -221,7 +222,7 @@
 
 <footer class="site">
   <div class="wrap">
-    <span>Pakka · Unaudited testnet software, built for the Arc Microgrants program.</span>
+    <span>Pakka · Unaudited software, built for the Arc Microgrants program.</span>
     <span><a href="/docs">Guide</a> · <a href="https://github.com/Anu062004/Pakka-Protocol" rel="noopener noreferrer">GitHub</a> · <a href="/app">Launch app</a></span>
   </div>
 </footer>

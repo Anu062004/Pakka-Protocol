@@ -7,7 +7,7 @@ import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {YieldToken} from "./YieldToken.sol";
 import {PrincipalToken} from "./PrincipalToken.sol";
 
-/// @notice Append-only directory of approved Pakka USDC series on testnet.
+/// @notice Append-only directory of approved Pakka USDC series.
 /// @dev The owner approves contract code; getter validation alone is not a code audit.
 contract SeriesRegistry {
     // Same ABI field types/order as a Uniswap v4 PoolKey, without a new dependency.
@@ -28,6 +28,9 @@ contract SeriesRegistry {
         PoolKey poolKey;
     }
 
+    /// @notice Entries close this long before maturity. A purchase minutes from expiry earns
+    /// almost nothing and makes the annualized rate meaningless. Exits are never affected.
+    uint256 public constant MIN_ENTRY_WINDOW = 1 hours;
     IERC20 public immutable assetToken;
     address public immutable owner;
     bool public entriesPaused;
@@ -58,11 +61,11 @@ contract SeriesRegistry {
     event SeriesEntriesPaused(uint256 indexed seriesId, bool paused);
 
     constructor(IERC20 asset_, address owner_) {
-        if (block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
+        if (block.chainid != 5042 && block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
         if (owner_ == address(0)) revert InvalidOwner();
         if (address(asset_).code.length == 0) revert InvalidAsset();
         if (IERC20Metadata(address(asset_)).decimals() != 6) revert InvalidAsset();
-        if (block.chainid == 5042002 && address(asset_) != 0x3600000000000000000000000000000000000000) revert InvalidAsset();
+        if (block.chainid != 31337 && address(asset_) != 0x3600000000000000000000000000000000000000) revert InvalidAsset();
         assetToken = asset_;
         owner = owner_;
     }
@@ -140,7 +143,7 @@ contract SeriesRegistry {
     function entryOpen(address yt) external view returns (bool) {
         uint256 id = seriesIdByYieldToken[yt];
         return id != 0 && !entriesPaused && !seriesEntriesPaused[id] &&
-            block.timestamp < _series[id - 1].expiry;
+            block.timestamp + MIN_ENTRY_WINDOW < _series[id - 1].expiry;
     }
 
     function isHandledToken(address token) external view returns (bool) {

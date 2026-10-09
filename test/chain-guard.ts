@@ -4,8 +4,8 @@ import hre from "hardhat";
 import { BrowserProvider, ContractFactory, Interface } from "ethers";
 import type { ContractArtifact } from "../backend/types.ts";
 
-// Simulate a prohibited chain locally. This script never contacts a public RPC.
-hre.config.networks.hardhat.chainId = 5042;
+// Simulate a chain Pakka does not support. This script never contacts a public RPC.
+hre.config.networks.hardhat.chainId = 1;
 const provider = new BrowserProvider(hre.network.provider);
 const signer = await provider.getSigner(0);
 async function deploy(name: string, args: unknown[] = []) {
@@ -14,7 +14,7 @@ async function deploy(name: string, args: unknown[] = []) {
   await c.waitForDeployment();
   return c;
 }
-assert.equal((await provider.getNetwork()).chainId, 5042n);
+assert.equal((await provider.getNetwork()).chainId, 1n);
 const usdc = await deploy("MockUSDC");
 const vault = await deploy("MockVault", [usdc.target, 12]);
 const block = await provider.getBlock("latest");
@@ -31,7 +31,7 @@ for (const [name, args] of specs) {
   const tx = await factory.getDeployTransaction(...args);
   await assert.rejects(signer.call(tx), (error) => {
     const decoded = new Interface(a.abi).parseError((error as { data: string }).data);
-    return decoded?.name === "UnsupportedChain" && decoded.args[0] === 5042n;
+    return decoded?.name === "UnsupportedChain" && decoded.args[0] === 1n;
   });
 }
-console.log("Mainnet constructors rejected on a local simulation of chain 5042.");
+console.log("Unsupported-chain constructors rejected on a local simulation of chain 1.");

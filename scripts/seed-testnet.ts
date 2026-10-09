@@ -1,16 +1,16 @@
 import { Contract, Wallet, getAddress, parseUnits } from "ethers";
 import { compile } from "./compile.ts";
 import { seedSeries } from "./seed-v4.ts";
-import { deploymentFile, loadDeployment } from "../backend/project.ts";
+import { canonicalUsdc, deploymentFile, loadDeployment, network } from "../backend/project.ts";
 import { rpcProvider } from "../backend/rpc.ts";
 import { writeJson } from "./expiry-keeper.ts";
 
 const key = process.env.OWNER_PRIVATE_KEY;
-if (!key) throw new Error("Configure the separate testnet owner signer locally; never reuse the deployer key. Hardware-wallet owners can execute the manifest owner actions manually.");
+if (!key) throw new Error("Configure the separate owner signer locally; never reuse the deployer key. Hardware-wallet owners can execute the manifest owner actions manually.");
 const manifestPath = deploymentFile;
 const manifest = loadDeployment(manifestPath);
-if (manifest.chainId !== 5042002 || manifest.usdc !== "0x3600000000000000000000000000000000000000") {
-  throw new Error("Manifest must describe Arc Testnet and its canonical ERC-20 USDC.");
+if (manifest.chainId !== network().chainId || manifest.usdc !== canonicalUsdc) {
+  throw new Error("Manifest must describe the selected Arc network and its canonical ERC-20 USDC.");
 }
 const priceUsdc = parseUnits(process.env.PT_PRICE_USDC ?? "0.99", 6);
 const maxUsdc = parseUnits(process.env.POOL_SEED_USDC ?? "10", 6);
@@ -18,7 +18,7 @@ const maxPt = parseUnits(process.env.POOL_SEED_PT ?? "10", 6);
 if (priceUsdc <= 0n || priceUsdc > 1_000_000n || maxUsdc <= 0n || maxPt <= 0n) throw new Error("Invalid seed price or budgets.");
 const provider = rpcProvider();
 try {
-  if ((await provider.getNetwork()).chainId !== 5042002n) throw new Error("Seeding is restricted to Arc Testnet.");
+  if ((await provider.getNetwork()).chainId !== BigInt(network().chainId)) throw new Error("UNSUPPORTED_CHAIN");
   const signer = new Wallet(key, provider);
   if (getAddress(manifest.deployer) === signer.address) throw new Error("OWNER_MUST_DIFFER_FROM_DEPLOYER");
   const artifacts = compile();

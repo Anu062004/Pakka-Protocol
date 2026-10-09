@@ -1,5 +1,5 @@
 import { Contract, Wallet, ZeroAddress, getAddress, parseUnits } from "ethers";
-import { abi, deploymentFile, loadDeployment } from "../backend/project.ts";
+import { abi, deploymentFile, loadDeployment, network } from "../backend/project.ts";
 import { rpcProvider } from "../backend/rpc.ts";
 import { writeJson } from "./expiry-keeper.ts";
 import type { SeriesManifestEntry } from "../backend/types.ts";
@@ -7,8 +7,8 @@ import type { SeriesManifestEntry } from "../backend/types.ts";
 const manifest = loadDeployment();
 const provider = rpcProvider();
 try {
-  if (BigInt(await provider.send("eth_chainId", []) as string) !== 5042002n) throw new Error("UNSUPPORTED_CHAIN");
-  if (!process.env.OWNER_PRIVATE_KEY) throw new Error("Separate owner signature required. Manifest ownerActions can be signed through the owner's hardware wallet/multisig; OWNER_PRIVATE_KEY is only a local testnet convenience.");
+  if (BigInt(await provider.send("eth_chainId", []) as string) !== BigInt(network().chainId)) throw new Error("UNSUPPORTED_CHAIN");
+  if (!process.env.OWNER_PRIVATE_KEY) throw new Error("Separate owner signature required. Manifest ownerActions can be signed through the owner's hardware wallet/multisig; OWNER_PRIVATE_KEY is only a local convenience.");
   const signer = new Wallet(process.env.OWNER_PRIVATE_KEY, provider);
   if (signer.address !== getAddress(manifest.owner) || signer.address === getAddress(manifest.deployer)) throw new Error("OWNER_SIGNER_MISMATCH");
   const registry = new Contract(manifest.registry, abi("SeriesRegistry"), signer);

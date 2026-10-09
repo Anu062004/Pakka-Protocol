@@ -44,7 +44,7 @@ export interface System {
   series: SystemSeries[];
 }
 
-export async function deploySystem({ provider, signers, realVault = null, realAsset = null, durations = [3600, 86400, 604800] }: {
+export async function deploySystem({ provider, signers, realVault = null, realAsset = null, durations = [7200, 86400, 604800] }: {
   provider: JsonRpcApiProvider;
   signers: Signer[];
   realVault?: Contract | null;
@@ -52,7 +52,7 @@ export async function deploySystem({ provider, signers, realVault = null, realAs
   durations?: number[];
 }): Promise<System> {
   const chainId = Number((await provider.getNetwork()).chainId);
-  if (![31337, 5042002].includes(chainId)) throw new Error("UNSUPPORTED_CHAIN");
+  if (![31337, 5042, 5042002].includes(chainId)) throw new Error("UNSUPPORTED_CHAIN");
   const [owner, deployer, priya, treasuryOwner, agent, keeper, payee] = signers as [Signer, Signer, Signer, Signer, Signer, Signer, Signer];
   const artifacts = compile();
   const deploy = async (name: string, args: unknown[] = []): Promise<Contract> => {

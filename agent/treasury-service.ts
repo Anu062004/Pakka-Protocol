@@ -128,7 +128,7 @@ export class TreasuryService {
     maxGasPrice?: bigint;
     maxGasLimit?: bigint;
   }) {
-    if (![5042002, 31337].includes(chainId) || manifest.chainId !== chainId) fail("UNSUPPORTED_CHAIN");
+    if (![5042, 5042002, 31337].includes(chainId) || manifest.chainId !== chainId) fail("UNSUPPORTED_CHAIN");
     if (!Number.isInteger(confirmations) || confirmations < 1 || confirmations > 100 ||
       !Number.isInteger(slippageBps) || slippageBps < 0 || slippageBps > 1000 ||
       !Number.isInteger(planTtlSeconds) || planTtlSeconds < 10 || planTtlSeconds > 3600 ||
@@ -198,7 +198,7 @@ export class TreasuryService {
     await this.checkChain();
     const block = await this.provider.getBlock("latest");
     if (!block) return fail("BLOCK_UNAVAILABLE");
-    if (this.chainId === 5042002 && Date.now() / 1000 - block.timestamp > 120) fail("STALE_RPC_BLOCK");
+    if (this.chainId !== 31337 && Date.now() / 1000 - block.timestamp > 120) fail("STALE_RPC_BLOCK");
     return block;
   }
 
@@ -212,7 +212,7 @@ export class TreasuryService {
       !same(await t.registry(), this.registry.target as string) || !same(await t.assetToken(), this.asset.target as string) ||
       !same(await this.registry.assetToken(), this.asset.target as string) ||
       !same(await this.market.registry(), this.registry.target as string) || Number(await this.asset.decimals()) !== 6 ||
-      (this.chainId === 5042002 && this.asset.target !== "0x3600000000000000000000000000000000000000")) {
+      (this.chainId !== 31337 && this.asset.target !== "0x3600000000000000000000000000000000000000")) {
       fail("AGENT_DEPLOYMENT_MISMATCH");
     }
     const router = new Contract(this.manifest.router, abi("PakkaRouter"), this.provider);

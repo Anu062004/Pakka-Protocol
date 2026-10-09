@@ -94,7 +94,7 @@ export class ReadService {
       getAddress(await this.market.poolManager() as string) !== getAddress(this.manifest.poolManager) ||
       getAddress(await this.router.market() as string) !== getAddress(this.manifest.market)) throw new Error("DEPLOYMENT_MISMATCH");
     const b = await this.provider.getBlock("latest");
-    if (!b || (this.manifest.chainId === 5042002 && Date.now() / 1000 - b.timestamp > 120)) throw new Error("STALE_RPC_BLOCK");
+    if (!b || (this.manifest.chainId !== 31337 && Date.now() / 1000 - b.timestamp > 120)) throw new Error("STALE_RPC_BLOCK");
     return b;
   }
 
