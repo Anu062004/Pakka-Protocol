@@ -1,6 +1,7 @@
 import { BrowserProvider, Contract, formatUnits, getAddress } from "/ethers.mjs";
 const tokenAbi=["function approve(address,uint256) returns(bool)","function allowance(address,address) view returns(uint256)"];
 const batchKey="pakka-pending-wallet-batch";
+const quoteTtl=120; // Longest deadline the quote service issues, in seconds.
 const fail=code=>{throw Object.assign(new Error(code),{code});};
 export class AppWallet {
   constructor(injected,manifest){this.injected=injected;this.manifest=manifest;this.provider=new BrowserProvider(injected,undefined,{cacheTimeout:-1});}
@@ -18,18 +19,29 @@ export class AppWallet {
     if(BigInt(await this.injected.request({method:"eth_chainId"}))!==BigInt(chainId)) fail("WRONG_WALLET_NETWORK");
   }
   async check(){await this.network();const accounts=await this.injected.request({method:"eth_accounts"});if(!accounts[0]||getAddress(accounts[0])!==this.account)fail("ACCOUNT_CHANGED");}
-  pending(){return JSON.parse(localStorage.getItem(batchKey)??"null");}
+  async pending(){
+    const pending=JSON.parse(localStorage.getItem(batchKey)??"null");
+    if(!pending || pending.chainId!==this.manifest.chainId)return pending;
+    // A batch cannot execute after its on-chain deadline, so a note that outlives it is stale.
+    try{
+      const now=Number(BigInt((await this.injected.request({method:"eth_getBlockByNumber",params:["latest",false]})).timestamp));
+      // Notes saved before deadlines were recorded get the longest deadline a quote can carry.
+      if(!pending.deadline){pending.deadline=now+quoteTtl;localStorage.setItem(batchKey,JSON.stringify(pending));}
+      if(now>pending.deadline){localStorage.removeItem(batchKey);return null;}
+    }catch{}
+    return pending;
+  }
   async write(contract,method,args){
-    if(this.pending()) fail("BATCH_PENDING");await this.check();
+    await this.check();if(await this.pending()) fail("BATCH_PENDING");
     const connected=contract.connect(this.signer);await connected[method].staticCall(...args);
     const tx=await connected[method](...args);return tx.wait();
   }
   async send(to,value){
-    if(this.pending()) fail("BATCH_PENDING");await this.check();
+    await this.check();if(await this.pending()) fail("BATCH_PENDING");
     const tx=await this.signer.sendTransaction({to,value});return tx.wait();
   }
   async status(){
-    const pending=this.pending();if(!pending)return null;
+    const pending=await this.pending();if(!pending)return null;
     if(pending.account!==this.account || pending.chainId!==this.manifest.chainId) fail("BATCH_PENDING");
     const result=await this.injected.request({method:"wallet_getCallsStatus",params:[pending.id]});
     if(result.status>=200&&result.status<300){
@@ -50,15 +62,16 @@ export class AppWallet {
     }
     fail("BATCH_PENDING");
   }
-  async approved(contract,method,args,tokenAddress,spend,{batch=false,prepare}={}){
-    if(this.pending())fail("BATCH_PENDING");await this.check();
+  async approved(contract,method,args,tokenAddress,spend,{batch=false,deadline,prepare}={}){
+    await this.check();if(await this.pending())fail("BATCH_PENDING");
     const token=new Contract(tokenAddress,tokenAbi,this.signer);
-    if(batch){
+    // Batching needs the call's on-chain deadline, which is what lets an unconfirmed note expire.
+    if(batch&&deadline){
       let capabilities;try{capabilities=await this.injected.request({method:"wallet_getCapabilities",params:[this.account,[`0x${this.manifest.chainId.toString(16)}`]]});}catch{}
       const atomic=capabilities?.[`0x${this.manifest.chainId.toString(16)}`]?.atomic?.status;
       if(["supported","ready"].includes(atomic)){
         const id=`0x${Array.from(crypto.getRandomValues(new Uint8Array(32)),b=>b.toString(16).padStart(2,"0")).join("")}`;
-        localStorage.setItem(batchKey,JSON.stringify({id,account:this.account,chainId:this.manifest.chainId}));
+        localStorage.setItem(batchKey,JSON.stringify({id,account:this.account,chainId:this.manifest.chainId,deadline}));
         try{
           const result=await this.injected.request({method:"wallet_sendCalls",params:[{version:"2.0.0",id,from:this.account,
             chainId:`0x${this.manifest.chainId.toString(16)}`,atomicRequired:true,calls:[
@@ -68,7 +81,7 @@ export class AppWallet {
               {to:tokenAddress,data:token.interface.encodeFunctionData("approve",[contract.target,0]),value:"0x0"}]}]});
           if(result.id!==id) fail("BATCH_PENDING");
         }catch(e){if(e.code===4001){localStorage.removeItem(batchKey);throw e;}fail("BATCH_PENDING");}
-        for(let i=0;i<60;i++){try{return await this.status();}catch(e){if(e.code!=="BATCH_PENDING")throw e;}await new Promise(r=>setTimeout(r,1000));}
+        for(let i=0;i<60;i++){try{const receipt=await this.status();if(!receipt)fail("BATCH_EXPIRED");return receipt;}catch(e){if(e.code!=="BATCH_PENDING")throw e;}await new Promise(r=>setTimeout(r,1000));}
         fail("BATCH_PENDING");
       }
     }

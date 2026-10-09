@@ -52,7 +52,8 @@ export const messages={
   WRONG_RPC_CHAIN:"The quote service is connected to the wrong network.",QUOTE_CHANGED:"The price changed since review. Review a fresh quote before locking.",
   DEPLOYMENT_MISMATCH:"The configured addresses do not match the deployed system. Stop and check the deployment manifest.",
   WRONG_WALLET_NETWORK:"Switch your wallet to Arc Testnet to continue.",WALLET_REQUIRED:"Open this app in a wallet browser or install an Ethereum wallet.",
-  BATCH_PENDING:"Your wallet batch is pending or its status is unknown. Check its status before starting another purchase.",
+  BATCH_PENDING:"An earlier purchase is still unconfirmed by your wallet. Wallet actions are paused until it confirms or its deadline passes, within about two minutes. Then try again.",
+  BATCH_EXPIRED:"Your wallet never confirmed the purchase and its deadline has passed. Refresh positions to see whether it went through.",
   BATCH_FAILED:"The wallet batch failed. Review its status before retrying.",BATCH_NOT_ATOMIC:"The wallet did not confirm atomic execution. Review the batch before proceeding.",
   ACCOUNT_CHANGED:"Your wallet account changed. Reconnect and review the transaction.",ACTION_REJECTED:"You cancelled the wallet request.",
 };
