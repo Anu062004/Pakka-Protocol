@@ -66,10 +66,10 @@ export function createHandler({ getService, manifest, port = 4173, allowedHosts 
           tijori: url.searchParams.get("tijori") ?? undefined, fromBlock: url.searchParams.has("fromBlock") ? Number(url.searchParams.get("fromBlock")) : undefined }));
         return json(res, 404, { error: "NOT_FOUND" });
       }
-      if (/^\/assets\/[\w-]+\.png$/.test(url.pathname)) {
+      if (/^\/assets\/[\w-]+\.(png|webp)$/.test(url.pathname)) {
         const file = path.join(projectRoot, "frontend", url.pathname);
         if (!fs.existsSync(file)) return json(res, 404, { error: "NOT_FOUND" });
-        res.writeHead(200, { "Content-Type": "image/png", "Cache-Control": "no-store" });
+        res.writeHead(200, { "Content-Type": url.pathname.endsWith(".webp") ? "image/webp" : "image/png", "Cache-Control": "no-store" });
         return res.end(fs.readFileSync(file));
       }
       if (/^\/fonts\/[\w-]+\.woff2$/.test(url.pathname)) {

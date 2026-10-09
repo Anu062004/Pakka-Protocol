@@ -76,6 +76,11 @@ main{position:relative;z-index:1}
 .how .body{max-width:440px}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
 .card{background:#0c0c0c;border:1px solid #1f1f1f;border-radius:22px;padding:30px;display:flex;flex-direction:column;gap:18px;min-height:300px}
+/* Each step's illustration bleeds to the card's top edges and dissolves into the card,
+   so a render whose background is a shade off the card's own never shows a seam. */
+.card{overflow:hidden}
+.card-art{margin:-30px -30px 0;aspect-ratio:16/9;-webkit-mask-image:radial-gradient(ellipse 78% 92% at 50% 44%,#000 58%,transparent 100%);mask-image:radial-gradient(ellipse 78% 92% at 50% 44%,#000 58%,transparent 100%)}
+.card-art img{display:block;width:100%;height:100%;object-fit:cover}
 .card .n{font-family:"Geist Mono",ui-monospace,monospace;font-size:14px;color:#777}
 .card h3{margin-top:auto;font-size:30px;letter-spacing:-.03em}
 .card p{color:#a0a0a0;font-size:16px;line-height:1.55}
