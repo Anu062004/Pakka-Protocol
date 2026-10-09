@@ -6,28 +6,37 @@
 <a class="skip" href="#main">Skip to content</a>
 <div class="shell">
   <aside class="rail"><a class="brand" href="#rates">Pakka<span>USDC, with a date.</span></a>
-    <nav aria-label="Main"><a href="#rates">Rates</a><a href="#lock">Lock</a><a href="#positions">Positions</a><a href="#tijori">Tijori</a></nav>
+    <nav aria-label="Main"><a href="#rates">Rates</a><a href="#lock">Buy PT</a><a href="#yield">Buy YT</a><a href="#positions">Positions</a><a href="#tijori">Tijori</a></nav>
     <p class="network">Arc Testnet<br><span>Faucet funds only</span></p>
-    <a class="home-link" href="/">← About Pakka</a>
+    <a class="home-link" href="/docs">Guide and glossary</a><a class="home-link" href="/">About Pakka</a>
   </aside>
   <div class="workspace"><header class="topbar"><span id="network-status">Waiting for deployment</span><button id="connect" class="cta">Connect wallet</button></header>
     <main id="main">
       <p id="notice" role="status" aria-live="polite">Loading testnet configuration…</p>
       <div id="transaction" aria-live="polite"></div>
-      <section id="rates" class="page"><h1>Choose your date.</h1><p>Buy a principal ticket today. Redeem it at maturity. Rates include the current pool quote.</p>
+      <section id="rates" class="page"><h1>Choose your date.</h1><p>Buy a principal token today and redeem it for its full face value at maturity. Rates include the current pool quote.</p>
+        <p class="terms">New to principal tokens, yield tokens or maturities? <a href="/docs">Read the guide</a>.</p>
         <div class="variable"><div><h2>Morpho variable rate</h2><p id="variable-rate">— · Live vault feed not configured</p></div><p>Fixed quotes below are simple annualized rates, not APY. Vault losses and withdrawal limits still apply.</p></div>
         <div id="rates-list" class="list"><p>No rates loaded yet.</p></div>
         <button id="refresh-rates" class="text-button">Refresh rates</button>
       </section>
-      <section id="lock" class="page" hidden><h1>Lock a future payout.</h1><p>Your ticket’s face value is measured in USDC. The amount you pay today comes from a fresh quote.</p>
+      <section id="lock" class="page" hidden><h1>Buy a principal token.</h1><p>A principal token (PT) pays its full face value in USDC on the maturity date. You pay less than that today, and the difference is your fixed interest.</p>
         <p id="lock-unavailable" class="helper" hidden>No maturities are registered on this deployment yet, so there is nothing to choose — this isn’t a bug, the date list is empty because the owner hasn’t registered a series. Check Rates for status.</p>
         <div class="split"><form id="lock-form"><label for="face">Face value at maturity · USDC</label><input id="face" inputmode="decimal" value="1" required pattern="[0-9]+(\.[0-9]{1,6})?">
           <label for="maturity">Maturity</label><select id="maturity" required><option value="">Choose a date</option></select>
-          <button id="get-quote" type="button">Get quote</button><button id="lock-submit" type="submit" class="cta" disabled>Lock USDC</button>
+          <button id="get-quote" type="button">Get quote</button><button id="lock-submit" type="submit" class="cta" disabled>Buy principal token</button>
           <p id="approval-note" class="helper">Compatible wallets batch approval and purchase. Other wallets confirm two transactions.</p>
         </form><div class="quote" id="quote-details"><h2>Your quote</h2><p>Choose a maturity and amount to see the cost, payout and rate.</p></div></div>
       </section>
-      <section id="positions" class="page" hidden><h1>Your dated tickets.</h1><p>Early sales depend on pool liquidity. Mature tickets can be cashed out in USDC or vault shares.</p><div id="positions-list" class="list"><p>Connect your wallet to see your positions.</p></div><button id="refresh-positions" class="text-button">Refresh positions</button></section>
+      <section id="yield" class="page" hidden><h1>Buy a yield token.</h1><p>A yield token (YT) collects all the variable interest the vault earns on its share of the deposit until the maturity date. It pays no principal back, so it gains if the vault earns more than you paid and loses if it earns less.</p>
+        <p class="terms">You deposit USDC, the fixed half is sold to the pool and that USDC comes straight back to you. What you keep is the yield token. <a href="/docs#yt">How this works</a>.</p>
+        <div class="split"><form id="yield-form"><label for="yield-amount">USDC to deposit</label><input id="yield-amount" inputmode="decimal" value="1" required pattern="[0-9]+(\.[0-9]{1,6})?">
+          <label for="yield-maturity">Maturity</label><select id="yield-maturity" required><option value="">Choose a date</option></select>
+          <button id="yield-preview" type="button">Preview</button><button id="yield-submit" type="submit" class="cta" disabled>Buy yield token</button>
+          <p class="helper">Connect your wallet first. Your wallet confirms an approval, the purchase, then an approval reset.</p>
+        </form><div class="quote" id="yield-details"><h2>Your preview</h2><p>Choose a maturity and amount to see what comes back and what the yield token costs.</p></div></div>
+      </section>
+      <section id="positions" class="page" hidden><h1>Your positions.</h1><p>Principal tokens can be sold early if the pool has liquidity, or cashed out at maturity in USDC or vault shares. Yield tokens show any interest ready to claim.</p><div id="positions-list" class="list"><p>Connect your wallet to see your positions.</p></div><button id="refresh-positions" class="text-button">Refresh positions</button></section>
       <section id="tijori" class="page" hidden><h1>A treasury with limits.</h1><p>You own the funds. Your agent can buy tickets and pay only approved payees within your limits.</p>
         <div id="treasury-status">Connect your wallet to open your Tijori.</div>
         <form id="create-form" hidden><h2>Create your Tijori</h2>
