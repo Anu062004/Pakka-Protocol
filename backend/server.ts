@@ -66,6 +66,12 @@ export function createHandler({ getService, manifest, port = 4173, allowedHosts 
           tijori: url.searchParams.get("tijori") ?? undefined, fromBlock: url.searchParams.has("fromBlock") ? Number(url.searchParams.get("fromBlock")) : undefined }));
         return json(res, 404, { error: "NOT_FOUND" });
       }
+      if (/^\/assets\/[\w-]+\.png$/.test(url.pathname)) {
+        const file = path.join(projectRoot, "frontend", url.pathname);
+        if (!fs.existsSync(file)) return json(res, 404, { error: "NOT_FOUND" });
+        res.writeHead(200, { "Content-Type": "image/png", "Cache-Control": "no-store" });
+        return res.end(fs.readFileSync(file));
+      }
       if (/^\/fonts\/[\w-]+\.woff2$/.test(url.pathname)) {
         const file = path.join(projectRoot, "frontend", url.pathname);
         if (!fs.existsSync(file)) return json(res, 404, { error: "NOT_FOUND" });
@@ -73,6 +79,8 @@ export function createHandler({ getService, manifest, port = 4173, allowedHosts 
         return res.end(fs.readFileSync(file));
       }
       const files: Record<string, string> = { "/": "frontend/index.html", "/docs": "frontend/docs.html", "/landing.css": "frontend/landing.css",
+        "/home.css": "frontend/home.css", "/home.mjs": "frontend/home.mjs",
+        "/lib/three.module.min.js": "frontend/lib/three.module.min.js", "/lib/RoomEnvironment.js": "frontend/lib/RoomEnvironment.js",
         "/app": "frontend/app.html", "/app.mjs": "frontend/app.mjs", "/app.css": "frontend/app.css", "/fonts.css": "frontend/fonts.css",
         "/errors.mjs": "frontend/errors.mjs", "/wallet.mjs": "frontend/wallet.mjs", "/network.mjs": "frontend/network.mjs",
         // Serverless bundlers trace imports, not fs reads, so the build copies ethers next to

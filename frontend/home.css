@@ -1,0 +1,133 @@
+/* Pakka landing page, implemented from the Claude Design project "Pakka Landing".
+ * Black ground, Geist type, a fixed WebGL stage of falling USDC coins behind the content.
+ * The source used inline styles; they live here because the site's CSP forbids them. */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+html,body{margin:0;background:#000;color:#fff;font-family:Geist,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:clip}
+a{color:#fff;text-decoration:none}
+a:hover{color:#bdbdbd}
+:focus-visible{outline:2px solid #fff;outline-offset:3px}
+h1,h2,h3,p{margin:0}
+h1,h2,h3{font-weight:500}
+.skip{position:absolute;left:16px;top:-100px;z-index:30;background:#fff;color:#000;padding:12px}
+.skip:focus{top:12px}
+
+/* ---------- stage ---------- */
+.stage,.dim{position:fixed;inset:0;z-index:0;pointer-events:none}
+.stage{background:radial-gradient(ellipse 70% 60% at 50% 45%,#0e0f11 0%,#000 75%)}
+.dim{background:#000;opacity:0}
+
+/* ---------- header ---------- */
+.top{position:fixed;top:0;left:0;right:0;z-index:20;padding:18px clamp(16px,3vw,40px);display:flex;justify-content:center}
+.top nav{width:100%;max-width:1320px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 10px 10px 22px;border-radius:999px;background:rgba(18,18,18,.62);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.08)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:20px;letter-spacing:-.02em}
+.logo:hover{color:#fff}
+.links{display:none;gap:clamp(14px,2.4vw,36px);font-size:15px;flex-wrap:wrap;justify-content:center}
+.links a{color:#cfcfcf}
+.links a:hover{color:#fff}
+.pill{display:flex;align-items:center;gap:12px;padding:7px 7px 7px 22px;border-radius:999px;background:#fff;color:#000;font-size:16px;font-weight:500;white-space:nowrap}
+.pill:hover{background:#e6e6e6;color:#000}
+.pill .arrow{width:38px;height:38px;border-radius:50%;background:#000;color:#fff;display:grid;place-items:center}
+.pill.small{gap:10px;padding:6px 6px 6px 18px;font-size:15px}
+.pill.small .arrow{width:32px;height:32px}
+.pill.start{align-self:flex-start}
+.under{font-size:15px;color:#cfcfcf;border-bottom:1px solid #555;padding-bottom:3px}
+.under:hover{color:#fff;border-color:#fff}
+.actions{display:flex;align-items:center;gap:22px}
+
+/* ---------- shared ---------- */
+main{position:relative;z-index:1}
+.sec{padding:120px clamp(20px,4vw,56px);max-width:1440px;margin:0 auto}
+.full{min-height:100vh;min-height:100svh}
+.mono{font-family:"Geist Mono",ui-monospace,monospace;font-size:13px;letter-spacing:.14em;color:#9a9a9a;text-transform:uppercase}
+.title{font-size:clamp(36px,5vw,72px);line-height:1;letter-spacing:-.04em}
+.body{color:#a8a8a8;font-size:17px;line-height:1.55}
+.side{max-width:360px;color:#a8a8a8;font-size:16px;line-height:1.55}
+.stack{display:flex;flex-direction:column;gap:22px}
+.split{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.split .stack{max-width:640px}
+
+/* ---------- hero ---------- */
+.hero{padding-top:120px;padding-bottom:40px;display:flex;flex-direction:column;justify-content:space-between}
+.hero .mono{text-align:center;padding-top:4vh}
+.hero h1{text-align:center;font-size:clamp(56px,11vw,176px);line-height:.92;letter-spacing:-.055em}
+.hero .side{font-size:16px;line-height:1.5;text-wrap:pretty}
+
+/* ---------- problem ---------- */
+.problem{display:flex;align-items:center}
+.problem .stack{max-width:760px;gap:28px}
+.problem h2{font-size:clamp(36px,5.2vw,76px);line-height:1;letter-spacing:-.04em;text-wrap:pretty}
+.problem h2 span{color:#6b6b6b}
+.problem .body{max-width:480px}
+.problem em{color:#fff}
+
+/* ---------- built on ---------- */
+.built{padding:60px 0 120px;display:flex;flex-direction:column;gap:36px;overflow:hidden}
+.built-head{text-align:center;display:flex;flex-direction:column;gap:14px;padding:0 20px}
+.built h2{font-size:clamp(30px,3.6vw,52px);letter-spacing:-.035em}
+.marquee{position:relative;mask-image:linear-gradient(90deg,transparent,#000 15%,#000 85%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 15%,#000 85%,transparent)}
+.marquee-track{display:flex;width:max-content;animation:pk-marquee 32s linear infinite}
+.marquee-track div{padding:0 clamp(28px,4vw,64px);font-size:clamp(22px,2.4vw,34px);font-weight:500;color:#8a8a8a;letter-spacing:-.02em;white-space:nowrap}
+@keyframes pk-marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ---------- how ---------- */
+.how{display:flex;flex-direction:column;gap:56px}
+.how .stack{max-width:620px;min-height:48vh}
+.how .body{max-width:440px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.card{background:#0c0c0c;border:1px solid #1f1f1f;border-radius:22px;padding:30px;display:flex;flex-direction:column;gap:18px;min-height:300px}
+.card .n{font-family:"Geist Mono",ui-monospace,monospace;font-size:14px;color:#777}
+.card h3{margin-top:auto;font-size:30px;letter-spacing:-.03em}
+.card p{color:#a0a0a0;font-size:16px;line-height:1.55}
+.card.light{background:#fff;color:#000;border-color:#fff}
+.card.light .n{color:#666}
+.card.light p{color:#3a3a3a}
+
+/* ---------- people ---------- */
+.people{display:flex;flex-direction:column;gap:48px}
+.people .side{max-width:340px}
+.persons{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:16px}
+.person{background:#0c0c0c;border:1px solid #1f1f1f;border-radius:22px;overflow:hidden;display:flex;flex-direction:column}
+.shot{width:100%;aspect-ratio:1/1;position:relative;background:radial-gradient(ellipse 80% 70% at 50% 40%,#17181b 0%,#0a0a0a 80%);display:grid;place-items:center}
+.shot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.shot img.soft{filter:grayscale(.15)}
+.shot.missing img{display:none}
+.shot svg{width:34%;height:auto;opacity:.9}
+.person-text{padding:28px;display:flex;flex-direction:column;gap:10px}
+.person h3{font-size:26px;letter-spacing:-.025em}
+.person p{color:#a0a0a0;font-size:16px;line-height:1.55}
+
+/* ---------- tijori ---------- */
+.tijori{display:flex;align-items:center}
+.tijori>.stack{max-width:620px;gap:36px}
+.tijori .body{max-width:480px}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:28px;border-top:1px solid #262626;padding-top:28px}
+.rule{display:flex;flex-direction:column;gap:14px}
+.rule h3{font-size:15px}
+.rule div{color:#a0a0a0;font-size:15px;line-height:1.5;display:flex;flex-direction:column;gap:10px}
+.rule.no h3,.rule.no div{color:#7a7a7a}
+
+/* ---------- arc ---------- */
+.arc{display:flex;flex-direction:column;gap:56px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));border-top:1px solid #262626}
+.stat{padding:36px 24px 36px 0;border-bottom:1px solid #262626;display:flex;flex-direction:column;gap:12px}
+.stat strong{font-size:clamp(48px,6vw,88px);font-weight:500;letter-spacing:-.05em;line-height:1}
+.stat span{color:#9a9a9a;font-size:15px}
+
+/* ---------- cta, footer ---------- */
+.cta{padding:120px clamp(20px,4vw,56px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;text-align:center}
+.cta h2{font-size:clamp(48px,8vw,128px);line-height:.95;letter-spacing:-.05em}
+.cta p{color:#a8a8a8;font-size:16px;max-width:46ch}
+.foot{position:relative;background:#000;border-top:1px solid #1c1c1c;padding:56px clamp(20px,4vw,56px) 36px}
+.foot-inner{max-width:1440px;margin:0 auto;display:flex;flex-direction:column;gap:56px}
+.foot-top{display:flex;justify-content:space-between;gap:40px;flex-wrap:wrap}
+.wordmark{display:flex;align-items:flex-start;gap:clamp(12px,1.6vw,24px)}
+.wordmark svg{width:clamp(44px,7.4vw,112px);height:auto}
+.wordmark div{font-weight:600;font-size:clamp(56px,10vw,150px);letter-spacing:-.06em;line-height:.8}
+.foot-links{display:flex;gap:64px;font-size:15px}
+.foot-links div{display:flex;flex-direction:column;gap:12px}
+.foot-links span{color:#777}
+.foot-bottom{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:#6f6f6f;font-size:13px}
+
+@media(min-width:52rem){.links{display:flex}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.marquee-track{animation:none}}
