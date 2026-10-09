@@ -85,8 +85,9 @@ async function lock(){
   const fresh=await api(`/api/quote?seriesId=${quote.seriesId}&ptAmount=${encodeURIComponent(quote.pt.usdc)}`);
   if(BigInt(fresh.quotedCost.raw)>BigInt(quote.maxUsdc.raw)) {invalidateQuote();throw new Error("QUOTE_CHANGED");}
   const router=contract("PakkaRouter",state.manifest.router);
+  const deadline=Math.min(quote.deadline,fresh.deadline);
   const receipt=await wallet.approved(router,"lock",[quote.seriesId,quote.pt.raw,quote.maxUsdc.raw,wallet.account,
-    Math.min(quote.deadline,fresh.deadline)],state.manifest.usdc,BigInt(quote.maxUsdc.raw),{batch:true});
+    deadline],state.manifest.usdc,BigInt(quote.maxUsdc.raw),{batch:true,deadline});
   invalidateQuote();await showReceipt(receipt,wallet);await refreshPositions();location.hash="positions";
 }
 async function exitPosition(position,{treasury=false,toAssets=true,claim=false,merge=false}={}){
@@ -225,7 +226,7 @@ function form(id,action){$(id).addEventListener("submit",e=>{e.preventDefault();
 $("connect").addEventListener("click",()=>run(async()=>{
   if(!window.ethereum)throw new Error("WALLET_REQUIRED");if(!state.manifest)throw new Error("TESTNET_DEPLOYMENT_MISSING");
   const wallet=new AppWallet(window.ethereum,state.manifest);await wallet.connect();state.wallet=wallet;$("connect").textContent=short(wallet.account);
-  if(wallet.pending()){const receipt=await wallet.status();await showReceipt(receipt,wallet);}
+  if(await wallet.pending()){const receipt=await wallet.status();await showReceipt(receipt,wallet);}
   await refreshPositions();await refreshTreasury();notice("Wallet connected on testnet.");
 }));
 $("refresh-rates").onclick=()=>run(refreshRates);$("get-quote").onclick=()=>run(getQuote);form("lock-form",lock);

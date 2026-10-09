@@ -144,7 +144,7 @@ test("atomic wallet request requires atomicity and preserves an ambiguous batch 
   const result=await page.evaluate(async({account,manifest}: {account: string; manifest: any})=>{
     // @ts-expect-error browser-only runtime module served by the app itself, not resolvable by Node's TS
     const {AppWallet}=await import("/wallet.mjs");const requests: any[]=[];
-    const injected={request:async({method,params}: {method: string; params?: any[]})=>{
+    const injected={request:async({method,params}: {method: string; params?: any[]}): Promise<any>=>{
       if(method==="eth_chainId")return "0x7a69";if(method==="eth_accounts")return [account];
       if(method==="wallet_getCapabilities")return {"0x7a69":{atomic:{status:"supported"}}};
       if(method==="wallet_sendCalls"){requests.push(params![0]);throw new Error("lost response");}
@@ -152,9 +152,12 @@ test("atomic wallet request requires atomicity and preserves an ambiguous batch 
     }};
     const w=new AppWallet(injected,manifest);w.account=account;
     const c={target:manifest.router,interface:{encodeFunctionData:()=>"0x1234"}};
-    let code;try{await w.approved(c,"lock",[],manifest.usdc,1n,{batch:true});}catch(e){code=(e as any).code;}
-    const pending=w.pending();try{await w.approved(c,"lock",[],manifest.usdc,1n,{batch:true});}catch{}
-    return {code,pending:Boolean(pending),count:requests.length,atomicRequired:requests[0].atomicRequired,calls:requests[0].calls.length};
+    let code;try{await w.approved(c,"lock",[],manifest.usdc,1n,{batch:true,deadline:1000});}catch(e){code=(e as any).code;}
+    const pending=await w.pending();try{await w.approved(c,"lock",[],manifest.usdc,1n,{batch:true,deadline:1000});}catch{}
+    // Once the chain is past the batch's deadline it can no longer land, so the note stops blocking the wallet.
+    const time=(t: number)=>{const inner=injected.request;injected.request=async(r: any)=>r.method==="eth_getBlockByNumber"?{timestamp:`0x${t.toString(16)}`}:inner(r);};
+    time(1000);const live=Boolean(await w.pending());time(1001);const expired=await w.pending();
+    return {code,pending:Boolean(pending),live,expired,count:requests.length,atomicRequired:requests[0].atomicRequired,calls:requests[0].calls.length};
   },{account:(system.priya as any).address,manifest:system.manifest});
-  assert.deepEqual(result,{code:"BATCH_PENDING",pending:true,count:1,atomicRequired:true,calls:4});
+  assert.deepEqual(result,{code:"BATCH_PENDING",pending:true,live:true,expired:null,count:1,atomicRequired:true,calls:4});
 });
