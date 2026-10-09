@@ -3,8 +3,8 @@ import { AppWallet } from "/wallet.mjs";
 import { humanError } from "/errors.mjs";
 
 const $=id=>document.getElementById(id);
-const state={manifest:null,abis:null,wallet:null,rates:[],quote:null,treasury:null,busy:false};
-const pages=["rates","lock","positions","tijori"];
+const state={manifest:null,abis:null,wallet:null,rates:[],quote:null,yieldQuote:null,treasury:null,busy:false};
+const pages=["rates","lock","yield","positions","tijori"];
 // The terminal setup command keeps the agent key on the user's machine and passes only its
 // address here, so the owner's wallet can approve it without the key ever reaching a browser.
 const setupAgent=(()=>{try{return getAddress(new URLSearchParams(location.search).get("agent")??"");}catch{return null;}})();
@@ -30,7 +30,7 @@ async function run(action){
   buttons.forEach(([e])=>{e.disabled=true;e.setAttribute("aria-busy","true");});
   notice("Checking the latest state. Your wallet will ask before any transaction.");
   try{await action();}catch(e){notice(humanError(e,interfaces()),"error");}
-  finally{state.busy=false;buttons.forEach(([e,was])=>{e.disabled=was;e.removeAttribute("aria-busy");});$("lock-submit").disabled=!state.quote;$("show-key").disabled=!$("one-time-key").value||$("one-time-key").type==="text";}
+  finally{state.busy=false;buttons.forEach(([e,was])=>{e.disabled=was;e.removeAttribute("aria-busy");});$("lock-submit").disabled=!state.quote;$("yield-submit").disabled=!state.yieldQuote;$("show-key").disabled=!$("one-time-key").value||$("one-time-key").type==="text";}
 }
 function navigate(){
   const id=pages.includes(location.hash.slice(1))?location.hash.slice(1):"rates";
@@ -50,7 +50,7 @@ async function showReceipt(receipt,wallet=state.wallet){
 async function refreshRates(){
   const result=await api("/api/rates");state.rates=result.series;
   $("variable-rate").textContent=result.variableRatePercent===null?`— · ${result.variableRateStatus}`:`${result.variableRatePercent}% variable APY`;
-  $("rates-list").replaceChildren();$("maturity").replaceChildren(node("option","Choose a date",{value:""}));
+  $("rates-list").replaceChildren();for(const id of ["maturity","yield-maturity"])$(id).replaceChildren(node("option","Choose a date",{value:""}));
   let availableMaturities=0;
   for(const s of state.rates){
     const row=node("div",undefined,{class:"rate-row"});
@@ -61,12 +61,13 @@ async function refreshRates(){
     const b=button(active?"Choose date":s.expiry<=result.timestamp?"Matured":"Unavailable",async()=>{$("maturity").value=String(s.seriesId);invalidateQuote();location.hash="lock";notice("Enter a face value, then request a quote.");});b.disabled=!active;row.append(b);
     if(!active)label.append(node("p",s.expiry<=result.timestamp?"Cash out your mature ticket in Positions.":!s.indexHealthy?"Vault index safety limit reached.":!s.entryOpen?"New purchases paused.":"Pool liquidity is currently unavailable.",{class:"helper"}));
     $("rates-list").append(row);
-    if(s.expiry>result.timestamp){const option=node("option",`${date(s.expiry)} · Series ${s.seriesId}`,{value:s.seriesId});option.disabled=!active;$("maturity").append(option);availableMaturities++;}
+    if(s.expiry>result.timestamp){for(const id of ["maturity","yield-maturity"]){const option=node("option",`${date(s.expiry)} · Series ${s.seriesId}`,{value:s.seriesId});option.disabled=!active;$(id).append(option);}availableMaturities++;}
   }
   if(!state.rates.length)$("rates-list").append(node("p","No registered maturities yet. Rates appear after owner registration and pool seeding."));
   $("lock-unavailable").hidden=availableMaturities>0;
   $("face").disabled=$("maturity").disabled=$("get-quote").disabled=availableMaturities===0;
-  invalidateQuote();notice(`Rates refreshed at block ${result.blockNumber}.`);
+  $("yield-amount").disabled=$("yield-maturity").disabled=$("yield-preview").disabled=availableMaturities===0;
+  invalidateQuote();invalidateYield();notice(`Rates refreshed at block ${result.blockNumber}.`);
 }
 function invalidateQuote(){state.quote=null;$("lock-submit").disabled=true;$("quote-details").replaceChildren(node("h2","Your quote"),node("p","Request a fresh quote for this amount and date."));}
 async function getQuote(){
@@ -89,6 +90,28 @@ async function lock(){
   const receipt=await wallet.approved(router,"lock",[quote.seriesId,quote.pt.raw,quote.maxUsdc.raw,wallet.account,
     deadline],state.manifest.usdc,BigInt(quote.maxUsdc.raw),{batch:true,deadline});
   invalidateQuote();await showReceipt(receipt,wallet);await refreshPositions();location.hash="positions";
+}
+function invalidateYield(){state.yieldQuote=null;$("yield-submit").disabled=true;$("yield-details").replaceChildren(node("h2","Your preview"),node("p","Request a fresh preview for this amount and date."));}
+async function previewYield(){
+  const wallet=requireWallet(),seriesId=Number($("yield-maturity").value),assets=amount($("yield-amount").value);
+  const s=state.rates.find(s=>s.seriesId===seriesId);if(!s)throw new Error("INVALID_QUOTE_AMOUNT");
+  // The split mints one PT and one YT per USDC of deposit, and the router sells that PT back to the pool.
+  const returned=await contract("UniswapV4Market",state.manifest.market).quoteSellPT.staticCall(seriesId,assets);
+  if(returned>=assets)throw new Error("InvalidQuote");
+  state.yieldQuote={seriesId,assets,account:wallet.account};
+  const dl=node("dl");for(const [label,value]of [["You deposit",usdc(formatUnits(assets,6))],["Returned to you now",`≈ ${usdc(formatUnits(returned,6))}`],["Net cost of the yield token",`≈ ${usdc(formatUnits(assets-returned,6))}`],["Yield tokens received",`≈ ${Number(formatUnits(assets,6)).toLocaleString(undefined,{maximumFractionDigits:6})} YT`],["Collects interest until",date(s.expiry)]])dl.append(node("dt",label),node("dd",value));
+  $("yield-details").replaceChildren(node("h2","Your preview"),dl,node("p","Estimate from the current pool price. The purchase is stopped if either amount comes in more than 0.50% lower.",{class:"helper"}));
+  $("yield-submit").disabled=false;notice("Preview ready. Review the net cost before buying.");
+}
+async function buyYield(){
+  const wallet=requireWallet(),quote=state.yieldQuote;
+  if(!quote||quote.account!==wallet.account||quote.seriesId!==Number($("yield-maturity").value)||quote.assets!==amount($("yield-amount").value))throw new Error("QUOTE_CHANGED");
+  const router=contract("PakkaRouter",state.manifest.router);
+  const current=await api(`/api/positions?account=${wallet.account}`);
+  const args=[quote.seriesId,quote.assets,0,0,wallet.account,current.timestamp+120];
+  const prepare=async()=>{const [minted,returned]=await router.connect(wallet.signer).buyYield.staticCall(...args);args[2]=minted*9950n/10000n;args[3]=returned*9950n/10000n;return args;};
+  const receipt=await wallet.approved(router,"buyYield",args,state.manifest.usdc,quote.assets,{prepare});
+  invalidateYield();await showReceipt(receipt,wallet);await refreshPositions();location.hash="positions";
 }
 async function exitPosition(position,{treasury=false,toAssets=true,claim=false,merge=false}={}){
   const wallet=requireWallet();const s=state.rates.find(s=>s.seriesId===position.seriesId);
@@ -118,11 +141,16 @@ async function exitPosition(position,{treasury=false,toAssets=true,claim=false,m
   await showReceipt(receipt,wallet);if(treasury)await refreshTreasury();else await refreshPositions();
 }
 function renderPositions(container,result,treasury=false){
-  container.replaceChildren();if(!result.positions.length)container.append(node("p","No tickets yet. Choose a maturity on Rates to get started."));
+  container.replaceChildren();if(!result.positions.length)container.append(node("p","No positions yet. Choose a maturity on Rates to get started."));
   for(const p of result.positions){
     const row=node("div",undefined,{class:"position-row"});
     const seconds=Math.max(0,p.expiry-result.timestamp),countdown=seconds>=86400?`${Math.ceil(seconds/86400)} days left`:`${Math.ceil(seconds/60)} minutes left`;
-    row.append(node("h3",`Series ${p.seriesId} · ${date(p.expiry)}`),node("p",`${usdc(p.ptUsdc)} face · ${p.matured?"Matured":countdown} · Estimated exit value ${p.estimatedUsdc===null?"unavailable":usdc(p.estimatedUsdc)}`));
+    const holdings=[];
+    if(BigInt(p.ptRaw)>0n)holdings.push(`${usdc(p.ptUsdc)} face`);
+    if(BigInt(p.ytRaw)>0n)holdings.push(`${Number(formatUnits(p.ytRaw,6)).toLocaleString(undefined,{maximumFractionDigits:6})} YT`);
+    holdings.push(p.matured?"Matured":countdown);
+    if(BigInt(p.ptRaw)>0n)holdings.push(`Estimated exit value ${p.estimatedUsdc===null?"unavailable":usdc(p.estimatedUsdc)}`);
+    row.append(node("h3",`Series ${p.seriesId} · ${date(p.expiry)}`),node("p",holdings.join(" · ")));
     const actions=node("div",undefined,{class:"actions"});
     if(BigInt(p.ptRaw)>0n&&(p.matured||!treasury))actions.append(button(p.matured?"Cash out":"Sell early",()=>exitPosition(p,{treasury}),p.matured?{class:"cta"}:{}));
     if(p.matured&&BigInt(p.ptRaw)>0n)actions.append(button("Take vault shares",()=>exitPosition(p,{treasury,toAssets:false})));
@@ -231,6 +259,7 @@ $("connect").addEventListener("click",()=>run(async()=>{
 }));
 $("refresh-rates").onclick=()=>run(refreshRates);$("get-quote").onclick=()=>run(getQuote);form("lock-form",lock);
 $("face").oninput=invalidateQuote;$("maturity").onchange=invalidateQuote;
+$("yield-preview").onclick=()=>run(previewYield);form("yield-form",buyYield);$("yield-amount").oninput=invalidateYield;$("yield-maturity").onchange=invalidateYield;
 $("refresh-positions").onclick=()=>run(refreshPositions);$("refresh-treasury").onclick=()=>run(refreshTreasury);
 form("create-form",createTreasury);$("setup-authorize-button").onclick=()=>run(authorizeSetup);
 form("deposit-form",async()=>{const wallet=requireWallet(),value=amount($("deposit-amount").value);await showReceipt(await wallet.approved(contract("Tijori",state.treasury.address),"deposit",[value],state.manifest.usdc,value),wallet);await refreshTreasury();});
@@ -247,7 +276,7 @@ $("copy-config").onclick=()=>run(async()=>{await navigator.clipboard.writeText($
 form("bill-form",async()=>{const bills=readBills();if(bills.length>=100)throw new Error("InvalidAmount");const bill={id:crypto.randomUUID(),payee:getAddress($("bill-payee").value),amount:formatUnits(amount($("bill-amount").value),6),date:$("bill-date").value};localStorage.setItem(billsKey(),JSON.stringify([...bills,bill]));renderBills();notice("Bill added to this device's calendar.");});
 window.addEventListener("hashchange",navigate);window.addEventListener("pagehide",clearKey);
 window.ethereum?.on?.("accountsChanged",()=>{clearKey();state.wallet=null;state.treasury=null;$("connect").textContent="Connect wallet";$("treasury-controls").hidden=true;$("create-form").hidden=true;$("setup-authorize").hidden=true;$("positions-list").replaceChildren(node("p","Wallet changed. Reconnect to refresh positions."));notice("Wallet changed. Reconnect before continuing.");});
-window.ethereum?.on?.("chainChanged",()=>{clearKey();state.wallet=null;$("connect").textContent="Connect wallet";invalidateQuote();notice("Network changed. Reconnect on Arc Testnet.");});
+window.ethereum?.on?.("chainChanged",()=>{clearKey();state.wallet=null;$("connect").textContent="Connect wallet";invalidateQuote();invalidateYield();notice("Network changed. Reconnect on Arc Testnet.");});
 navigate();
 if(setupAgent)$("treasury-status").textContent="Connect your wallet to approve the agent from your terminal setup.";
 try{

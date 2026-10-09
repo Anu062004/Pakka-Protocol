@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pakka · Guide and glossary</title>
+<meta name="description" content="Plain-language guide to Pakka: what principal tokens and yield tokens are, where the fixed interest comes from, how to buy each one, and every term used in the app.">
+<link rel="stylesheet" href="/fonts.css">
+<link rel="stylesheet" href="/landing.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap">
+    <a class="wordmark" href="/">Pakka<span>USDC, with a date.</span></a>
+    <nav class="nav-menu" aria-label="Main">
+      <a href="/#problem">The story</a>
+      <a href="/#how-it-works">How it works</a>
+      <a href="/#safety">Safety</a>
+      <a href="/docs" aria-current="page">Guide</a>
+      <a href="https://github.com/Anu062004/Pakka-Protocol" rel="noopener noreferrer">GitHub</a>
+    </nav>
+    <a class="cta" href="/app">Launch app</a>
+  </div>
+</header>
+
+<main id="main">
+  <section class="guide-head wrap">
+    <p class="eyebrow">Guide and glossary</p>
+    <h1>Every term, in plain words.</h1>
+    <p class="lede">What you are buying, where the interest comes from, who is on the other side, and what each button in the app does.</p>
+    <nav class="toc" aria-label="On this page">
+      <a href="#idea">The idea</a>
+      <a href="#buying">Buying and exiting</a>
+      <a href="#glossary">Glossary</a>
+      <a href="#risks">Risks</a>
+    </nav>
+  </section>
+
+  <section class="chapter" id="idea">
+    <div class="wrap chapter-grid">
+      <div class="chapter-mark"><span class="num">01</span><p class="kicker">The idea</p></div>
+      <div class="chapter-body">
+        <div class="prose">
+          <h2>One deposit, cut into two tickets.</h2>
+          <p>USDC in a lending vault earns interest, but the rate moves every day. Pakka takes one vault deposit and cuts it into two tokens that are sold to two different people.</p>
+          <ul>
+            <li><strong>The principal token (PT)</strong> pays back the full deposit on a fixed date. It is sold today for less than that, and the gap is the buyer's fixed interest.</li>
+            <li><strong>The yield token (YT)</strong> collects all the interest the vault earns on that deposit until the same date. Its buyer is betting the vault will earn more than the token cost.</li>
+          </ul>
+          <p>Take 100 USDC for one year. The fixed buyer pays 95 and the yield buyer pays 5. Together that is the 100 that sits in the vault.</p>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>The vault earns</th><th>PT holder paid 95, gets</th><th>YT holder paid 5, gets</th><th>YT holder's result</th></tr></thead>
+            <tbody>
+              <tr><td>8</td><td>100</td><td>8</td><td>+3</td></tr>
+              <tr><td>5</td><td>100</td><td>5</td><td>0</td></tr>
+              <tr><td>2</td><td>100</td><td>2</td><td>−3</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="prose">
+          <p>The PT holder gets 100 in every row. The vault only ever pays out what it actually holds: the 100 plus whatever it earned. Nobody promises money that is not already there, and the uncertainty about future rates is carried by the YT holder, who chose it.</p>
+          <p>The same idea exists in traditional finance. A PT behaves like a zero-coupon bond or treasury bill: bought below face value, paid in full at the end. Cutting principal and interest apart is called stripping, and swapping an uncertain rate for a certain one is what an interest rate swap does.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="buying">
+    <div class="wrap chapter-grid">
+      <div class="chapter-mark"><span class="num">02</span><p class="kicker">In the app</p></div>
+      <div class="chapter-body">
+        <div class="prose">
+          <h2>Buying and exiting.</h2>
+          <h3>Buy a principal token</h3>
+          <ol>
+            <li>Open <a href="/app#rates">Rates</a> and pick a date. Each row shows the fixed rate and the cost today per 1 USDC of face value.</li>
+            <li>On <a href="/app#lock">Buy PT</a>, enter the face value you want to receive at maturity and press Get quote.</li>
+            <li>Review the cost, then press Buy principal token and confirm in your wallet.</li>
+          </ol>
+          <h3 id="yt">Buy a yield token</h3>
+          <ol>
+            <li>Connect your wallet and open <a href="/app#yield">Buy YT</a>.</li>
+            <li>Enter how much USDC to deposit, pick a date and press Preview.</li>
+            <li>Press Buy yield token. The app deposits your USDC, splits it, and sells the principal half to the pool. That USDC comes straight back to your wallet, and you keep the yield token. The net cost is the deposit minus what came back.</li>
+          </ol>
+          <h3>Get your money out</h3>
+          <ul>
+            <li><strong>Cash out</strong> a matured principal token for its full face value in USDC.</li>
+            <li><strong>Take vault shares</strong> instead if the vault is short of USDC that day. The shares can be redeemed later.</li>
+            <li><strong>Sell early</strong> before maturity at the pool's current price. You may get less than you paid.</li>
+            <li><strong>Claim interest</strong> on a yield token whenever some has built up.</li>
+            <li><strong>Merge tickets</strong> if you hold both a PT and a YT of the same series. Together they are the original deposit, so they convert back to USDC at any time before maturity.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="glossary">
+    <div class="wrap chapter-grid">
+      <div class="chapter-mark"><span class="num">03</span><p class="kicker">Glossary</p></div>
+      <div class="chapter-body">
+        <h2>The words on the screen.</h2>
+        <dl class="glossary">
+          <div class="term" id="pt"><dt>Principal token<span class="term-note">PT · ticket</span></dt><dd><p>A token that pays its face value in USDC on the maturity date. The app also calls it a ticket.</p><p>You buy it below face value. It earns no interest along the way; the discount is the interest.</p></dd></div>
+          <div class="term"><dt>Yield token<span class="term-note">YT</span></dt><dd><p>A token that collects the variable interest the vault earns on one USDC of deposit until maturity.</p><p>It returns no principal. After maturity it stops earning and is worth only the interest still unclaimed.</p></dd></div>
+          <div class="term"><dt>Face value</dt><dd><p>The USDC amount a principal token pays at maturity. A ticket with a face value of 1 USDC pays 1 USDC.</p></dd></div>
+          <div class="term"><dt>Maturity<span class="term-note">Expiry · the date</span></dt><dd><p>The date and time a principal token can be cashed out for its full face value, and the moment a yield token stops earning.</p></dd></div>
+          <div class="term"><dt>Series</dt><dd><p>One vault paired with one maturity date. Each series has its own PT, its own YT and its own pool.</p></dd></div>
+          <div class="term"><dt>Discount</dt><dd><p>The gap between a ticket's face value and what you pay for it today. Paying 0.95 for a face value of 1 is a discount of 0.05.</p></dd></div>
+          <div class="term"><dt>Fixed rate<span class="term-note">Simple annualized rate</span></dt><dd><p>The discount expressed as a yearly percentage, so tickets with different dates can be compared.</p><p>It is a simple rate, not APY: it does not assume you reinvest. It is fixed from the moment you buy.</p></dd></div>
+          <div class="term"><dt>Variable rate</dt><dd><p>What the vault is paying right now. It changes with borrowing demand and is what yield-token holders receive.</p></dd></div>
+          <div class="term"><dt>Vault</dt><dd><p>The contract that holds the USDC and earns interest on it. Every ticket is backed by a deposit in the vault.</p><p>On testnet this is a demo vault whose yield is simulated; it does not lend.</p></dd></div>
+          <div class="term"><dt>Vault shares</dt><dd><p>Your claim on the vault itself. Each share is worth a little more USDC as the vault earns. Taking shares instead of USDC lets you exit even when the vault is short of cash.</p></dd></div>
+          <div class="term"><dt>Split and merge</dt><dd><p>Splitting turns one vault deposit into one PT and one YT. Merging does the reverse: one PT plus one YT of the same series becomes the deposit again.</p></dd></div>
+          <div class="term"><dt>Pool<span class="term-note">Liquidity</span></dt><dd><p>The on-chain market where principal tokens trade against USDC. Its price sets the fixed rate. If the pool is thin, large purchases or early sales get a worse price or cannot fill.</p></dd></div>
+          <div class="term"><dt>Quote</dt><dd><p>The exact cost for the amount and date you entered, read from the pool at that moment. A quote is valid for up to two minutes.</p></dd></div>
+          <div class="term"><dt>Slippage allowance</dt><dd><p>How much the price may move between the quote and your transaction before it is cancelled. The app allows 0.50%. Maximum spend is the quote plus that allowance; any unused USDC is refunded.</p></dd></div>
+          <div class="term"><dt>Estimated exit value</dt><dd><p>What a ticket would return if you exited right now: the pool's sale price before maturity, or the vault's payout after it.</p></dd></div>
+          <div class="term"><dt>Entry cap<span class="term-note">Entry TVL</span></dt><dd><p>The most new USDC a series accepts. On testnet each series is capped at 500 USDC. Existing tickets can always exit.</p></dd></div>
+          <div class="term"><dt>Safety limit<span class="term-note">Circuit breaker</span></dt><dd><p>If the vault's share price jumps by more than 1% at once, new purchases pause. Exits stay open.</p></dd></div>
+          <div class="term"><dt>Tijori</dt><dd><p>A treasury contract you own. It holds USDC and tickets and lets an agent act only inside limits you set. Tijori is Hindi for safe.</p></dd></div>
+          <div class="term"><dt>Agent</dt><dd><p>A separate key, usually run by AI software, that can buy tickets and pay approved payees from your Tijori. It cannot withdraw to an address of its choosing, and you can pause or replace it.</p></dd></div>
+          <div class="term"><dt>Payee and limits</dt><dd><p>A payee is an address you approved for payments. Each has a rolling 30-day limit, and the Tijori has a daily limit across all payees.</p></dd></div>
+          <div class="term"><dt>USDC gas</dt><dd><p>On Arc, transaction fees are paid in USDC, so no second token is needed to use the app.</p></dd></div>
+          <div class="term"><dt>Approval<span class="term-note">Wallet batch</span></dt><dd><p>Permission for a contract to move a set amount of your tokens. The app approves the exact amount, runs the action, then resets the approval to zero. Wallets that support batching do this in one confirmation.</p></dd></div>
+          <div class="term"><dt>Testnet<span class="term-note">Faucet funds</span></dt><dd><p>A practice network. The USDC here comes free from a faucet and has no real value.</p></dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="risks">
+    <div class="wrap chapter-grid">
+      <div class="chapter-mark"><span class="num">04</span><p class="kicker">Risks</p></div>
+      <div class="chapter-body">
+        <div class="prose">
+          <h2>What can go wrong.</h2>
+          <ul>
+            <li><strong>The vault can lose money.</strong> A fixed rate is only as safe as the vault underneath. If the vault takes a loss, tickets may pay less than face value.</li>
+            <li><strong>The vault can run short of USDC.</strong> Cash out may be unavailable for a time. Taking vault shares still works.</li>
+            <li><strong>Selling early depends on the pool.</strong> Before maturity you get the pool's price, which can be below what you paid.</li>
+            <li><strong>Yield tokens can lose their whole cost.</strong> If the vault earns less than you paid for the yield token, you lose the difference.</li>
+            <li><strong>This is unaudited testnet software.</strong> Mainnet deployment is deliberately disabled. Use faucet funds only.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="closing">
+    <div class="wrap">
+      <h2>Pick a date.<br>Know the number.</h2>
+      <p>Live on Arc Testnet — unaudited, demo liquidity, testnet funds only.</p>
+      <div class="ctas">
+        <a class="cta" href="/app">Launch app</a>
+        <a class="cta ghost" href="/">About Pakka</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <span>Pakka · Unaudited testnet software, built for the Arc Microgrants program.</span>
+    <span><a href="/">About</a> · <a href="https://github.com/Anu062004/Pakka-Protocol" rel="noopener noreferrer">GitHub</a> · <a href="/app">Launch app</a></span>
+  </div>
+</footer>
+</body>
+</html>

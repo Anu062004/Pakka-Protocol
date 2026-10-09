@@ -47,11 +47,11 @@ beforeEach(async()=>{
 afterEach(async()=>{await context?.close();context=null;});
 after(async()=>{await context?.close();await browser?.close();if(server)await new Promise(resolve=>server.close(resolve));provider?.destroy();});
 
-test("four pages are usable at 320, 375, 414 and 768 px with no horizontal overflow",async()=>{
+test("five pages are usable at 320, 375, 414 and 768 px with no horizontal overflow",async()=>{
   const errors: string[]=[];page.on("pageerror",e=>errors.push(e.message));
   for(const width of [320,375,414,768]){
     await page.setViewportSize({width,height:850});
-    for(const section of ["rates","lock","positions","tijori"]){
+    for(const section of ["rates","lock","yield","positions","tijori"]){
       await page.locator(`nav a[href='#${section}']`).click();
       assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
       await expect(page.locator(`#${section}`)).toBeVisible();
@@ -79,6 +79,21 @@ test("Priya reviews a shared quote, locks, reaches maturity, and cashes out with
   await expect.poll(()=>system.series[0]!.pt.balanceOf((system.priya as any).address),{timeout:30000}).toBe(0n);
   assert.equal(await system.series[0]!.pt.allowance((system.priya as any).address,system.router.target),0n);
   await expect(page.locator("#transaction")).toContainText("gas");
+});
+
+test("Arjun previews and buys a yield token, keeping the returned USDC and no standing approval",async()=>{
+  const arjun=(system.priya as any).address,before=await system.asset.balanceOf(arjun);
+  await page.locator("#connect").click();await expect(page.locator("#notice")).toHaveText("Wallet connected on testnet.");
+  await page.locator("nav a[href='#yield']").click();await page.locator("#yield-maturity").selectOption("1");
+  await page.locator("#yield-preview").click();await expect(page.locator("#yield-submit")).toBeEnabled();
+  await expect(page.locator("#yield-details")).toContainText("Net cost of the yield token");
+  await page.locator("#yield-submit").click();
+  await expect.poll(()=>system.series[0]!.yt.balanceOf(arjun),{timeout:30000}).toBe(1_000000n);
+  await expect(page.locator("#positions-list")).toContainText("1 YT");
+  // Only the yield token's price leaves the wallet: the fixed half is sold and its USDC comes back.
+  const spent=before-await system.asset.balanceOf(arjun);assert(spent>0n&&spent<500000n,`net cost ${spent}`);
+  assert.equal(await system.series[0]!.pt.balanceOf(arjun),0n);
+  assert.equal(await system.asset.allowance(arjun,system.router.target),0n);
 });
 
 test("Tijori owner can pause the agent, withdraw, and generate a browser-only agent key",async()=>{

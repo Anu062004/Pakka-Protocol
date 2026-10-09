@@ -12,165 +12,217 @@
 <a class="skip" href="#main">Skip to content</a>
 
 <header class="site">
-  <a class="wordmark" href="/">Pakka<span>USDC, with a date.</span></a>
-  <nav class="nav-menu" aria-label="Main">
-    <a href="#how-it-works">How it works</a>
-    <a href="#agents">For agents</a>
-    <a href="#safety">Safety</a>
-    <a href="https://github.com/Anu062004/Pakka-Protocol" rel="noopener noreferrer">GitHub</a>
-  </nav>
-  <a class="cta" href="/app">Launch app</a>
+  <div class="wrap">
+    <a class="wordmark" href="/">Pakka<span>USDC, with a date.</span></a>
+    <nav class="nav-menu" aria-label="Main">
+      <a href="#problem">The story</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#safety">Safety</a>
+      <a href="/docs">Guide</a>
+      <a href="https://github.com/Anu062004/Pakka-Protocol" rel="noopener noreferrer">GitHub</a>
+    </nav>
+    <a class="cta" href="/app">Launch app</a>
+  </div>
 </header>
 
 <main id="main">
-  <section class="hero">
-    <div>
-      <p class="eyebrow">Arc Testnet · Built for agents</p>
-      <h1>USDC, with a date.</h1>
-      <p class="lede">Pakka splits a Morpho USDC vault position into a fixed payout and a variable yield. Buy the fixed side at a discount, and you know exactly what you'll have — and when.</p>
-      <div class="ctas">
-        <a class="cta" href="/app">Launch app</a>
-        <a class="cta ghost" href="https://github.com/Anu062004/Pakka-Protocol" rel="noopener noreferrer">View contracts</a>
-      </div>
-    </div>
-    <div class="hero-visual">
-      <svg class="ticket" viewBox="0 0 162 66" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="An illustrative ticket: PT-USDC-31DEC26, redeems for 1.000000 USDC on 31 December 2026, fixed rate 4.9% bought at 0.9889 USDC">
-        <defs>
-          <mask id="notch">
-            <rect x="0" y="0" width="162" height="66" fill="#fff" />
-            <circle cx="116" cy="0" r="4.2" fill="#000" />
-            <circle cx="116" cy="66" r="4.2" fill="#000" />
-          </mask>
-          <pattern id="guil" width="6" height="6" patternUnits="userSpaceOnUse">
-            <path d="M0 3 Q1.5 0 3 3 T6 3" fill="none" stroke="#3A4BA8" stroke-width="0.35" />
-          </pattern>
-        </defs>
-        <g mask="url(#notch)">
-          <rect x="0" y="0" width="162" height="66" rx="2.2" fill="#23338A" />
-          <rect x="0" y="0" width="116" height="66" fill="url(#guil)" opacity="0.55" />
-          <rect x="116" y="0" width="46" height="66" fill="#1B2870" />
-        </g>
-        <line x1="116" y1="5" x2="116" y2="61" stroke="#EEF1FA" stroke-width="0.5" stroke-dasharray="1.4 1.6" />
-        <rect x="6" y="6" width="104" height="54" rx="1.2" fill="none" stroke="#EEF1FA" stroke-opacity="0.35" stroke-width="0.35" />
-        <text x="11" y="15" font-size="3.6" fill="#C9D1EE">Principal token</text>
-        <text x="11" y="21.5" font-size="5" font-weight="600" fill="#ffffff" letter-spacing="0.2">PT-USDC-31DEC26</text>
-        <text x="11" y="33" font-size="3.6" fill="#C9D1EE">Redeems for</text>
-        <text x="11" y="44" font-size="10.5" font-weight="600" fill="#ffffff">1.000000 USDC</text>
-        <text x="11" y="50.5" font-size="4.6" fill="#ffffff">on 31 December 2026</text>
-        <text x="11" y="56.5" font-size="2.9" fill="#C9D1EE">Backed by Morpho USDC vault shares on Arc</text>
-        <text x="139" y="17" font-size="3.6" fill="#C9D1EE" text-anchor="middle">Fixed rate</text>
-        <text x="139" y="33" font-size="13" font-weight="600" fill="#E3A63B" text-anchor="middle">4.9%</text>
-        <text x="139" y="39.5" font-size="3.1" fill="#C9D1EE" text-anchor="middle">bought at 0.9889 USDC</text>
-        <text x="139" y="55" font-size="2.7" fill="#8F9BCB" text-anchor="middle">Illustrative ticket</text>
-      </svg>
-    </div>
-  </section>
-
-  <section class="band">
-    <div class="band-inner problem">
+  <section class="hero wrap">
+    <p class="eyebrow">Arc Testnet · Built for agents</p>
+    <h1>USDC,<br>with a date.</h1>
+    <div class="hero-grid">
       <div>
-        <p class="kicker">The problem</p>
-        <h2>Every rate on Arc changes daily.</h2>
-        <p class="intro">Morpho might pay 5% this week and 3% next month. Fine for a saver who checks in. Not fine for an AI agent that owes 50&nbsp;USDC for an API bill in exactly 30 days and has to know today, with certainty, that it will have it.</p>
-      </div>
-      <blockquote>In Hindi, <em>pakka</em> means certain — a deal that is settled and will not change. That is the promise a fixed rate makes.</blockquote>
-    </div>
-  </section>
-
-  <section class="band alt" id="agents">
-    <div class="band-inner">
-      <p class="kicker">Who it's for</p>
-      <h2>A saver, an agent, and the market that connects them.</h2>
-      <p class="intro">Pakka works the same way for a person with idle USDC and for software managing its own budget.</p>
-      <div class="cards">
-        <article class="card">
-          <p class="who">Priya saves</p>
-          <h3>Picks a date, signs once.</h3>
-          <p>She has 100&nbsp;USDC she won't need for three months. She picks 31 January, signs once, and gets a ticket that pays a known amount on that date — or she sells it early if plans change.</p>
-        </article>
-        <article class="card">
-          <p class="who">Rahul's agent budgets</p>
-          <h3>Builds its own bond ladder.</h3>
-          <p>His agent spends ~50&nbsp;USDC a month on paid APIs. One call books three tickets, one per month. Each matures exactly when a bill is due, inside a Tijori the agent can't empty.</p>
-        </article>
-        <article class="card">
-          <p class="who">Arjun buys the variable side</p>
-          <h3>Takes the other side of the trade.</h3>
-          <p>He thinks Morpho's rate is going up, so he buys the yield token instead. The two sides always add up to one asset — that's what makes the fixed rate possible in the first place.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <section class="band" id="how-it-works">
-    <div class="band-inner">
-      <p class="kicker">How it works</p>
-      <h2>Three steps, no rate guessing.</h2>
-      <p class="intro">The mechanism is Pendle's split-yield design, applied to a Morpho vault on Arc — nothing like it exists on Arc yet.</p>
-      <div class="steps">
-        <div class="step"><span class="num">01</span><div><h3>Split</h3><p>A vault position splits into a principal ticket (PT), worth exactly 1&nbsp;USDC at maturity, and a yield token (YT) that collects every bit of variable interest until then.</p></div></div>
-        <div class="step"><span class="num">02</span><div><h3>Buy at a discount</h3><p>Buy PT below 1&nbsp;USDC on the open market. The discount <em>is</em> your fixed rate — known the moment you buy, not estimated from a changing pool rate.</p></div></div>
-        <div class="step"><span class="num">03</span><div><h3>Redeem on the date</h3><p>On maturity day, redeem PT for exactly 1&nbsp;USDC. No rate math, no checking back — the ticket already told you the number.</p></div></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="band alt" id="safety">
-    <div class="band-inner safety">
-      <div>
-        <p class="kicker">Built for agents</p>
-        <h2>A safe your agent can't empty.</h2>
-        <p class="intro">Agents shouldn't hold a budget freely. A Tijori (Hindi for safe) is a small contract the owner deploys. The agent can act inside it — never outside it.</p>
-      </div>
-      <div class="safety-grid">
-        <div class="rules can">
-          <h3>The agent can</h3>
-          <ul>
-            <li>Buy PT through the router, for registered series only</li>
-            <li>Cash out matured PT, claim YT interest</li>
-            <li>Pay owner-approved payees, within per-payee and daily caps</li>
-          </ul>
+        <p class="lede">Pakka splits a Morpho USDC vault position into a fixed payout and a variable yield. Buy the fixed side at a discount, and you know exactly what you'll have — and when.</p>
+        <div class="ctas">
+          <a class="cta" href="/app">Launch app</a>
+          <a class="cta ghost" href="/docs">Read the guide</a>
         </div>
-        <div class="rules cannot">
-          <h3>The agent cannot</h3>
-          <ul>
-            <li>Send USDC, PT or YT to any address it chooses</li>
-            <li>Change its own limits, payees, or the router</li>
-            <li>Act after the owner pauses it or replaces its key</li>
-          </ul>
+      </div>
+      <!-- Story slot 00: the ticket. -->
+      <figure class="plate">
+        <svg viewBox="0 0 480 232" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="An illustrative ticket: PT-USDC-31DEC26, redeems for 1.000000 USDC on 31 December 2026, fixed rate 4.9% bought at 0.9889 USDC">
+          <rect x="1" y="1" width="478" height="230" fill="#fff" stroke="#0a0a0a" stroke-width="2" />
+          <line x1="340" y1="1" x2="340" y2="231" stroke="#0a0a0a" stroke-width="2" stroke-dasharray="2 6" />
+          <text x="24" y="38" font-size="11" font-weight="700" letter-spacing="1" fill="#595959">PRINCIPAL TOKEN</text>
+          <text x="24" y="62" font-size="17" font-weight="700" fill="#0a0a0a">PT-USDC-31DEC26</text>
+          <text x="24" y="118" font-size="11" font-weight="700" letter-spacing="1" fill="#595959">REDEEMS FOR</text>
+          <text x="24" y="160" font-size="40" font-weight="700" letter-spacing="-1.6" fill="#0a0a0a">1.000000 USDC</text>
+          <text x="24" y="186" font-size="15" fill="#0a0a0a">on 31 December 2026</text>
+          <text x="24" y="212" font-size="10" fill="#595959">Backed by Morpho USDC vault shares on Arc</text>
+          <circle cx="410" cy="92" r="50" fill="#d6001c" />
+          <text x="410" y="103" font-size="30" font-weight="700" letter-spacing="-1.2" fill="#fff" text-anchor="middle">4.9%</text>
+          <text x="410" y="170" font-size="11" font-weight="700" letter-spacing="1" fill="#595959" text-anchor="middle">FIXED RATE</text>
+          <text x="410" y="188" font-size="10" fill="#0a0a0a" text-anchor="middle">bought at 0.9889 USDC</text>
+          <text x="410" y="212" font-size="10" fill="#595959" text-anchor="middle">Illustrative ticket</text>
+        </svg>
+        <figcaption>Plate 00 · One ticket, one date, one number</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="chapter" id="problem">
+    <div class="wrap chapter-grid">
+      <div class="chapter-mark"><span class="num">01</span><p class="kicker">The problem</p></div>
+      <div class="chapter-body">
+        <div class="pair">
+          <div>
+            <h2>Every rate on Arc changes daily.</h2>
+            <p class="intro">Morpho might pay 5% this week and 3% next month. Fine for a saver who checks in. Not fine for an AI agent that owes 50&nbsp;USDC for an API bill in exactly 30 days and has to know today, with certainty, that it will have it.</p>
+          </div>
+          <!-- Story slot 01: a rate that moves against one that does not. -->
+          <figure class="plate">
+            <svg viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A jagged black line labelled variable beside a straight red line labelled fixed">
+              <polyline points="0,150 40,96 80,132 120,60 160,112 200,84 240,168 280,120 320,196 360,140 400,176" fill="none" stroke="#0a0a0a" stroke-width="2" />
+              <line x1="0" y1="118" x2="400" y2="118" stroke="#d6001c" stroke-width="6" />
+              <text x="0" y="24" font-size="11" font-weight="700" letter-spacing="1" fill="#0a0a0a">VARIABLE</text>
+              <text x="400" y="24" font-size="11" font-weight="700" letter-spacing="1" fill="#d6001c" text-anchor="end">FIXED</text>
+            </svg>
+            <figcaption>Plate 01 · A rate that moves, and one that does not</figcaption>
+          </figure>
+        </div>
+        <p class="pull">In Hindi, <em>pakka</em> means certain — a deal that is settled and will not change. That is the promise a fixed rate makes.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="agents">
+    <div class="wrap chapter-grid">
+      <div class="chapter-mark"><span class="num">02</span><p class="kicker">The people</p></div>
+      <div class="chapter-body">
+        <div>
+          <h2>A saver, an agent, and the market that connects them.</h2>
+          <p class="intro">Pakka works the same way for a person with idle USDC and for software managing its own budget.</p>
+        </div>
+        <div class="cols">
+          <article class="col">
+            <span class="who">Priya saves</span>
+            <h3>Picks a date, signs once.</h3>
+            <p>She has 100&nbsp;USDC she won't need for three months. She picks 31 January, signs once, and gets a ticket that pays a known amount on that date — or she sells it early if plans change.</p>
+          </article>
+          <article class="col">
+            <span class="who">Rahul's agent budgets</span>
+            <h3>Builds its own bond ladder.</h3>
+            <p>His agent spends ~50&nbsp;USDC a month on paid APIs. One call books three tickets, one per month. Each matures exactly when a bill is due, inside a Tijori the agent can't empty.</p>
+          </article>
+          <article class="col">
+            <span class="who">Arjun buys the variable side</span>
+            <h3>Takes the other side of the trade.</h3>
+            <p>He thinks Morpho's rate is going up, so he buys the yield token instead. The two sides always add up to one asset — that's what makes the fixed rate possible in the first place.</p>
+          </article>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="band">
-    <div class="band-inner">
-      <p class="kicker">Why Arc</p>
-      <h2>USDC is the money and the gas.</h2>
-      <p class="intro">An agent never needs a second, volatile token just to keep transacting — and running out of gas is a real way for a bot to stall on other chains.</p>
-      <div class="stats">
-        <div class="stat-item"><strong>&lt;1s</strong><span>Deterministic finality on Arc</span></div>
-        <div class="stat-item"><strong>$0.001</strong><span>Target cost per ERC-20 transfer</span></div>
-        <div class="stat-item"><strong>$500M+</strong><span>Deposited into Morpho on Arc within weeks of launch</span></div>
-        <div class="stat-item"><strong>1 asset</strong><span>USDC pays for everything — no gas token to hold</span></div>
+  <section class="chapter" id="how-it-works">
+    <div class="wrap chapter-grid">
+      <div class="chapter-mark"><span class="num">03</span><p class="kicker">How it works</p></div>
+      <div class="chapter-body">
+        <div class="pair">
+          <div>
+            <h2>Three steps, no rate guessing.</h2>
+            <p class="intro">The mechanism is Pendle's split-yield design, applied to a Morpho vault on Arc — nothing like it exists on Arc yet.</p>
+          </div>
+          <!-- Story slot 02: one deposit cut into its two halves. -->
+          <figure class="plate">
+            <svg viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="One bar split into a large principal part of 95 and a small red yield part of 5">
+              <text x="0" y="24" font-size="11" font-weight="700" letter-spacing="1" fill="#0a0a0a">ONE DEPOSIT · 100</text>
+              <rect x="1" y="60" width="378" height="120" fill="#fff" stroke="#0a0a0a" stroke-width="2" />
+              <rect x="380" y="59" width="20" height="122" fill="#d6001c" />
+              <text x="20" y="134" font-size="44" font-weight="700" letter-spacing="-1.8" fill="#0a0a0a">95</text>
+              <text x="0" y="212" font-size="11" font-weight="700" letter-spacing="1" fill="#0a0a0a">PRINCIPAL TOKEN</text>
+              <text x="400" y="212" font-size="11" font-weight="700" letter-spacing="1" fill="#d6001c" text-anchor="end">YIELD TOKEN · 5</text>
+            </svg>
+            <figcaption>Plate 02 · One deposit, two buyers</figcaption>
+          </figure>
+        </div>
+        <div class="cols">
+          <div class="col"><span class="num">01</span><h3>Split</h3><p>A vault position splits into a principal token (PT), worth exactly 1&nbsp;USDC at maturity, and a yield token (YT) that collects every bit of variable interest until then.</p></div>
+          <div class="col"><span class="num">02</span><h3>Buy at a discount</h3><p>Buy PT below 1&nbsp;USDC on the open market. The discount is your fixed rate — known the moment you buy, not estimated from a changing pool rate.</p></div>
+          <div class="col"><span class="num">03</span><h3>Redeem on the date</h3><p>On maturity day, redeem PT for exactly 1&nbsp;USDC. No rate math, no checking back — the ticket already told you the number.</p></div>
+        </div>
+        <p><a href="/docs">Every term explained in the guide</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="safety">
+    <div class="wrap chapter-grid">
+      <div class="chapter-mark"><span class="num">04</span><p class="kicker">Built for agents</p></div>
+      <div class="chapter-body">
+        <div class="pair">
+          <div>
+            <h2>A safe your agent can't empty.</h2>
+            <p class="intro">Agents shouldn't hold a budget freely. A Tijori (Hindi for safe) is a small contract the owner deploys. The agent can act inside it — never outside it.</p>
+          </div>
+          <!-- Story slot 03: the safe. -->
+          <figure class="plate">
+            <svg viewBox="0 0 400 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A square safe with a round dial and a red marker">
+              <rect x="101" y="21" width="198" height="198" fill="#fff" stroke="#0a0a0a" stroke-width="2" />
+              <circle cx="200" cy="120" r="62" fill="none" stroke="#0a0a0a" stroke-width="2" />
+              <line x1="200" y1="58" x2="200" y2="120" stroke="#0a0a0a" stroke-width="2" />
+              <circle cx="200" cy="120" r="14" fill="#d6001c" />
+              <rect x="88" y="52" width="14" height="30" fill="#0a0a0a" />
+              <rect x="88" y="158" width="14" height="30" fill="#0a0a0a" />
+            </svg>
+            <figcaption>Plate 03 · Tijori, the safe</figcaption>
+          </figure>
+        </div>
+        <div class="rules-grid">
+          <div class="rules can">
+            <h3>The agent can</h3>
+            <ul>
+              <li>Buy PT through the router, for registered series only</li>
+              <li>Cash out matured PT, claim YT interest</li>
+              <li>Pay owner-approved payees, within per-payee and daily caps</li>
+            </ul>
+          </div>
+          <div class="rules cannot">
+            <h3>The agent cannot</h3>
+            <ul>
+              <li>Send USDC, PT or YT to any address it chooses</li>
+              <li>Change its own limits, payees, or the router</li>
+              <li>Act after the owner pauses it or replaces its key</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="arc">
+    <div class="wrap chapter-grid">
+      <div class="chapter-mark"><span class="num">05</span><p class="kicker">Why Arc</p></div>
+      <div class="chapter-body">
+        <div>
+          <h2>USDC is the money and the gas.</h2>
+          <p class="intro">An agent never needs a second, volatile token just to keep transacting — and running out of gas is a real way for a bot to stall on other chains.</p>
+        </div>
+        <div class="stats">
+          <div class="stat-item"><strong>&lt;1s</strong><span>Deterministic finality on Arc</span></div>
+          <div class="stat-item"><strong>$0.001</strong><span>Target cost per ERC-20 transfer</span></div>
+          <div class="stat-item"><strong>$500M+</strong><span>Deposited into Morpho on Arc within weeks of launch</span></div>
+          <div class="stat-item"><strong>1 asset</strong><span>USDC pays for everything — no gas token to hold</span></div>
+        </div>
       </div>
     </div>
   </section>
 
   <section class="closing">
-    <h2>Pick a date. Know the number.</h2>
-    <p>Live on Arc Testnet — unaudited, demo liquidity, testnet funds only.</p>
-    <div class="ctas">
-      <a class="cta" href="/app">Launch app</a>
-      <a class="cta ghost" href="https://github.com/Anu062004/Pakka-Protocol" rel="noopener noreferrer">View on GitHub</a>
+    <div class="wrap">
+      <h2>Pick a date.<br>Know the number.</h2>
+      <p>Live on Arc Testnet — unaudited, demo liquidity, testnet funds only.</p>
+      <div class="ctas">
+        <a class="cta" href="/app">Launch app</a>
+        <a class="cta ghost" href="https://github.com/Anu062004/Pakka-Protocol" rel="noopener noreferrer">View on GitHub</a>
+      </div>
     </div>
   </section>
 </main>
 
 <footer class="site">
-  <div class="footer-inner">
+  <div class="wrap">
     <span>Pakka · Unaudited testnet software, built for the Arc Microgrants program.</span>
-    <span><a href="https://github.com/Anu062004/Pakka-Protocol" rel="noopener noreferrer">GitHub</a> · <a href="/app">Launch app</a></span>
+    <span><a href="/docs">Guide</a> · <a href="https://github.com/Anu062004/Pakka-Protocol" rel="noopener noreferrer">GitHub</a> · <a href="/app">Launch app</a></span>
   </div>
 </footer>
 </body>
