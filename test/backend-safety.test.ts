@@ -7,7 +7,7 @@ import http from "node:http";
 import { quoteBounds, FACE_SQRT_PRICE_X96 } from "../backend/quotes.ts";
 import { sendWithFallback } from "../backend/rpc.ts";
 import { keeperAlerts } from "../backend/alerts.ts";
-import { loadDeployment } from "../backend/project.ts";
+import { loadDeployment, network, seriesLabel } from "../backend/project.ts";
 import { abi } from "../backend/project.ts";
 import { Interface, getAddress } from "ethers";
 import type { Provider } from "ethers";
@@ -56,11 +56,21 @@ test("keeper alert delivery retries failures, persists cooldown, and does not se
     assert.throws(() => keeperAlerts({ KEEPER_ALERT_WEBHOOK_URL: "http://localhost/secret" }), /INVALID_ALERT_WEBHOOK/);
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
-test("deployment loader cannot enable mainnet through a filename or manifest", () => {
+test("mainnet is opt-in: the loader stays on testnet by default and never accepts a manifest for another chain", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "pakka-manifest-"));
   try {
     const file = path.join(dir, "arc-mainnet.json"); fs.writeFileSync(file, JSON.stringify({ chainId: 5042 }));
-    assert.throws(() => loadDeployment(file, { chainId: 5042 }), /UNSUPPORTED_CHAIN/);
+    assert.equal(network({}).name, "testnet");
+    assert.equal(network({ PAKKA_NETWORK: "mainnet" }).chainId, 5042);
+    assert.throws(() => network({ PAKKA_NETWORK: "ethereum" }), /UNSUPPORTED_NETWORK/);
+    // A mainnet manifest is refused unless mainnet was selected, and a foreign chain always is.
+    assert.throws(() => loadDeployment(file), /UNSUPPORTED_CHAIN/);
+    assert.throws(() => loadDeployment(file, { chainId: 1 }), /UNSUPPORTED_CHAIN/);
+    fs.writeFileSync(file, JSON.stringify({ chainId: 5042, usdc: "0x0000000000000000000000000000000000000001", vault: "0x0000000000000000000000000000000000000001",
+      registry: "0x0000000000000000000000000000000000000001", poolManager: "0x0000000000000000000000000000000000000001", market: "0x0000000000000000000000000000000000000001",
+      router: "0x0000000000000000000000000000000000000001", tijoriFactory: "0x0000000000000000000000000000000000000001", poolSeeder: "0x0000000000000000000000000000000000000001", series: [] }));
+    assert.throws(() => loadDeployment(file, { chainId: 5042 }), /WRONG_DEPLOYMENT_ASSET/);
+    assert.equal(seriesLabel(1792065600, network({ PAKKA_NETWORK: "mainnet" })), "USDC-15OCT2026");
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 

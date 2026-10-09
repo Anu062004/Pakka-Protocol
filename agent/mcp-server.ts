@@ -8,7 +8,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { AgentError, TreasuryService, fail, projectRoot, type AgentOptions } from "./treasury-service.ts";
 import { lockKeeper } from "../scripts/expiry-keeper.ts";
-import { dataRoot, loadDeployment } from "../backend/project.ts";
+import { dataRoot, loadDeployment, network } from "../backend/project.ts";
 import { rpcProvider } from "../backend/rpc.ts";
 
 const address = z.string().regex(/^0x[0-9a-fA-F]{40}$/).refine((v) => {
@@ -122,12 +122,12 @@ export function createRuntime(env: NodeJS.ProcessEnv = process.env): AgentRuntim
     if (service) return service;
     const tijoriAddress = env.AGENT_TIJORI_ADDRESS;
     if (!tijoriAddress) return fail("AGENT_TIJORI_NOT_CONFIGURED");
-    const manifestFile = path.join(projectRoot, "deployments/arc-testnet.json");
+    const net = network(env), manifestFile = path.join(projectRoot, net.file);
     if (!fs.existsSync(manifestFile)) return fail("TESTNET_DEPLOYMENT_MISSING");
     let manifest;
-    try { manifest = loadDeployment(manifestFile); }
+    try { manifest = loadDeployment(manifestFile, { chainId: net.chainId }); }
     catch { return fail("INVALID_DEPLOYMENT_MANIFEST"); }
-    if (manifest.chainId !== 5042002) fail("UNSUPPORTED_CHAIN");
+    if (manifest.chainId !== net.chainId) fail("UNSUPPORTED_CHAIN");
     const config = agentConfig(env);
     let signer: Wallet | null = null;
     // A key file keeps the secret out of an MCP client's own config, which is not owner-only
@@ -147,7 +147,7 @@ export function createRuntime(env: NodeJS.ProcessEnv = process.env): AgentRuntim
     try {
       candidateUnlock = lockKeeper(`${config.stateFile}.lock`);
       if (signer) candidateWalletUnlock = lockKeeper(path.join(dataRoot, `runtime/wallet-${signer.address.toLowerCase()}.lock`));
-      const candidate = new TreasuryService({ ...config, provider: candidateProvider,
+      const candidate = new TreasuryService({ ...config, chainId: net.chainId, provider: candidateProvider,
         signer: signer?.connect(candidateProvider), manifest, tijoriAddress });
       provider = candidateProvider; unlock = candidateUnlock; unlockWallet = candidateWalletUnlock; service = candidate;
       return service;

@@ -15,7 +15,7 @@ interface ISeriesEntryPolicy {
     function entryOpen(address yieldToken) external view returns (bool);
 }
 
-/// @notice Testnet Pakka core: split ERC-4626 shares into principal and yield.
+/// @notice Pakka core: split ERC-4626 shares into principal and yield.
 /// @dev No admin, upgrade, fee, oracle or third-party withdrawal path.
 contract YieldToken is ERC20, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -29,9 +29,15 @@ contract YieldToken is ERC20, ReentrancyGuard {
     ISeriesEntryPolicy public immutable entryPolicy;
     uint256 public constant SERIES_TVL_CAP = 500_000_000;
     uint256 public constant MAX_INDEX_CHANGE_BPS = 100;
+    /// @notice The accepted band widens by this much per day since the last accepted observation.
+    /// Ordinary vault growth therefore never trips the guard, however long a series sits idle,
+    /// and a real, persistent move is eventually accepted instead of freezing the series for good.
+    uint256 public constant INDEX_DRIFT_BPS_PER_DAY = 25;
     uint256 public lastSafeVaultIndex;
+    uint256 public lastSafeTimestamp;
     uint256 public indexReference;
     uint256 public indexReferenceBlock;
+    uint256 public indexReferenceTimestamp;
 
     uint256 public pyIndexStored;
     uint256 public indexAtExpiry;
@@ -64,8 +70,8 @@ contract YieldToken is ERC20, ReentrancyGuard {
     constructor(IERC4626 vault_, uint256 expiry_, string memory label, ISeriesEntryPolicy policy_) ERC20(
         string.concat("Pakka Yield ", label), string.concat("YT-", label)
     ) {
-        // This release is restricted to Arc Testnet and local Hardhat/Anvil.
-        if (block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
+        // Restricted to Arc mainnet, Arc Testnet and local Hardhat/Anvil.
+        if (block.chainid != 5042 && block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
         if (address(vault_).code.length == 0) revert InvalidVault();
         if (expiry_ <= block.timestamp) revert InvalidExpiry();
         uint8 shareDecimals = vault_.decimals();
@@ -75,7 +81,7 @@ contract YieldToken is ERC20, ReentrancyGuard {
         INDEX_UNIT = 10 ** (uint256(shareDecimals) + 18);
         address asset = vault_.asset();
         if (asset.code.length == 0) revert InvalidVault();
-        if (block.chainid == 5042002 && asset != 0x3600000000000000000000000000000000000000) revert InvalidVault();
+        if (block.chainid != 31337 && asset != 0x3600000000000000000000000000000000000000) revert InvalidVault();
         assetToken = IERC20(asset);
         _assetDecimals = IERC20Metadata(asset).decimals();
         // Zero policy is reserved for isolated local arithmetic fixtures, never registered series.
@@ -89,8 +95,10 @@ contract YieldToken is ERC20, ReentrancyGuard {
         pyIndexStored = vault_.convertToAssets(INDEX_UNIT);
         if (pyIndexStored == 0) revert ZeroIndex();
         lastSafeVaultIndex = pyIndexStored;
+        lastSafeTimestamp = block.timestamp;
         indexReference = pyIndexStored;
         indexReferenceBlock = block.number;
+        indexReferenceTimestamp = block.timestamp;
     }
 
     function decimals() public view override returns (uint8) {
@@ -227,8 +235,15 @@ contract YieldToken is ERC20, ReentrancyGuard {
 
     function _indexHealthy(uint256 live) private view returns (bool) {
         if (address(entryPolicy) == address(0)) return true;
-        uint256 anchor = indexReferenceBlock == block.number ? indexReference : lastSafeVaultIndex;
-        uint256 deviation = Math.mulDiv(anchor, MAX_INDEX_CHANGE_BPS, 10_000);
+        // Within one block the band is measured from the pre-block anchor, so repeated
+        // checkpoints cannot ratchet the index past a single observation's bound.
+        bool sameBlock = indexReferenceBlock == block.number;
+        uint256 anchor = sameBlock ? indexReference : lastSafeVaultIndex;
+        uint256 since = sameBlock ? indexReferenceTimestamp : lastSafeTimestamp;
+        // Saturating: a simulated call may run with an earlier clock than the last mined block.
+        uint256 elapsed = block.timestamp > since ? block.timestamp - since : 0;
+        uint256 deviation = Math.mulDiv(anchor,
+            MAX_INDEX_CHANGE_BPS + INDEX_DRIFT_BPS_PER_DAY * elapsed / 1 days, 10_000);
         return live != 0 && (live >= anchor ? live - anchor <= deviation : anchor - live <= deviation);
     }
 
@@ -246,8 +261,10 @@ contract YieldToken is ERC20, ReentrancyGuard {
             if (indexReferenceBlock != block.number) {
                 indexReference = lastSafeVaultIndex;
                 indexReferenceBlock = block.number;
+                indexReferenceTimestamp = lastSafeTimestamp;
             }
             lastSafeVaultIndex = live;
+            lastSafeTimestamp = block.timestamp;
             index = Math.max(pyIndexStored, live);
         } else {
             // Entry checks revert; exits use the last accepted index and remain unpaused.

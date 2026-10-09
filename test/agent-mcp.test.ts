@@ -70,7 +70,7 @@ before(async () => {
   const start = (await provider.getBlock("latest"))!.timestamp;
   const series: SeriesFixture[] = [];
   for (let i = 0; i < 3; i++) {
-    const expiry = start + 3600 * (i + 1);
+    const expiry = start + 3600 * (i + 2);
     const yt = await deploy("YieldToken", [vault.target, expiry, `AGENT-${i}`, registry.target]);
     const pt = new Contract(await yt.principalToken(), artifacts.PrincipalToken!.abi, owner);
     await sent(registry.registerSeries(yt.target));

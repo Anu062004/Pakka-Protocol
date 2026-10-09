@@ -9,7 +9,7 @@ import {SeriesRegistry} from "./SeriesRegistry.sol";
 import {UniswapV4Market} from "./UniswapV4Market.sol";
 import {YieldToken} from "./YieldToken.sol";
 
-/// @notice Atomic testnet shortcuts for fixed-rate purchases, ladders, exits and yield purchases.
+/// @notice Atomic shortcuts for fixed-rate purchases, ladders, exits and yield purchases.
 /// @dev No administrator, arbitrary calls, standing downstream approvals or sweep of donated tokens.
 contract PakkaRouter is ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -52,13 +52,13 @@ contract PakkaRouter is ReentrancyGuard {
         uint256 assetsDeposited, uint256 ytAmount, uint256 usdcReturned);
 
     constructor(UniswapV4Market market_) {
-        if (block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
+        if (block.chainid != 5042 && block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
         if (address(market_).code.length == 0) revert InvalidConfiguration();
         SeriesRegistry registry_ = market_.registry();
         if (address(registry_).code.length == 0) revert InvalidConfiguration();
         IERC20 asset_ = registry_.assetToken();
         if (address(asset_).code.length == 0) revert InvalidConfiguration();
-        if (block.chainid == 5042002 && address(asset_) != 0x3600000000000000000000000000000000000000) {
+        if (block.chainid != 31337 && address(asset_) != 0x3600000000000000000000000000000000000000) {
             revert InvalidConfiguration();
         }
         // The immutable market/registry are trusted dependencies, not caller-selected targets.

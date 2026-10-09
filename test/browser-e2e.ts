@@ -65,7 +65,7 @@ test("five pages are usable at 320, 375, 414 and 768 px with no horizontal overf
 });
 
 test("Priya reviews a shared quote, locks, reaches maturity, and cashes out with no standing approval",async()=>{
-  await page.locator("#connect").click();await expect(page.locator("#notice")).toHaveText("Wallet connected on testnet.");
+  await page.locator("#connect").click();await expect(page.locator("#notice")).toHaveText("Wallet connected.");
   await page.locator("nav a[href='#lock']").click();await page.locator("#maturity").selectOption("1");
   await page.locator("#get-quote").click();await expect(page.locator("#lock-submit")).toBeEnabled();
   await page.locator("#lock-submit").click();
@@ -83,7 +83,7 @@ test("Priya reviews a shared quote, locks, reaches maturity, and cashes out with
 
 test("Arjun previews and buys a yield token, keeping the returned USDC and no standing approval",async()=>{
   const arjun=(system.priya as any).address,before=await system.asset.balanceOf(arjun);
-  await page.locator("#connect").click();await expect(page.locator("#notice")).toHaveText("Wallet connected on testnet.");
+  await page.locator("#connect").click();await expect(page.locator("#notice")).toHaveText("Wallet connected.");
   await page.locator("nav a[href='#yield']").click();await page.locator("#yield-maturity").selectOption("1");
   await page.locator("#yield-preview").click();await expect(page.locator("#yield-submit")).toBeEnabled();
   await expect(page.locator("#yield-details")).toContainText("Net cost of the yield token");
@@ -98,7 +98,7 @@ test("Arjun previews and buys a yield token, keeping the returned USDC and no st
 
 test("Tijori owner can pause the agent, withdraw, and generate a browser-only agent key",async()=>{
   await page.evaluate((address: string)=>(window as any).pakkaSelectAccount(address),(system.treasuryOwner as any).address);
-  await page.locator("#connect").click();await expect(page.locator("#notice")).toHaveText("Wallet connected on testnet.");
+  await page.locator("#connect").click();await expect(page.locator("#notice")).toHaveText("Wallet connected.");
   await page.locator("nav a[href='#tijori']").click();await expect(page.locator("#treasury-controls")).toBeVisible();
   await page.locator("#pause-agent").click();await expect.poll(()=>system.tijori.paused()).toBe(true);
   await page.locator("#withdraw-form button").click();await expect.poll(()=>system.asset.balanceOf(system.tijori.target)).toBe(19_000000n);

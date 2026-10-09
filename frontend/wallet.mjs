@@ -8,12 +8,12 @@ export class AppWallet {
   async connect(){await this.injected.request({method:"eth_requestAccounts"});await this.network();this.signer=await this.provider.getSigner();this.account=await this.signer.getAddress();return this.account;}
   async network(){
     const chainId=this.manifest.chainId;
-    if(![5042002,31337].includes(chainId)) fail("WRONG_WALLET_NETWORK");
+    if(![5042,5042002,31337].includes(chainId)) fail("WRONG_WALLET_NETWORK");
     const hex=`0x${chainId.toString(16)}`;
     if(BigInt(await this.injected.request({method:"eth_chainId"}))!==BigInt(chainId)) {
       try{await this.injected.request({method:"wallet_switchEthereumChain",params:[{chainId:hex}]});}
-      catch(e){if(e.code!==4902 || chainId!==5042002) throw e;
-        await this.injected.request({method:"wallet_addEthereumChain",params:[{chainId:hex,chainName:"Arc Testnet",nativeCurrency:{name:"USDC",symbol:"USDC",decimals:18},rpcUrls:["https://rpc.testnet.arc.io"],blockExplorerUrls:["https://testnet.arcscan.app"]}]});
+      catch(e){const net=this.manifest.network;if(e.code!==4902 || !net) throw e;
+        await this.injected.request({method:"wallet_addEthereumChain",params:[{chainId:hex,chainName:net.label,nativeCurrency:{name:"USDC",symbol:"USDC",decimals:18},rpcUrls:[net.rpcUrl],blockExplorerUrls:[net.explorer]}]});
       }
     }
     if(BigInt(await this.injected.request({method:"eth_chainId"}))!==BigInt(chainId)) fail("WRONG_WALLET_NETWORK");

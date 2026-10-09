@@ -43,7 +43,7 @@ async function showReceipt(receipt,wallet=state.wallet){
   if(!receipt)return;
   const hash=receipt.hash??receipt.transactionHash;
   $("transaction").replaceChildren(node("p",`Confirmed · gas ${await wallet.gasUsdc(receipt)} USDC`));
-  if(state.manifest.chainId===5042002)$("transaction").append(node("a","View transaction",{href:`https://testnet.arcscan.app/tx/${hash}`,target:"_blank",rel:"noopener noreferrer"}));
+  if(state.manifest.network)$("transaction").append(node("a","View transaction",{href:`${state.manifest.network.explorer}/tx/${hash}`,target:"_blank",rel:"noopener noreferrer"}));
   else $("transaction").append(node("p",`Local transaction: ${hash}`));
   notice("Transaction confirmed.","success");
 }
@@ -180,7 +180,7 @@ async function refreshTreasury(){
   const feed=await api(`/api/activity?account=${wallet.account}&tijori=${t.address}`);$("activity").replaceChildren();
   for(const item of feed.items){const row=node("div",undefined,{class:"activity-row"});row.append(node("p",`${item.event} · block ${item.blockNumber}`));
     const detail=Object.entries(item.fields).filter(([k])=>["amount","ptAmount","usdcSpent","payee","seriesId","output"].includes(k)).map(([k,v])=>`${k}: ${/^0x/.test(v)?short(v):v}`).join(" · ");
-    row.append(node("p",detail,{class:"helper"}));if(state.manifest.chainId===5042002)row.append(node("a","View transaction",{href:`https://testnet.arcscan.app/tx/${item.transactionHash}`,target:"_blank",rel:"noopener noreferrer"}));$("activity").append(row);}
+    row.append(node("p",detail,{class:"helper"}));if(state.manifest.network)row.append(node("a","View transaction",{href:`${state.manifest.network.explorer}/tx/${item.transactionHash}`,target:"_blank",rel:"noopener noreferrer"}));$("activity").append(row);}
   if(!feed.items.length)$("activity").append(node("p","No recent activity. This feed reads application events from the most recent 5,000 blocks."));
   notice("Tijori refreshed.");
 }
@@ -240,7 +240,7 @@ async function connectAgent(){
   $("one-time-key").value=generated.privateKey;$("agent-public").textContent=`Agent public address: ${generated.address}`;$("agent-secret").hidden=false;
   const config=await api(`/api/agent-config?tijori=${state.treasury.address}`);$("mcp-config").value=JSON.stringify(config,null,2);
   await treasuryWrite("setAgent",[generated.address]);
-  notice("Agent authorized. Save its key locally and add the MCP config to Claude Desktop. Fund the agent's testnet gas.","success");
+  notice("Agent authorized. Save its key locally and add the MCP config to Claude Desktop. Fund the agent's gas.","success");
 }
 const billsKey=()=>`pakka-bills-${state.wallet.account.toLowerCase()}`;
 function readBills(){try{const b=JSON.parse(localStorage.getItem(billsKey())??"[]");return Array.isArray(b)?b.slice(0,100):[];}catch{return [];}}
@@ -255,7 +255,7 @@ $("connect").addEventListener("click",()=>run(async()=>{
   if(!window.ethereum)throw new Error("WALLET_REQUIRED");if(!state.manifest)throw new Error("TESTNET_DEPLOYMENT_MISSING");
   const wallet=new AppWallet(window.ethereum,state.manifest);await wallet.connect();state.wallet=wallet;$("connect").textContent=short(wallet.account);
   if(await wallet.pending()){const receipt=await wallet.status();await showReceipt(receipt,wallet);}
-  await refreshPositions();await refreshTreasury();notice("Wallet connected on testnet.");
+  await refreshPositions();await refreshTreasury();notice("Wallet connected.");
 }));
 $("refresh-rates").onclick=()=>run(refreshRates);$("get-quote").onclick=()=>run(getQuote);form("lock-form",lock);
 $("face").oninput=invalidateQuote;$("maturity").onchange=invalidateQuote;
@@ -276,11 +276,16 @@ $("copy-config").onclick=()=>run(async()=>{await navigator.clipboard.writeText($
 form("bill-form",async()=>{const bills=readBills();if(bills.length>=100)throw new Error("InvalidAmount");const bill={id:crypto.randomUUID(),payee:getAddress($("bill-payee").value),amount:formatUnits(amount($("bill-amount").value),6),date:$("bill-date").value};localStorage.setItem(billsKey(),JSON.stringify([...bills,bill]));renderBills();notice("Bill added to this device's calendar.");});
 window.addEventListener("hashchange",navigate);window.addEventListener("pagehide",clearKey);
 window.ethereum?.on?.("accountsChanged",()=>{clearKey();state.wallet=null;state.treasury=null;$("connect").textContent="Connect wallet";$("treasury-controls").hidden=true;$("create-form").hidden=true;$("setup-authorize").hidden=true;$("positions-list").replaceChildren(node("p","Wallet changed. Reconnect to refresh positions."));notice("Wallet changed. Reconnect before continuing.");});
-window.ethereum?.on?.("chainChanged",()=>{clearKey();state.wallet=null;$("connect").textContent="Connect wallet";invalidateQuote();invalidateYield();notice("Network changed. Reconnect on Arc Testnet.");});
+window.ethereum?.on?.("chainChanged",()=>{clearKey();state.wallet=null;$("connect").textContent="Connect wallet";invalidateQuote();invalidateYield();notice("Network changed. Reconnect on the Arc network this app uses.");});
 navigate();
 if(setupAgent)$("treasury-status").textContent="Connect your wallet to approve the agent from your terminal setup.";
 try{
   const [manifest,abis]=await Promise.all([api("/api/deployment"),api("/api/abis")]);state.manifest=manifest;state.abis=abis;
-  $("network-status").textContent=manifest.chainId===31337?"Local test chain":"Arc Testnet · USDC gas";
+  const mainnet=manifest.network?.name==="mainnet";
+  $("network-status").textContent=manifest.network?`${manifest.network.label} · USDC gas`:"Local test chain";
+  // Real funds change what the user needs to be told, so the standing notes follow the deployment.
+  $("network-name").textContent=manifest.network?.label??"Local test chain";
+  $("network-note").textContent=mainnet?"Unaudited · real funds at risk":"Faucet funds only";
+  $("build-note").textContent=mainnet?"Unaudited build":"Testnet build";
   await refreshRates();
-}catch(e){notice(humanError(e,interfaces()),"error");$("rates-list").replaceChildren(node("p","Rates are unavailable until the testnet deployment and pools are ready."));}
+}catch(e){notice(humanError(e,interfaces()),"error");$("rates-list").replaceChildren(node("p","Rates are unavailable until the deployment and pools are ready."));}

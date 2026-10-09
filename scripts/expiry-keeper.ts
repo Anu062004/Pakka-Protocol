@@ -141,7 +141,7 @@ export class ExpiryKeeper {
     minGasBalance?: bigint;
     log?: (record: Record<string, unknown>) => void;
   }) {
-    if (![5042002, 31337].includes(chainId)) fail("UNSUPPORTED_CHAIN");
+    if (![5042, 5042002, 31337].includes(chainId)) fail("UNSUPPORTED_CHAIN");
     for (const n of [confirmations, maxBlockAgeSeconds, pendingAlertSeconds]) {
       if (!Number.isSafeInteger(n) || n <= 0) fail("INVALID_KEEPER_OPTIONS");
     }
@@ -201,7 +201,7 @@ export class ExpiryKeeper {
       if (await this.provider.getCode(this.registry.target) === "0x") fail("REGISTRY_NOT_DEPLOYED");
       if (getAddress(await this.registry.owner() as string) === this.address) fail("KEEPER_USES_OWNER_WALLET");
       const asset = getAddress(await this.registry.assetToken() as string);
-      if (this.chainId === 5042002 && asset !== canonicalUsdc) fail("WRONG_REGISTRY_ASSET");
+      if (this.chainId !== 31337 && asset !== canonicalUsdc) fail("WRONG_REGISTRY_ASSET");
       if (this.state && (this.state.chainId !== this.chainId || this.state.registry !== this.registry.target ||
         this.state.wallet !== this.address)) fail("KEEPER_STATE_CONTEXT_MISMATCH");
       this.state ??= { version: 1, chainId: this.chainId, registry: this.registry.target as string, wallet: this.address, pending: null };

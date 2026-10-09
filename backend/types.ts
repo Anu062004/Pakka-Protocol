@@ -91,6 +91,7 @@ export interface PublicSeriesEntry {
 }
 
 export interface PublicManifest {
+  network?: { name: string; label: string; rpcUrl: string; explorer: string };
   chainId: number;
   usdc: string;
   vault: string;

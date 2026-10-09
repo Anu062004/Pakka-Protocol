@@ -65,7 +65,7 @@ export class QuoteService {
   }): Promise<Quote> {
     if (BigInt(await this.provider.send("eth_chainId", []) as string) !== BigInt(this.manifest.chainId)) throw new Error("WRONG_RPC_CHAIN");
     block ??= await this.provider.getBlock("latest");
-    if (!block || (this.manifest.chainId === 5042002 && Date.now() / 1000 - block.timestamp > 120)) throw new Error("STALE_RPC_BLOCK");
+    if (!block || (this.manifest.chainId !== 31337 && Date.now() / 1000 - block.timestamp > 120)) throw new Error("STALE_RPC_BLOCK");
     if (!Number.isSafeInteger(seriesId) || seriesId <= 0 || ptAmountRaw <= 0n || ptAmountRaw > (1n << 127n) - 1n) throw new Error("INVALID_QUOTE_AMOUNT");
     const s = await this.registry.getSeries(seriesId, { blockTag: block.number });
     if (s.expiry <= BigInt(block.timestamp)) throw new Error("SERIES_MATURED");

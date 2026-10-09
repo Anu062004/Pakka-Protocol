@@ -1,30 +1,37 @@
 import fs from "node:fs";
 import { Contract, ContractFactory, Wallet, getAddress, parseUnits } from "ethers";
 import { compile } from "./compile.ts";
-import { deploymentFile } from "../backend/project.ts";
+import { canonicalUsdc, deploymentFile, network, seriesLabel } from "../backend/project.ts";
 import { rpcProvider } from "../backend/rpc.ts";
 import { writeJson } from "./expiry-keeper.ts";
 import type { Manifest } from "../backend/types.ts";
 
-const chainId = 5042002n;
-const usdc = "0x3600000000000000000000000000000000000000";
+const net = network();
+const chainId = BigInt(net.chainId);
+const usdc = canonicalUsdc;
 const key = process.env.DEPLOYER_PRIVATE_KEY;
-if (!key) throw new Error("Set DEPLOYER_PRIVATE_KEY in .env to a funded Arc Testnet wallet. See .env.example.");
+if (!key) throw new Error("Set DEPLOYER_PRIVATE_KEY in .env to a funded wallet on the selected Arc network. See .env.example.");
 const ownerAddress = getAddress(process.env.PROTOCOL_OWNER_ADDRESS || "0x0000000000000000000000000000000000000000");
 if (ownerAddress === "0x0000000000000000000000000000000000000000" || ownerAddress === new Wallet(key).address) {
   throw new Error("Set PROTOCOL_OWNER_ADDRESS to a separate owner wallet (hardware wallet or verified multisig), never the deployer.");
 }
-const durations = (process.env.SERIES_DURATIONS ?? "3600,86400,604800").split(",").map(Number);
-if (!durations.length || durations.some((n) => !Number.isSafeInteger(n) || n < 60)) {
-  throw new Error("SERIES_DURATIONS must contain integer seconds of at least 60.");
+// Entries close one hour before maturity (SeriesRegistry.MIN_ENTRY_WINDOW), so a shorter series could never be bought.
+const durations = (process.env.SERIES_DURATIONS ?? "86400,604800,2592000").split(",").map(Number);
+if (!durations.length || durations.some((n) => !Number.isSafeInteger(n) || n <= 7200)) {
+  throw new Error("SERIES_DURATIONS must contain integer seconds greater than 7200.");
+}
+const configuredVault = process.env.VAULT_ADDRESS || process.env.TESTNET_VAULT_ADDRESS;
+// A vault with simulated yield holding real USDC must be a deliberate choice, never a default.
+if (net.name === "mainnet" && !configuredVault && process.env.ALLOW_DEMO_VAULT !== "1") {
+  throw new Error("Set VAULT_ADDRESS to an ERC-4626 USDC vault on Arc, or ALLOW_DEMO_VAULT=1 to deploy the simulated-yield demo vault with real USDC.");
 }
 if (new Set(durations).size !== durations.length) throw new Error("SERIES_DURATIONS must not contain duplicates.");
 if (fs.existsSync(deploymentFile)) throw new Error("Deployment manifest already exists; preserve it before starting a new deployment.");
 const provider = rpcProvider();
 try {
   const network = await provider.getNetwork();
-  if (network.chainId !== chainId) throw new Error("Deployment is restricted to Arc Testnet (5042002).");
-  if (await provider.getCode(usdc) === "0x") throw new Error("Arc Testnet USDC contract was not found.");
+  if (network.chainId !== chainId) throw new Error(`RPC is not ${net.label} (${net.chainId}).`);
+  if (await provider.getCode(usdc) === "0x") throw new Error("Arc USDC contract was not found.");
   const signer = new Wallet(key, provider);
   const artifacts = compile();
   const fees = await provider.getFeeData();
@@ -34,7 +41,7 @@ try {
   // Built up incrementally below; fields are genuinely absent (not just empty) until each deploy() call assigns them.
   const manifest = { version: 1, chainId: Number(chainId), usdc, deployer: signer.address, owner: ownerAddress,
     deployedAtBlock: await provider.getBlockNumber(), status: "deploying",
-    demoVault: !process.env.TESTNET_VAULT_ADDRESS, contracts: [], series: [], ownerActions: [] } as unknown as Manifest;
+    demoVault: !configuredVault, contracts: [], series: [], ownerActions: [] } as unknown as Manifest;
   function saveDeployment(): void {
     writeJson(deploymentFile, manifest);
   }
@@ -47,12 +54,12 @@ try {
     console.log(`${name}: ${c.target}`);
     return c as unknown as Contract;
   }
-  let vaultAddress = process.env.TESTNET_VAULT_ADDRESS;
+  let vaultAddress = configuredVault;
   if (!vaultAddress) vaultAddress = (await deploy("DemoVault", [usdc])).target as string;
   vaultAddress = getAddress(vaultAddress);
   manifest.vault = vaultAddress;
   const vault = new Contract(vaultAddress, artifacts.DemoVault!.abi, provider);
-  if (getAddress(await vault.asset() as string) !== getAddress(usdc)) throw new Error("Vault must hold Arc Testnet USDC.");
+  if (getAddress(await vault.asset() as string) !== getAddress(usdc)) throw new Error("Vault must hold Arc USDC.");
   const registry = await deploy("SeriesRegistry", [usdc, ownerAddress]);
   manifest.registry = registry.target as string;
   manifest.registryTransactionHash = registry.deploymentTransaction()!.hash;
@@ -88,7 +95,7 @@ try {
   for (const duration of durations) {
     const block = await provider.getBlock("latest");
     const expiry = block!.timestamp + duration;
-    const label = `TEST-${expiry}`;
+    const label = seriesLabel(expiry, net);
     const yt = await deploy("YieldToken", [vaultAddress, expiry, label, registry.target]);
     const item = { expiry, duration, yieldToken: yt.target as string, principalToken: await yt.principalToken() as string,
       transactionHash: yt.deploymentTransaction()!.hash };
@@ -102,7 +109,7 @@ try {
   }
   manifest.status = "owner-registration-required";
   saveDeployment();
-  console.log("Manifest and owner registration transactions saved. Complete register:testnet with the separate owner, then seed:testnet.");
+  console.log("Manifest and owner registration transactions saved. Complete the register step with the separate owner, then the seed step.");
 } finally {
   provider.destroy();
 }

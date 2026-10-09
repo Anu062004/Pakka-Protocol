@@ -7,6 +7,7 @@
 <meta name="description" content="Plain-language guide to Pakka: what principal tokens and yield tokens are, where the fixed interest comes from, how to buy each one, and every term used in the app.">
 <link rel="stylesheet" href="/fonts.css">
 <link rel="stylesheet" href="/landing.css">
+<script type="module" src="/network.mjs"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -35,6 +36,7 @@
       <a href="#buying">Buying and exiting</a>
       <a href="#glossary">Glossary</a>
       <a href="#risks">Risks</a>
+      <a href="#control">Who controls what</a>
     </nav>
   </section>
 
@@ -114,21 +116,21 @@
           <div class="term"><dt>Discount</dt><dd><p>The gap between a ticket's face value and what you pay for it today. Paying 0.95 for a face value of 1 is a discount of 0.05.</p></dd></div>
           <div class="term"><dt>Fixed rate<span class="term-note">Simple annualized rate</span></dt><dd><p>The discount expressed as a yearly percentage, so tickets with different dates can be compared.</p><p>It is a simple rate, not APY: it does not assume you reinvest. It is fixed from the moment you buy.</p></dd></div>
           <div class="term"><dt>Variable rate</dt><dd><p>What the vault is paying right now. It changes with borrowing demand and is what yield-token holders receive.</p></dd></div>
-          <div class="term"><dt>Vault</dt><dd><p>The contract that holds the USDC and earns interest on it. Every ticket is backed by a deposit in the vault.</p><p>On testnet this is a demo vault whose yield is simulated; it does not lend.</p></dd></div>
+          <div class="term"><dt>Vault</dt><dd><p>The contract that holds the USDC and earns interest on it. Every ticket is backed by a deposit in the vault.</p><p>A deployment may use a demo vault whose yield is simulated and which does not lend. The Rates page says so when it does.</p></dd></div>
           <div class="term"><dt>Vault shares</dt><dd><p>Your claim on the vault itself. Each share is worth a little more USDC as the vault earns. Taking shares instead of USDC lets you exit even when the vault is short of cash.</p></dd></div>
           <div class="term"><dt>Split and merge</dt><dd><p>Splitting turns one vault deposit into one PT and one YT. Merging does the reverse: one PT plus one YT of the same series becomes the deposit again.</p></dd></div>
           <div class="term"><dt>Pool<span class="term-note">Liquidity</span></dt><dd><p>The on-chain market where principal tokens trade against USDC. Its price sets the fixed rate. If the pool is thin, large purchases or early sales get a worse price or cannot fill.</p></dd></div>
           <div class="term"><dt>Quote</dt><dd><p>The exact cost for the amount and date you entered, read from the pool at that moment. A quote is valid for up to two minutes.</p></dd></div>
           <div class="term"><dt>Slippage allowance</dt><dd><p>How much the price may move between the quote and your transaction before it is cancelled. The app allows 0.50%. Maximum spend is the quote plus that allowance; any unused USDC is refunded.</p></dd></div>
           <div class="term"><dt>Estimated exit value</dt><dd><p>What a ticket would return if you exited right now: the pool's sale price before maturity, or the vault's payout after it.</p></dd></div>
-          <div class="term"><dt>Entry cap<span class="term-note">Entry TVL</span></dt><dd><p>The most new USDC a series accepts. On testnet each series is capped at 500 USDC. Existing tickets can always exit.</p></dd></div>
+          <div class="term"><dt>Entry cap<span class="term-note">Entry TVL</span></dt><dd><p>The most new USDC a series accepts. Each series is capped at 500 USDC. Existing tickets can always exit.</p></dd></div>
           <div class="term"><dt>Safety limit<span class="term-note">Circuit breaker</span></dt><dd><p>If the vault's share price jumps by more than 1% at once, new purchases pause. Exits stay open.</p></dd></div>
           <div class="term"><dt>Tijori</dt><dd><p>A treasury contract you own. It holds USDC and tickets and lets an agent act only inside limits you set. Tijori is Hindi for safe.</p></dd></div>
           <div class="term"><dt>Agent</dt><dd><p>A separate key, usually run by AI software, that can buy tickets and pay approved payees from your Tijori. It cannot withdraw to an address of its choosing, and you can pause or replace it.</p></dd></div>
           <div class="term"><dt>Payee and limits</dt><dd><p>A payee is an address you approved for payments. Each has a rolling 30-day limit, and the Tijori has a daily limit across all payees.</p></dd></div>
           <div class="term"><dt>USDC gas</dt><dd><p>On Arc, transaction fees are paid in USDC, so no second token is needed to use the app.</p></dd></div>
           <div class="term"><dt>Approval<span class="term-note">Wallet batch</span></dt><dd><p>Permission for a contract to move a set amount of your tokens. The app approves the exact amount, runs the action, then resets the approval to zero. Wallets that support batching do this in one confirmation.</p></dd></div>
-          <div class="term"><dt>Testnet<span class="term-note">Faucet funds</span></dt><dd><p>A practice network. The USDC here comes free from a faucet and has no real value.</p></dd></div>
+          <div class="term"><dt>Testnet<span class="term-note">Faucet funds</span></dt><dd><p>A practice network. Its USDC comes free from a faucet and has no real value. On Arc mainnet the USDC is real.</p></dd></div>
         </dl>
       </div>
     </div>
@@ -145,8 +147,43 @@
             <li><strong>The vault can run short of USDC.</strong> Cash out may be unavailable for a time. Taking vault shares still works.</li>
             <li><strong>Selling early depends on the pool.</strong> Before maturity you get the pool's price, which can be below what you paid.</li>
             <li><strong>Yield tokens can lose their whole cost.</strong> If the vault earns less than you paid for the yield token, you lose the difference.</li>
-            <li><strong>This is unaudited testnet software.</strong> Mainnet deployment is deliberately disabled. Use faucet funds only.</li>
+            <li><strong>Purchases close one hour before maturity.</strong> A ticket bought minutes before its date earns almost nothing, so new purchases stop early. Exits are never affected.</li>
+            <li><strong>USDC itself can be paused or an address blocked by its issuer.</strong> USDC payouts would stop while that lasts. Taking vault shares does not move USDC and still works.</li>
+            <li><strong>This is unaudited software.</strong> Nobody independent has reviewed the contracts. Each series is capped at 500 USDC. Only put in what you can afford to lose.</li>
           </ul>
+          <h3>Who absorbs a vault loss</h3>
+          <p>Every ticket is a claim on a fixed number of vault shares, not on a fixed number of dollars. If the vault loses value, each share is worth less, so every principal token of that series pays less than face value by the same proportion. It does not matter who cashes out first.</p>
+          <p>Yield tokens are never paid for a loss or for the recovery from one. They start earning again only once the vault is worth more than its previous high.</p>
+          <h3>Yield after maturity</h3>
+          <p>A yield token stops earning at maturity. A principal token that is not cashed out straight away keeps its vault shares, and those shares keep earning for its holder until it is cashed out.</p>
+          <h3>Sudden jumps in the vault price</h3>
+          <p>If the vault's share price moves by more than 1% at once, new purchases pause and yield tokens stop accruing until the move is confirmed. The allowed band widens by 0.25% for each day that passes, so a real change is accepted after a while and normal growth never trips it. Exits stay open throughout.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="chapter" id="control">
+    <div class="wrap chapter-grid">
+      <div class="chapter-mark"><span class="num">05</span><p class="kicker">Control</p></div>
+      <div class="chapter-body">
+        <div class="prose">
+          <h2>Who controls what.</h2>
+          <p>The contracts cannot be upgraded and have no fee switch. There is one owner address, set at deployment and never changeable.</p>
+          <h3>The owner can</h3>
+          <ul>
+            <li>Register a new series, and attach one pool to it, once.</li>
+            <li>Pause new purchases, for one series or for all of them.</li>
+            <li>Add and remove its own liquidity in the pools.</li>
+          </ul>
+          <h3>The owner cannot</h3>
+          <ul>
+            <li>Move, freeze or redirect the vault shares backing any ticket.</li>
+            <li>Stop anyone from cashing out, merging, selling or claiming interest.</li>
+            <li>Change a series, its maturity date, its vault or its cap after it is registered.</li>
+            <li>Touch a Tijori. Each one answers only to the person who created it.</li>
+          </ul>
+          <p>The owner is trusted for one thing: only registering series whose vault and token contracts are genuine. A dishonest or compromised owner could list a fake series, and anyone who bought into it could lose that money. Existing series would be unaffected.</p>
         </div>
       </div>
     </div>
@@ -155,7 +192,7 @@
   <section class="closing">
     <div class="wrap">
       <h2>Pick a date.<br>Know the number.</h2>
-      <p>Live on Arc Testnet — unaudited, demo liquidity, testnet funds only.</p>
+      <p data-network-note>Unaudited software with small caps. Only use funds you can afford to lose.</p>
       <div class="ctas">
         <a class="cta" href="/app">Launch app</a>
         <a class="cta ghost" href="/">About Pakka</a>
@@ -166,7 +203,7 @@
 
 <footer class="site">
   <div class="wrap">
-    <span>Pakka · Unaudited testnet software, built for the Arc Microgrants program.</span>
+    <span>Pakka · Unaudited software, built for the Arc Microgrants program.</span>
     <span><a href="/">About</a> · <a href="https://github.com/Anu062004/Pakka-Protocol" rel="noopener noreferrer">GitHub</a> · <a href="/app">Launch app</a></span>
   </div>
 </footer>

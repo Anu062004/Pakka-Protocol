@@ -9,7 +9,7 @@ import {PakkaRouter} from "./PakkaRouter.sol";
 import {SeriesRegistry} from "./SeriesRegistry.sol";
 import {YieldToken} from "./YieldToken.sol";
 
-/// @notice Owner-controlled testnet treasury with one restricted agent.
+/// @notice Owner-controlled treasury with one restricted agent.
 /// @dev Clones share immutable trusted dependencies; all positions/proceeds stay in the clone.
 contract Tijori is ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -67,7 +67,7 @@ contract Tijori is ReentrancyGuard {
     event InterestClaimed(uint256 indexed seriesId, uint256 output, bool toAssets);
 
     constructor(PakkaRouter router_) {
-        if (block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
+        if (block.chainid != 5042 && block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
         if (address(router_).code.length == 0) revert InvalidConfiguration();
         router = router_;
         registry = router_.registry();
@@ -92,7 +92,7 @@ contract Tijori is ReentrancyGuard {
 
     function initialize(address owner_, address agent_, uint256 dailyCap_) external {
         if (initialized) revert AlreadyInitialized();
-        if (block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
+        if (block.chainid != 5042 && block.chainid != 5042002 && block.chainid != 31337) revert UnsupportedChain(block.chainid);
         if (msg.sender != factory) revert Unauthorized();
         if (owner_ == address(0)) revert InvalidConfiguration();
         initialized = true;

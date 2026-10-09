@@ -52,7 +52,7 @@ async function setup({ count = 1 }: { count?: number } = {}) {
   const vault = await deploy("MockVault", [asset.target, 12]);
   const registry = await deploy("SeriesRegistry", [asset.target, owner.address]);
   await hre.network.provider.send("hardhat_setBalance", [wallet.address, "0x8ac7230489e80000"]);
-  const expiry = (await provider.getBlock("latest"))!.timestamp + 1000;
+  const expiry = (await provider.getBlock("latest"))!.timestamp + 10_000;
   const series: SeriesFixture[] = [];
   for (let i = 0; i < count; i++) {
     const yt = await deploy("YieldToken", [vault.target, expiry + i * 100, `KEEPER-${i}`, registry.target]);
@@ -273,7 +273,7 @@ test("wrong RPC chain, missing registry and privileged keeper wallet fail before
   assert.equal(health.alerts[0].errorCode, "WRONG_RPC_CHAIN");
   assert.equal((await f.keeper({ registryAddress: stranger.address }).tick()).alerts[0].errorCode, "REGISTRY_NOT_DEPLOYED");
   assert.equal((await f.keeper({ signer: ownerWallet }).tick()).alerts[0].errorCode, "KEEPER_USES_OWNER_WALLET");
-  assert.throws(() => f.keeper({ chainId: 5042 }), /UNSUPPORTED_CHAIN/);
+  assert.throws(() => f.keeper({ chainId: 1 }), /UNSUPPORTED_CHAIN/);
   assert.equal(await provider.getTransactionCount(wallet.address, "latest"), f.nonce);
 });
 
@@ -418,7 +418,7 @@ test("CLI validates configuration, provides key-free health checks and fails saf
     assert.throws(() => keeperConfig(env), /Invalid|must not exceed/);
   }
   await assert.rejects(() => main(["--unknown"], {}), /Usage/);
-  await assert.rejects(() => main(["--once"], {}), /dedicated, funded testnet wallet/);
+  await assert.rejects(() => main(["--once"], {}), /dedicated, funded wallet/);
   const config = keeperConfig({ KEEPER_STATE_FILE: path.join(temporary, "cli/state.json") });
   writeJson(`${config.stateFile}.health.json`, { checkedAt: new Date().toISOString(), ok: true });
   assert.equal(await main(["--health"], { KEEPER_STATE_FILE: config.stateFile }), 0);

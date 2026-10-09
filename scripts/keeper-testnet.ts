@@ -4,7 +4,7 @@ import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import { Wallet, getAddress, parseEther, parseUnits } from "ethers";
 import { ExpiryKeeper, lockKeeper, type KeeperOptions, type KeeperHealth } from "./expiry-keeper.ts";
-import { loadDeployment, projectRoot } from "../backend/project.ts";
+import { canonicalUsdc, deploymentFile, loadDeployment, network, projectRoot } from "../backend/project.ts";
 import { rpcProvider } from "../backend/rpc.ts";
 import { keeperAlerts } from "../backend/alerts.ts";
 
@@ -57,22 +57,22 @@ export async function main(args: string[] = process.argv.slice(2), env: NodeJS.P
     return health.ok && health.fresh && !health.fatal ? 0 : 1;
   }
   const key = env.KEEPER_PRIVATE_KEY;
-  if (!key || !/^0x[0-9a-fA-F]{64}$/.test(key)) throw new Error("Set KEEPER_PRIVATE_KEY locally to a dedicated, funded testnet wallet.");
+  if (!key || !/^0x[0-9a-fA-F]{64}$/.test(key)) throw new Error("Set KEEPER_PRIVATE_KEY locally to a dedicated, funded wallet on the selected Arc network.");
   let wallet: Wallet;
   try { wallet = new Wallet(key); }
   catch { throw new Error("KEEPER_PRIVATE_KEY is invalid."); }
-  const manifestPath = "deployments/arc-testnet.json";
-  if (!fs.existsSync(manifestPath)) throw new Error("Deploy on Arc Testnet first: deployments/arc-testnet.json is missing.");
+  const net = network(env), manifestPath = deploymentFile;
+  if (!fs.existsSync(manifestPath)) throw new Error(`Deploy on ${net.label} first: ${net.file} is missing.`);
   const manifest = loadDeployment(manifestPath);
-  if (manifest.chainId !== 5042002 || manifest.usdc !== "0x3600000000000000000000000000000000000000") {
-    throw new Error("Keeper requires an Arc Testnet deployment manifest with canonical USDC.");
+  if (manifest.chainId !== net.chainId || manifest.usdc !== canonicalUsdc) {
+    throw new Error("Keeper requires a deployment manifest for the selected Arc network with canonical USDC.");
   }
   const registryAddress = getAddress(manifest.registry);
   if (manifest.deployer && getAddress(manifest.deployer) === wallet.address) {
     throw new Error("Use a separate keeper wallet, not the deployment/registry-owner wallet.");
   }
   // Avoid ethers' unbounded network-bootstrap retry loop. ExpiryKeeper explicitly
-  // fetches eth_chainId each cycle and before sending; signed transactions bind chain 5042002.
+  // fetches eth_chainId each cycle and before sending; signed transactions bind the selected chain ID.
   const provider = rpcProvider(env);
   const controller = new AbortController();
   const stop = () => controller.abort();
@@ -80,7 +80,7 @@ export async function main(args: string[] = process.argv.slice(2), env: NodeJS.P
   try {
     unlock = lockKeeper(`${config.stateFile}.lock`);
     unlockWallet = lockKeeper(path.join(projectRoot, `runtime/wallet-${wallet.address.toLowerCase()}.lock`));
-    const keeper = new ExpiryKeeper({ ...config, provider, signer: wallet.connect(provider), registryAddress,
+    const keeper = new ExpiryKeeper({ ...config, chainId: net.chainId, provider, signer: wallet.connect(provider), registryAddress,
       log: (record) => console.log(JSON.stringify(record)) });
     process.on("SIGINT", stop);
     process.on("SIGTERM", stop);
@@ -97,7 +97,7 @@ export async function main(args: string[] = process.argv.slice(2), env: NodeJS.P
         console.log(JSON.stringify({ time: new Date().toISOString(), event: "alert",
           code: "KEEPER_TICK_FAILED", errorCode: (error as { code?: string }).code ?? "UNKNOWN" }));
         exitCode = 1;
-        await notify({ ok: false, chainId: 5042002, alerts: [{ code: "KEEPER_TICK_FAILED" }] });
+        await notify({ ok: false, chainId: net.chainId, alerts: [{ code: "KEEPER_TICK_FAILED" }] });
         if (args.includes("--once")) break;
       }
       if (!controller.signal.aborted) {

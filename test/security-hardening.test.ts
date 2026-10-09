@@ -145,6 +145,35 @@ test("multiple updates in one block cannot ratchet the index beyond the observat
   } finally { await hre.network.provider.send("evm_setAutomine",[true]); }
 });
 
+test("the index band widens with time, so a real jump is accepted later instead of freezing the series for good",async()=>{
+  const start=(await provider.getBlock("latest"))!.timestamp,index=await f.yt.pyIndexStored();
+  await sent(f.vault.addYield(4_800_000n)); // 1.2% of the 400 USDC vault: outside the 1% band.
+  await sent(f.yt.checkpointIndex());
+  assert.equal(await f.yt.indexHealthy(),false);
+  assert.equal(await f.yt.pyIndexStored(),index);
+  assert.equal(await f.yt.accruedInterest(owner.address),0n);
+  await rejection(f.yt.splitFromAssets(unit,owner.address),f.yt,"IndexCircuitBreaker");
+  // 0.25% per day: after 80,000 seconds the band is about 1.23%, so the same price is now accepted.
+  await advance(start+80_000);
+  assert.equal(await f.yt.indexHealthy(),true);
+  await sent(f.yt.checkpointIndex());
+  assert(await f.yt.pyIndexStored()>index);
+  assert(await f.yt.accruedInterest(owner.address)>0n);
+  await sent(f.yt.splitFromAssets(unit,owner.address));
+});
+
+test("entries close one hour before maturity while merge and early sale stay open",async()=>{
+  assert.equal(await f.registry.entryOpen(f.yt.target),true);
+  await advance(f.expiry-3600);
+  assert.equal(await f.registry.entryOpen(f.yt.target),false);
+  await rejection(f.yt.splitFromAssets(unit,owner.address),f.yt,"SeriesInactive");
+  await rejection(f.router.lock(1,unit,unit,owner.address,f.expiry-1),f.router,"SeriesInactive");
+  await rejection(f.market.buyPT(1,unit,unit,owner.address,f.expiry-1),f.market,"SeriesInactive");
+  await sent(f.yt.merge(unit,owner.address,false));
+  await sent(f.pt.approve(f.router.target,unit));
+  await sent(f.router.sellEarly(1,unit,1,owner.address,f.expiry-1));
+});
+
 test("face cap is enforced for router, direct market and ladder callers",async()=>{
   await rejection(f.router.lock(1,unit,unit+1n,owner.address,f.expiry-1),f.router,"PurchaseCapExceeded");
   await rejection(f.market.buyPT(1,unit,unit+1n,owner.address,f.expiry-1),f.market,"PurchaseCapExceeded");

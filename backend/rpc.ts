@@ -1,4 +1,5 @@
 import { FetchRequest, JsonRpcProvider } from "ethers";
+import { network } from "./project.ts";
 
 interface RpcError {
   code?: string;
@@ -23,15 +24,17 @@ export async function sendWithFallback(primary: Send, backup: Send | null | unde
   }
 }
 
-export function rpcProvider(env: NodeJS.ProcessEnv = process.env, { chainId = 5042002 }: { chainId?: number } = {}): JsonRpcProvider {
-  if (![5042002, 31337].includes(chainId)) throw new Error("UNSUPPORTED_CHAIN");
+export function rpcProvider(env: NodeJS.ProcessEnv = process.env, { chainId = network(env).chainId }: { chainId?: number } = {}): JsonRpcProvider {
+  if (![5042, 5042002, 31337].includes(chainId)) throw new Error("UNSUPPORTED_CHAIN");
+  const mainnet = chainId === 5042;
   const make = (url: string) => {
     const request = new FetchRequest(url);
     request.timeout = 10000;
     return new JsonRpcProvider(request, chainId, { staticNetwork: true, cacheTimeout: -1, batchMaxCount: 1 });
   };
-  const primary = make(env.ARC_TESTNET_RPC_URL || "https://rpc.testnet.arc.io");
-  const backup = env.ARC_TESTNET_RPC_FALLBACK_URL ? make(env.ARC_TESTNET_RPC_FALLBACK_URL) : null;
+  const primary = make(mainnet ? env.ARC_MAINNET_RPC_URL || "https://rpc.mainnet.arc.io" : env.ARC_TESTNET_RPC_URL || "https://rpc.testnet.arc.io");
+  const fallback = mainnet ? env.ARC_MAINNET_RPC_FALLBACK_URL : env.ARC_TESTNET_RPC_FALLBACK_URL;
+  const backup = fallback ? make(fallback) : null;
   const primarySend = primary.send.bind(primary), backupSend = backup?.send.bind(backup);
   primary.send = (method: string, params: unknown[]) => sendWithFallback(primarySend, backupSend, method, params, chainId) as Promise<any>;
   const destroy = primary.destroy.bind(primary);
