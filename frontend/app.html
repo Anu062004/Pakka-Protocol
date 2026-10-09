@@ -7,20 +7,20 @@
 <div class="shell">
   <aside class="rail"><a class="brand" href="/"><svg viewBox="0 0 26 30" fill="none" aria-hidden="true"><circle cx="13" cy="11" r="8.5" stroke="#fff" stroke-width="3"></circle><circle cx="13" cy="11" r="2.8" fill="#fff"></circle><path d="M4.5 11V27.5" stroke="#fff" stroke-width="3" stroke-linecap="round"></path></svg>pakka<span>USDC, with a date.</span></a>
     <nav aria-label="Main"><a href="#rates">Rates</a><a href="#lock">Buy PT</a><a href="#yield">Buy YT</a><a href="#positions">Positions</a><a href="#tijori">Tijori</a></nav>
-    <p class="network"><span id="network-name">Arc</span><br><span id="network-note">Unaudited software</span></p>
-    <a class="home-link" href="/docs">Guide and glossary</a><a class="home-link" href="/">About Pakka</a>
+    <div class="rail-foot"><p class="network"><span id="network-name">Arc</span><span id="network-note">Unaudited software</span></p>
+      <a class="home-link" href="/docs">Guide and glossary ↗</a><a class="home-link" href="/">About Pakka</a></div>
   </aside>
-  <div class="workspace"><header class="topbar"><span id="network-status">Waiting for deployment</span><button id="connect" class="cta">Connect wallet</button></header>
+  <div class="workspace"><header class="topbar"><div class="chips"><span id="network-status" class="chip">Waiting for deployment</span><span class="chip">USDC gas</span><span id="block-status"></span></div><button id="connect" class="cta">Connect wallet</button></header>
     <main id="main">
       <p id="notice" role="status" aria-live="polite">Loading configuration…</p>
       <div id="transaction" aria-live="polite"></div>
-      <section id="rates" class="page"><h1>Choose your date.</h1><p>Buy a principal token today and redeem it for its full face value at maturity. Rates include the current pool quote.</p>
+      <section id="rates" class="page"><div class="kicker">01 · Rates</div><h1>Choose your date.</h1><p>Buy a principal token today and redeem it for its full face value at maturity. Rates include the current pool quote.</p>
         <p class="terms">New to principal tokens, yield tokens or maturities? <a href="/docs">Read the guide</a>.</p>
         <div class="variable"><div><h2>Morpho variable rate</h2><p id="variable-rate">— · Live vault feed not configured</p></div><p>Fixed quotes below are simple annualized rates, not APY. Vault losses and withdrawal limits still apply.</p></div>
         <div id="rates-list" class="list"><p>No rates loaded yet.</p></div>
         <button id="refresh-rates" class="text-button">Refresh rates</button>
       </section>
-      <section id="lock" class="page" hidden><h1>Buy a principal token.</h1><p>A principal token (PT) pays its full face value in USDC on the maturity date. You pay less than that today, and the difference is your fixed interest.</p>
+      <section id="lock" class="page" hidden><div class="kicker">02 · Buy PT</div><h1>Buy a principal token.</h1><p>A principal token (PT) pays its full face value in USDC on the maturity date. You pay less than that today, and the difference is your fixed interest.</p>
         <p id="lock-unavailable" class="helper" hidden>No maturities are registered on this deployment yet, so there is nothing to choose — this isn’t a bug, the date list is empty because the owner hasn’t registered a series. Check Rates for status.</p>
         <div class="split"><form id="lock-form"><label for="face">Face value at maturity · USDC</label><input id="face" inputmode="decimal" value="1" required pattern="[0-9]+(\.[0-9]{1,6})?">
           <label for="maturity">Maturity</label><select id="maturity" required><option value="">Choose a date</option></select>
@@ -28,7 +28,7 @@
           <p id="approval-note" class="helper">Compatible wallets batch approval and purchase. Other wallets confirm two transactions.</p>
         </form><div class="quote" id="quote-details"><h2>Your quote</h2><p>Choose a maturity and amount to see the cost, payout and rate.</p></div></div>
       </section>
-      <section id="yield" class="page" hidden><h1>Buy a yield token.</h1><p>A yield token (YT) collects all the variable interest the vault earns on its share of the deposit until the maturity date. It pays no principal back, so it gains if the vault earns more than you paid and loses if it earns less.</p>
+      <section id="yield" class="page" hidden><div class="kicker">03 · Buy YT</div><h1>Buy a yield token.</h1><p>A yield token (YT) collects all the variable interest the vault earns on its share of the deposit until the maturity date. It pays no principal back, so it gains if the vault earns more than you paid and loses if it earns less.</p>
         <p class="terms">You deposit USDC, the fixed half is sold to the pool and that USDC comes straight back to you. What you keep is the yield token. <a href="/docs#yt">How this works</a>.</p>
         <div class="split"><form id="yield-form"><label for="yield-amount">USDC to deposit</label><input id="yield-amount" inputmode="decimal" value="1" required pattern="[0-9]+(\.[0-9]{1,6})?">
           <label for="yield-maturity">Maturity</label><select id="yield-maturity" required><option value="">Choose a date</option></select>
@@ -36,10 +36,17 @@
           <p class="helper">Connect your wallet first. Your wallet confirms an approval, the purchase, then an approval reset.</p>
         </form><div class="quote" id="yield-details"><h2>Your preview</h2><p>Choose a maturity and amount to see what comes back and what the yield token costs.</p></div></div>
       </section>
-      <section id="positions" class="page" hidden><h1>Your positions.</h1><p>Principal tokens can be sold early if the pool has liquidity, or cashed out at maturity in USDC or vault shares. Yield tokens show any interest ready to claim.</p><div id="positions-list" class="list"><p>Connect your wallet to see your positions.</p></div><button id="refresh-positions" class="text-button">Refresh positions</button></section>
-      <section id="tijori" class="page" hidden><h1>A treasury with limits.</h1><p>You own the funds. Your agent can buy tickets and pay only approved payees within your limits.</p>
-        <div id="treasury-status">Connect your wallet to open your Tijori.</div>
-        <form id="create-form" hidden><h2>Create your Tijori</h2>
+      <section id="positions" class="page" hidden><div class="kicker">04 · Positions</div><h1>Your positions.</h1><p>Principal tokens can be sold early if the pool has liquidity, or cashed out at maturity in USDC or vault shares. Yield tokens show any interest ready to claim.</p><div id="positions-list" class="list"><p>Connect your wallet to see your positions.</p></div><button id="refresh-positions" class="text-button">Refresh positions</button></section>
+      <section id="tijori" class="page" hidden><div class="kicker">05 · Tijori</div><h1>A treasury with limits.</h1><p>You own the funds. Your agent can buy tickets and pay only approved payees, within limits the contract enforces.</p>
+        <div id="tijori-intro" class="duo">
+          <div class="card"><h2>Open your Tijori</h2><p>Connect the wallet that will own it. Only you can change limits, pause the agent or withdraw.</p><button id="tijori-connect" class="cta arrow" type="button">Connect wallet</button></div>
+          <div class="card ghost"><div class="kicker">Setup · one time</div>
+            <ol class="steps"><li><strong>Connect your wallet</strong><span>The owner key. It never leaves your wallet.</span></li>
+              <li><strong>Set agent and limits</strong><span>Agent address, daily cap, and approved payees.</span></li>
+              <li><strong>Deposit and hand off</strong><span>Fund it with USDC, then connect your agent over MCP.</span></li></ol></div>
+        </div>
+        <div id="treasury-status"></div>
+        <div class="duo"><form id="create-form" class="card" hidden><h2>Create your Tijori</h2>
           <p id="create-helper" class="helper">Your treasury needs an agent address. Generate a wallet here if you do not already have one — it is created in this browser and never sent anywhere.</p>
           <label for="initial-agent">Agent address</label><input id="initial-agent" placeholder="0x…" required>
           <button id="generate-agent" type="button">Generate agent wallet</button>
@@ -52,7 +59,11 @@
           <label for="initial-daily">Daily payment limit · USDC</label><input id="initial-daily" value="5" inputmode="decimal" required>
           <div id="setup-fields" hidden><label for="initial-deposit">First deposit · USDC</label><input id="initial-deposit" value="5" inputmode="decimal" required>
             <p class="helper">Your wallet will ask a few times: once to create the treasury, once to send the agent 1 USDC of gas, then to deposit. Enter 0 to skip the deposit.</p></div>
-          <button class="cta">Create Tijori</button></form>
+          <button class="cta arrow wide">Create Tijori</button></form>
+          <div class="card ghost agent-rules">
+            <div><strong>The agent can</strong><span>Buy PT for registered series</span><span>Redeem matured PT, claim YT interest</span><span>Pay approved payees within caps</span></div>
+            <div class="no"><strong>The agent cannot</strong><span>Send funds to any address</span><span>Change its own limits</span><span>Act once you pause it</span></div>
+          </div></div>
         <section id="setup-authorize" class="agent-setup" hidden><h2>Finish your terminal setup</h2><p id="setup-authorize-text"></p><button id="setup-authorize-button" class="cta" type="button">Authorize agent</button></section>
         <div id="treasury-controls" hidden>
           <div class="owner-grid"><form id="deposit-form"><h2>Add funds</h2><label for="deposit-amount">USDC</label><input id="deposit-amount" inputmode="decimal" value="1" required><button>Deposit USDC</button></form>
@@ -73,7 +84,7 @@
           <h2>Activity</h2><div id="activity" class="list"></div><button id="refresh-treasury" class="text-button">Refresh Tijori</button>
         </div>
       </section>
-    </main><footer>Pakka · <span id="build-note">Unaudited build</span> · 500 USDC maximum new-entry TVL per series</footer>
+    </main><footer><span>Pakka · <span id="build-note">Unaudited build</span></span><span>500 USDC maximum new-entry TVL per series</span></footer>
   </div>
 </div>
 </body></html>

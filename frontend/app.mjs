@@ -67,6 +67,7 @@ async function refreshRates(){
   $("lock-unavailable").hidden=availableMaturities>0;
   $("face").disabled=$("maturity").disabled=$("get-quote").disabled=availableMaturities===0;
   $("yield-amount").disabled=$("yield-maturity").disabled=$("yield-preview").disabled=availableMaturities===0;
+  $("block-status").textContent=`Block ${Number(result.blockNumber).toLocaleString("en-US")}`;
   invalidateQuote();invalidateYield();notice(`Rates refreshed at block ${result.blockNumber}.`);
 }
 function invalidateQuote(){state.quote=null;$("lock-submit").disabled=true;$("quote-details").replaceChildren(node("h2","Your quote"),node("p","Request a fresh quote for this amount and date."));}
@@ -253,10 +254,11 @@ function renderBills(){
 function form(id,action){$(id).addEventListener("submit",e=>{e.preventDefault();void run(action);});}
 $("connect").addEventListener("click",()=>run(async()=>{
   if(!window.ethereum)throw new Error("WALLET_REQUIRED");if(!state.manifest)throw new Error("TESTNET_DEPLOYMENT_MISSING");
-  const wallet=new AppWallet(window.ethereum,state.manifest);await wallet.connect();state.wallet=wallet;$("connect").textContent=short(wallet.account);
+  const wallet=new AppWallet(window.ethereum,state.manifest);await wallet.connect();state.wallet=wallet;$("connect").textContent=short(wallet.account);$("connect").classList.add("account");$("tijori-intro").hidden=true;
   if(await wallet.pending()){const receipt=await wallet.status();await showReceipt(receipt,wallet);}
   await refreshPositions();await refreshTreasury();notice("Wallet connected.");
 }));
+$("tijori-connect").onclick=()=>$("connect").click();
 $("refresh-rates").onclick=()=>run(refreshRates);$("get-quote").onclick=()=>run(getQuote);form("lock-form",lock);
 $("face").oninput=invalidateQuote;$("maturity").onchange=invalidateQuote;
 $("yield-preview").onclick=()=>run(previewYield);form("yield-form",buyYield);$("yield-amount").oninput=invalidateYield;$("yield-maturity").onchange=invalidateYield;
@@ -275,14 +277,14 @@ $("copy-key").onclick=()=>run(async()=>{if(!$("one-time-key").value)return;await
 $("copy-config").onclick=()=>run(async()=>{await navigator.clipboard.writeText($("mcp-config").value);notice("MCP config copied. Replace the key placeholder only in your local file.");});
 form("bill-form",async()=>{const bills=readBills();if(bills.length>=100)throw new Error("InvalidAmount");const bill={id:crypto.randomUUID(),payee:getAddress($("bill-payee").value),amount:formatUnits(amount($("bill-amount").value),6),date:$("bill-date").value};localStorage.setItem(billsKey(),JSON.stringify([...bills,bill]));renderBills();notice("Bill added to this device's calendar.");});
 window.addEventListener("hashchange",navigate);window.addEventListener("pagehide",clearKey);
-window.ethereum?.on?.("accountsChanged",()=>{clearKey();state.wallet=null;state.treasury=null;$("connect").textContent="Connect wallet";$("treasury-controls").hidden=true;$("create-form").hidden=true;$("setup-authorize").hidden=true;$("positions-list").replaceChildren(node("p","Wallet changed. Reconnect to refresh positions."));notice("Wallet changed. Reconnect before continuing.");});
-window.ethereum?.on?.("chainChanged",()=>{clearKey();state.wallet=null;$("connect").textContent="Connect wallet";invalidateQuote();invalidateYield();notice("Network changed. Reconnect on the Arc network this app uses.");});
+window.ethereum?.on?.("accountsChanged",()=>{clearKey();state.wallet=null;state.treasury=null;$("connect").textContent="Connect wallet";$("connect").classList.remove("account");$("tijori-intro").hidden=false;$("treasury-controls").hidden=true;$("create-form").hidden=true;$("setup-authorize").hidden=true;$("positions-list").replaceChildren(node("p","Wallet changed. Reconnect to refresh positions."));notice("Wallet changed. Reconnect before continuing.");});
+window.ethereum?.on?.("chainChanged",()=>{clearKey();state.wallet=null;$("connect").textContent="Connect wallet";$("connect").classList.remove("account");$("tijori-intro").hidden=false;invalidateQuote();invalidateYield();notice("Network changed. Reconnect on the Arc network this app uses.");});
 navigate();
 if(setupAgent)$("treasury-status").textContent="Connect your wallet to approve the agent from your terminal setup.";
 try{
   const [manifest,abis]=await Promise.all([api("/api/deployment"),api("/api/abis")]);state.manifest=manifest;state.abis=abis;
   const mainnet=manifest.network?.name==="mainnet";
-  $("network-status").textContent=manifest.network?`${manifest.network.label} · USDC gas`:"Local test chain";
+  $("network-status").textContent=manifest.network?.label??"Local test chain";
   // Real funds change what the user needs to be told, so the standing notes follow the deployment.
   $("network-name").textContent=manifest.network?.label??"Local test chain";
   $("network-note").textContent=mainnet?"Unaudited · real funds at risk":"Faucet funds only";
