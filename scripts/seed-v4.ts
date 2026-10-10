@@ -12,6 +12,13 @@ export function initialSqrtPrice(asset: string, pt: string, priceUsdc: bigint): 
   return x;
 }
 
+// Simple annualized, the convention the quotes use: price = face / (1 + rate × time).
+// ratePercent carries six decimals, e.g. 8_000000n for 8% a year.
+export function priceForRate(ratePercent: bigint, secondsToMaturity: number): bigint {
+  if (ratePercent <= 0n || secondsToMaturity <= 0) throw new Error("PT_TARGET_RATE_PERCENT and time to maturity must be positive.");
+  return 1_000000n * 100_000000n * 31536000n / (100_000000n * 31536000n + ratePercent * BigInt(secondsToMaturity));
+}
+
 // Also used by the local integration test; no RPC or wallet is created here.
 export async function seedSeries({ asset, pt, registry, yt, seeder, market, signer, item,
   priceUsdc, maxUsdc, maxPt, deadline, overrides = {}, save = () => {} }: {

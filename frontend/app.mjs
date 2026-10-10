@@ -1,4 +1,4 @@
-import { Contract, Interface, Wallet, ZeroAddress, formatUnits, getAddress, parseUnits } from "/ethers.mjs";
+import { Contract, Interface, Wallet, ZeroAddress, ZeroHash, formatUnits, getAddress, parseUnits, solidityPackedKeccak256 } from "/ethers.mjs";
 import { AppWallet } from "/wallet.mjs";
 import { humanError } from "/errors.mjs";
 
@@ -264,12 +264,49 @@ function sqrtPrice(usdc0,price){
   const unit=1_000000n,value=(1n<<192n)*(usdc0?unit:price)/(usdc0?price:unit);
   let x=value,y=(x+1n)/2n;while(y<x){x=y;y=(x+value/x)/2n;}return x;
 }
+// Simple annualized, the convention the quotes use: price = face / (1 + rate × time).
+function priceForRate(percent,seconds){
+  const rate=amount(percent);if(seconds<=0)throw new Error("SeriesExpired");
+  return 1_000000n*100_000000n*31536000n/(100_000000n*31536000n+rate*BigInt(seconds));
+}
+// The pool's swap fee is paid on top of the price, so a discount smaller than the fee is no discount.
+const feeAdjusted=price=>price+(price*500n+999_999n)/1_000000n;
+function seedNote(){
+  const expiry=state.ownerSeries?.get(Number($("seed-series").value));let text="Choose a series to see the PT price this rate opens at.";
+  try{if(expiry){const price=priceForRate($("seed-rate").value,expiry-Math.floor(Date.now()/1000));
+    text=feeAdjusted(price)>=1_000000n?"At this rate and maturity the 0.05% pool fee is larger than the discount. Use a higher rate or a longer maturity."
+      :`Opens PT at ${formatUnits(price,6)} USDC. Buyers also pay the 0.05% pool fee.`;}}catch{}
+  $("seed-price-note").textContent=text;
+}
+// Liquidity is held by the seeder under the range it was added with. The deployment manifest
+// records script-seeded ranges; ranges seeded from this page are remembered on this device.
+const rangesKey=()=>`pakka-lp-${state.manifest.chainId}-${state.manifest.poolSeeder.toLowerCase()}`;
+function savedRanges(){try{const r=JSON.parse(localStorage.getItem(rangesKey())??"[]");return Array.isArray(r)?r:[];}catch{return [];}}
+function ranges(id){
+  const found=new Map();
+  for(const m of state.manifest.series)if(m.seriesId===id&&Number.isInteger(m.pool?.tickLower))found.set(`${m.pool.tickLower}:${m.pool.tickUpper}`,[m.pool.tickLower,m.pool.tickUpper]);
+  for(const r of savedRanges())if(r.id===id&&Number.isInteger(r.lower)&&Number.isInteger(r.upper))found.set(`${r.lower}:${r.upper}`,[r.lower,r.upper]);
+  return [...found.values()];
+}
+// Mirrors v4 StateLibrary.getPositionLiquidity: pools[poolId].positions[key].liquidity.
+async function positionLiquidity(poolId,lower,upper){
+  const manager=new Contract(state.manifest.poolManager,["function extsload(bytes32) view returns(bytes32)"],state.wallet.provider);
+  const positions=BigInt(solidityPackedKeccak256(["bytes32","uint256"],[poolId,6]))+6n;
+  const key=solidityPackedKeccak256(["address","int24","int24","bytes32"],[state.manifest.poolSeeder,lower,upper,ZeroHash]);
+  return BigInt(await manager.extsload(solidityPackedKeccak256(["bytes32","uint256"],[key,positions])))&((1n<<128n)-1n);
+}
+async function withdrawLiquidity(id,lower,upper,liquidity){
+  const wallet=requireWallet(),seeder=contract("PoolSeeder",state.manifest.poolSeeder);
+  const deadline=(await wallet.provider.getBlock("latest")).timestamp+600;
+  const [out0,out1]=await seeder.connect(wallet.signer).removeLiquidity.staticCall(id,lower,upper,liquidity,0,0,deadline);
+  await ownerDone(await wallet.write(seeder,"removeLiquidity",[id,lower,upper,liquidity,out0*9950n/10000n,out1*9950n/10000n,deadline]));
+}
 async function refreshOwner(){
   const wallet=requireWallet(),registry=contract("SeriesRegistry",state.manifest.registry),market=contract("UniswapV4Market",state.manifest.market);
   const now=(await wallet.provider.getBlock("latest")).timestamp,count=Number(await registry.seriesCount()),allPaused=await registry.entriesPaused();
   $("owner-entries").textContent=allPaused?"New entries are paused for every series.":"New entries are open.";
   $("owner-pause-all").textContent=allPaused?"Resume all entries":"Pause all entries";
-  $("owner-series").replaceChildren();$("seed-series").replaceChildren(node("option","Choose a series",{value:""}));
+  $("owner-series").replaceChildren();$("seed-series").replaceChildren(node("option","Choose a series",{value:""}));state.ownerSeries=new Map();
   for(const m of state.manifest.series){
     if(m.expiry<=now||await registry.seriesIdByYieldToken(m.yieldToken)!==0n)continue;
     const row=node("div",undefined,{class:"position-row"}),actions=node("div",undefined,{class:"actions"});
@@ -290,9 +327,14 @@ async function refreshOwner(){
     row.append(node("h3",`Series ${id} · ${date(Number(s.expiry))}`),node("p",live?`${status} · ${allPaused||paused?"Entries paused":"Entries open"}`:status));
     if(live&&!s.hasPool)actions.append(button("Attach pool",()=>ownerWrite("setPoolKey",[id,poolKey(s.principalToken)]),{class:"cta"}));
     if(live)actions.append(button(paused?"Resume entries":"Pause entries",()=>ownerWrite("setSeriesEntriesPaused",[id,!paused])));
-    if(live&&s.hasPool)$("seed-series").append(node("option",`Series ${id} · ${date(Number(s.expiry))}`,{value:id}));
+    if(live&&s.hasPool){$("seed-series").append(node("option",`Series ${id} · ${date(Number(s.expiry))}`,{value:id}));state.ownerSeries.set(id,Number(s.expiry));}
+    if(pool)for(const [lower,upper]of ranges(id)){
+      const liquidity=await positionLiquidity(pool.poolId,lower,upper);
+      if(liquidity>0n)actions.append(button(live?"Withdraw liquidity":"Withdraw liquidity and fees",()=>withdrawLiquidity(id,lower,upper,liquidity),live?{}:{class:"cta"}));
+    }
     row.append(actions);$("owner-series").append(row);
   }
+  seedNote();
   if(!$("owner-series").children.length)$("owner-series").append(node("p","No series yet. Deploy a maturity with the add:series command, then register it here."));
 }
 // The public pages read the same registry, so they are refreshed before the receipt is shown.
@@ -313,10 +355,11 @@ async function spend(wallet,token,spender,value,action){
 }
 async function seedPool(){
   const wallet=requireWallet(),id=Number($("seed-series").value);if(!id)throw new Error("UnknownSeries");
-  const price=amount($("seed-price").value),maxPt=amount($("seed-pt").value),maxUsdc=amount($("seed-usdc").value);
-  if(price>1_000000n)throw new Error("INVALID_SEED_PRICE");
+  const maxPt=amount($("seed-pt").value),maxUsdc=amount($("seed-usdc").value);
   const registry=contract("SeriesRegistry",state.manifest.registry),market=contract("UniswapV4Market",state.manifest.market),seeder=contract("PoolSeeder",state.manifest.poolSeeder);
   const s=await registry.getSeries(id),usdc0=BigInt(state.manifest.usdc)<BigInt(s.principalToken);
+  const price=priceForRate($("seed-rate").value,Number(s.expiry)-(await wallet.provider.getBlock("latest")).timestamp);
+  if(feeAdjusted(price)>=1_000000n)throw new Error("SEED_RATE_TOO_LOW");
   const asset=new Contract(state.manifest.usdc,tokenAbi,wallet.provider),pt=new Contract(s.principalToken,tokenAbi,wallet.provider),yt=contract("YieldToken",s.yieldToken);
   const held=await pt.balanceOf(wallet.account),needed=held<maxPt?maxPt-held:0n;
   if(await asset.balanceOf(wallet.account)<needed+maxUsdc)throw new Error("INSUFFICIENT_SEED_FUNDS");
@@ -331,6 +374,7 @@ async function seedPool(){
     const deadline=Math.min((await wallet.provider.getBlock("latest")).timestamp+600,Number(s.expiry)-1);
     receipt=await spend(wallet,asset,seeder.target,maxUsdc,()=>spend(wallet,pt,seeder.target,maxPt,
       ()=>wallet.write(seeder,"addLiquidity",[id,lower,upper,liquidity,max0,max1,deadline])));
+    localStorage.setItem(rangesKey(),JSON.stringify([...savedRanges().filter(r=>r.id!==id||r.lower!==lower),{id,lower,upper}].slice(-200)));
   }finally{await ownerDone(receipt);}
 }
 function form(id,action){$(id).addEventListener("submit",e=>{e.preventDefault();void run(action);});}
@@ -358,6 +402,7 @@ $("show-new-key").onclick=()=>{$("new-agent-key").type="text";$("show-new-key").
 $("copy-new-key").onclick=()=>run(async()=>{if(!$("new-agent-key").value)return;await navigator.clipboard.writeText($("new-agent-key").value);notice("Agent key copied. Save it before creating the treasury.");});
 $("copy-key").onclick=()=>run(async()=>{if(!$("one-time-key").value)return;await navigator.clipboard.writeText($("one-time-key").value);$("one-time-key").value="";notice("Key copied and cleared from the field. Save it in your local configuration.");});
 $("refresh-owner").onclick=()=>run(async()=>{await refreshOwner();notice("Owner view refreshed.");});form("seed-form",seedPool);
+$("seed-rate").oninput=seedNote;$("seed-series").onchange=seedNote;
 $("owner-pause-all").onclick=()=>run(async()=>ownerWrite("setEntriesPaused",[!await contract("SeriesRegistry",state.manifest.registry).entriesPaused()]));
 $("copy-config").onclick=()=>run(async()=>{await navigator.clipboard.writeText($("mcp-config").value);notice("MCP config copied. Replace the key placeholder only in your local file.");});
 form("bill-form",async()=>{const bills=readBills();if(bills.length>=100)throw new Error("InvalidAmount");const bill={id:crypto.randomUUID(),payee:getAddress($("bill-payee").value),amount:formatUnits(amount($("bill-amount").value),6),date:$("bill-date").value};localStorage.setItem(billsKey(),JSON.stringify([...bills,bill]));renderBills();notice("Bill added to this device's calendar.");});

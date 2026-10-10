@@ -21,6 +21,7 @@ const platformHosts = [process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL, pr
 
 const handler = createHandler({
   manifest,
+  exposeLocalPaths: false,
   allowedHosts: [...configured.allowedHosts, ...platformHosts],
   allowedOrigins: configured.allowedOrigins ?? (platformHosts.length ? platformHosts.map((h) => `https://${h}`) : null),
   getService: () => {

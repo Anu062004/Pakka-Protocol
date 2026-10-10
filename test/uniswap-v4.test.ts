@@ -165,7 +165,7 @@ test("missing allowances and balances revert the whole swap", async () => {
 
 test("invalid amounts, receivers, deadlines and unsolicited callbacks are rejected", async () => {
   const f = await setup();
-  await rejects(() => (f.market.connect(buyer) as Contract).buyPT(1, 0, unit, buyer.address, f.deadline), f.market, "InvalidAmount");
+  await rejects(() => (f.market.connect(buyer) as Contract).buyPT(1, 0, unit, buyer.address, f.deadline), f.market, "PurchaseCapExceeded");
   await rejects(() => f.market.quoteBuyPT.staticCall(1, 1n << 127n), f.market, "InvalidAmount");
   await rejects(() => (f.market.connect(buyer) as Contract).buyPT(1, unit, 0, buyer.address, f.deadline), f.market, "InvalidAmount");
   for (const receiver of [ZeroAddress, f.market.target, f.manager.target]) {
@@ -218,7 +218,8 @@ test("at maturity trades stop, owner can withdraw LP, and purchased PT redeems p
   await sent((f.market.connect(buyer) as Contract).buyPT(1, 10n * unit, 10n * unit, buyer.address, f.deadline));
   await hre.network.provider.send("evm_setNextBlockTimestamp", [f.expiry]);
   await hre.network.provider.send("evm_mine");
-  await rejects(() => f.market.quoteBuyPT.staticCall(1, unit), f.market, "SeriesExpired");
+  // Entries close an hour before maturity, so a purchase is refused as inactive before it is ever expired.
+  await rejects(() => f.market.quoteBuyPT.staticCall(1, unit), f.market, "SeriesInactive");
   await rejects(() => (f.market.connect(buyer) as Contract).sellPT(1, unit, 0, buyer.address, f.expiry + 100), f.market, "SeriesExpired");
   await rejects(() => f.seeder.addLiquidity(1, -600, 600, lp, MaxUint256, MaxUint256, f.expiry + 100), f.seeder, "SeriesExpired");
   await sent(f.seeder.removeLiquidity(1, -600, 600, lp, 0, 0, f.expiry + 100));
@@ -278,7 +279,7 @@ test("multiple real v4 unlocks compose in one transaction without leaving transi
   const f = await setup();
   const batch = await deploy("V4BatchHarness");
   await sent(f.asset.mint(batch.target, 10n * unit));
-  await sent(batch.buyTwice(f.market.target, 1, unit, 2n * unit, 2n * unit, buyer.address, f.deadline));
+  await sent(batch.buyTwice(f.market.target, 1, unit, unit, unit, buyer.address, f.deadline));
   assert.equal(await f.pt.balanceOf(buyer.address), 2n * unit);
   assert.equal(await f.asset.allowance(batch.target, f.market.target), 0n);
   const quote = await f.market.quoteBuyPT.staticCall(1, unit);

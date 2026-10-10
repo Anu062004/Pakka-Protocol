@@ -1,0 +1,47 @@
+# Settles matured series. Add a KEEPER_PRIVATE_KEY repository secret holding a dedicated,
+# funded wallet (never the owner or deployer key); without it every run is a no-op.
+# GitHub's scheduler is best-effort, so a run can be several minutes late. Until a series is
+# settled its holders can still cash out: the first cash-out settles it.
+name: Keeper
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: keeper
+  cancel-in-progress: false
+jobs:
+  settle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      KEEPER_PRIVATE_KEY: ${{ secrets.KEEPER_PRIVATE_KEY }}
+      KEEPER_ALERT_WEBHOOK_URL: ${{ secrets.KEEPER_ALERT_WEBHOOK_URL }}
+    steps:
+      - if: env.KEEPER_PRIVATE_KEY == ''
+        run: echo "KEEPER_PRIVATE_KEY is not set; skipping."
+      - if: env.KEEPER_PRIVATE_KEY != ''
+        uses: actions/checkout@v4
+      - if: env.KEEPER_PRIVATE_KEY != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - if: env.KEEPER_PRIVATE_KEY != ''
+        run: npm ci --omit=dev
+      # The journal of a signed-but-unconfirmed settlement has to survive between runs.
+      - if: env.KEEPER_PRIVATE_KEY != ''
+        uses: actions/cache/restore@v4
+        with:
+          path: runtime
+          key: keeper-state-${{ github.run_id }}
+          restore-keys: keeper-state-
+      - if: env.KEEPER_PRIVATE_KEY != ''
+        run: npm run keeper:once
+      - if: always() && env.KEEPER_PRIVATE_KEY != ''
+        uses: actions/cache/save@v4
+        with:
+          path: runtime
+          key: keeper-state-${{ github.run_id }}

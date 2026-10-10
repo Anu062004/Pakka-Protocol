@@ -1,6 +1,6 @@
 import { Contract, Wallet, getAddress, parseUnits } from "ethers";
 import { compile } from "./compile.ts";
-import { seedSeries } from "./seed-v4.ts";
+import { priceForRate, seedSeries } from "./seed-v4.ts";
 import { canonicalUsdc, deploymentFile, loadDeployment, network } from "../backend/project.ts";
 import { rpcProvider } from "../backend/rpc.ts";
 import { writeJson } from "./expiry-keeper.ts";
@@ -12,6 +12,8 @@ const manifest = loadDeployment(manifestPath);
 if (manifest.chainId !== network().chainId || manifest.usdc !== canonicalUsdc) {
   throw new Error("Manifest must describe the selected Arc network and its canonical ERC-20 USDC.");
 }
+// A target rate prices each maturity for its own length; a flat price is a very different rate on each.
+const targetRate = process.env.PT_TARGET_RATE_PERCENT ? parseUnits(process.env.PT_TARGET_RATE_PERCENT, 6) : null;
 const priceUsdc = parseUnits(process.env.PT_PRICE_USDC ?? "0.99", 6);
 const maxUsdc = parseUnits(process.env.POOL_SEED_USDC ?? "10", 6);
 const maxPt = parseUnits(process.env.POOL_SEED_PT ?? "10", 6);
@@ -48,7 +50,10 @@ try {
     if (item.pool?.seeded) { console.log(`Series ${item.seriesId} is already seeded.`); continue; }
     const record = await registry.getSeries(item.seriesId);
     if (BigInt(block.timestamp) >= record.expiry) { console.log(`Series ${item.seriesId} has expired; skipped.`); continue; }
-    await seedSeries({ asset, registry, market, seeder, signer, item, priceUsdc, maxUsdc, maxPt, overrides, save,
+    const price = targetRate ? priceForRate(targetRate, Number(record.expiry) - block.timestamp) : priceUsdc;
+    // The 0.05% pool fee is paid on top of the price, so a smaller discount leaves nothing to earn.
+    if (price + (price * 500n + 999_999n) / 1_000000n >= 1_000000n) throw new Error(`Series ${item.seriesId}: the pool fee is larger than the discount at this rate and maturity.`);
+    await seedSeries({ asset, registry, market, seeder, signer, item, priceUsdc: price, maxUsdc, maxPt, overrides, save,
       pt: contract("PrincipalToken", item.principalToken), yt: contract("YieldToken", item.yieldToken),
       deadline: Math.min(block.timestamp + 600, Number(record.expiry) - 1) });
     console.log(`Series ${item.seriesId}: pool ${item.pool!.poolId}, liquidity ${item.pool!.liquidity}.`);

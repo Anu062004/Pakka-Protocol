@@ -8,8 +8,8 @@ import { rpcProvider } from "./rpc.ts";
 import { ReadService } from "./read-service.ts";
 import type { Manifest } from "./types.ts";
 
-const json = (res: http.ServerResponse, status: number, data: unknown): void => {
-  res.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store" });
+const json = (res: http.ServerResponse, status: number, data: unknown, cache = "no-store"): void => {
+  res.writeHead(status, { "Content-Type": "application/json", "Cache-Control": cache });
   res.end(JSON.stringify(data));
 };
 
@@ -21,6 +21,8 @@ export interface CreateAppOptions {
   port?: number;
   allowedHosts?: string[];
   allowedOrigins?: string[] | null;
+  // A hosted deployment has no business describing its own filesystem to visitors.
+  exposeLocalPaths?: boolean;
 }
 
 // Routes return the value of their terminating res call, so the result is deliberately unused.
@@ -28,7 +30,7 @@ export type RequestHandler = (req: http.IncomingMessage, res: http.ServerRespons
 
 // Split out so a serverless host (which has no listening socket of its own) can serve the
 // same routes; resolvePort only supplies the dev-default origin allowlist when none is set.
-export function createHandler({ getService, manifest, port = 4173, allowedHosts = DEFAULT_HOSTS, allowedOrigins = null }: CreateAppOptions,
+export function createHandler({ getService, manifest, port = 4173, allowedHosts = DEFAULT_HOSTS, allowedOrigins = null, exposeLocalPaths = true }: CreateAppOptions,
   resolvePort: () => number = () => port): RequestHandler {
   return async (req, res) => {
     res.setHeader("X-Content-Type-Options", "nosniff");
@@ -50,11 +52,13 @@ export function createHandler({ getService, manifest, port = 4173, allowedHosts 
           return json(res, 200, publicDeployment(manifest));
         }
         if (url.pathname === "/api/abis") return json(res, 200, Object.fromEntries(["PakkaRouter", "YieldToken", "PrincipalToken", "Tijori", "TijoriFactory", "SeriesRegistry", "UniswapV4Market", "PoolSeeder"].map((n) => [n, abi(n)])));
-        if (url.pathname === "/api/agent-config") return json(res, 200, { mcpServers: { pakka: { command: process.execPath,
-          args: [`--env-file-if-exists=${path.join(projectRoot, ".env")}`, path.join(projectRoot, "agent/mcp-server.ts")],
+        if (url.pathname === "/api/agent-config") return json(res, 200, { mcpServers: { pakka: { command: exposeLocalPaths ? process.execPath : "node",
+          args: exposeLocalPaths ? [`--env-file-if-exists=${path.join(projectRoot, ".env")}`, path.join(projectRoot, "agent/mcp-server.ts")]
+            : ["--env-file-if-exists=.env", "agent/mcp-server.ts"],
           env: { AGENT_TIJORI_ADDRESS: getAddress(url.searchParams.get("tijori") ?? ""), AGENT_PRIVATE_KEY: "REPLACE_ONLY_IN_YOUR_LOCAL_CONFIG" } } } });
         const service = await getService();
-        if (url.pathname === "/api/rates") return json(res, 200, await service.rates());
+        // Shared caches may hold rates for a few seconds; a purchase always re-quotes on its own.
+        if (url.pathname === "/api/rates") return json(res, 200, await service.rates(), "public, max-age=0, s-maxage=5, stale-while-revalidate=10");
         if (url.pathname === "/api/quote") {
           const ptAmount = url.searchParams.get("ptAmount");
           if (!/^\d{1,20}(\.\d{1,6})?$/.test(ptAmount ?? "")) return json(res, 400, { error: "INVALID_QUOTE_AMOUNT" });

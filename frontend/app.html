@@ -16,7 +16,7 @@
       <div id="transaction" aria-live="polite"></div>
       <section id="rates" class="page"><div class="kicker">01 · Rates</div><h1>Choose your date.</h1><p>Buy a principal token today and redeem it for its full face value at maturity. Rates include the current pool quote.</p>
         <p class="terms">New to principal tokens, yield tokens or maturities? <a href="/docs">Read the guide</a>.</p>
-        <div class="variable"><div><h2>Morpho variable rate</h2><p id="variable-rate">— · Live vault feed not configured</p></div><p>Fixed quotes below are simple annualized rates, not APY. Vault losses and withdrawal limits still apply.</p></div>
+        <div class="variable"><div><h2>Vault variable rate</h2><p id="variable-rate">— · Live vault feed not configured</p></div><p>Fixed quotes below are simple annualized rates, not APY. Vault losses and withdrawal limits still apply.</p></div>
         <div id="rates-list" class="list"><p>No rates loaded yet.</p></div>
         <button id="refresh-rates" class="text-button">Refresh rates</button>
       </section>
@@ -89,11 +89,12 @@
             <p class="helper">Pausing stops new purchases only. Selling early, cashing out and claiming interest keep working.</p></div>
           <form id="seed-form" class="card"><h2>Seed a pool</h2>
             <label for="seed-series">Series</label><select id="seed-series" required><option value="">Choose a series</option></select>
-            <label for="seed-price">Opening PT price · USDC</label><input id="seed-price" inputmode="decimal" value="0.99" required pattern="[0-9]+(\.[0-9]{1,6})?">
+            <label for="seed-rate">Opening fixed rate · % a year</label><input id="seed-rate" inputmode="decimal" value="8" required pattern="[0-9]+(\.[0-9]{1,6})?">
+            <p id="seed-price-note" class="helper">Choose a series to see the PT price this rate opens at.</p>
             <label for="seed-pt">PT budget</label><input id="seed-pt" inputmode="decimal" value="10" required pattern="[0-9]+(\.[0-9]{1,6})?">
             <label for="seed-usdc">USDC budget</label><input id="seed-usdc" inputmode="decimal" value="10" required pattern="[0-9]+(\.[0-9]{1,6})?">
             <button class="cta">Seed pool</button>
-            <p class="helper">The opening price sets the first fixed rate and applies only to a pool that has never been opened. This wallet needs both budgets in USDC; the PT budget is split from it. Your wallet will ask several times.</p></form></div>
+            <p class="helper">The rate is converted to a PT price for the time left to maturity, and applies only to a pool that has never been opened. This wallet needs both budgets in USDC; the PT budget is split from it. Your wallet will ask several times.</p></form></div>
         <h2>Series</h2><div id="owner-series" class="list"></div><button id="refresh-owner" class="text-button">Refresh owner view</button>
       </section>
     </main><footer><span>Pakka · <span id="build-note">Unaudited build</span></span><span>500 USDC maximum new-entry TVL per series</span></footer>

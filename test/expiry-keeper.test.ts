@@ -359,7 +359,9 @@ test("reverted settlement receipts clear the journal and permit a later successf
   const code = await provider.getCode(f.vault.target);
   // Change the vault after estimating/signing so the recorded settlement really reverts.
   await hre.network.provider.send("hardhat_setCode", [f.vault.target, "0x60006000fd"]);
-  const k = f.keeper();
+  // The keeper simulates before it broadcasts, so the simulation has to pass for a revert to be mined.
+  const settle = f.yt.interface.getFunction("settleExpiry")!.selector;
+  const k = f.keeper({ provider: wrapped({ call: async (tx: { data?: string }) => tx.data === settle ? "0x" : provider.call(tx) }) });
   await k.tick();
   assert.equal(await f.yt.indexAtExpiry(), 0n);
   alert(await k.tick(), "SETTLEMENT_REVERTED");

@@ -55,7 +55,7 @@ export const messages={
   BATCH_PENDING:"An earlier purchase is still unconfirmed by your wallet. Wallet actions are paused until it confirms or its deadline passes, within about two minutes. Then try again.",
   BATCH_EXPIRED:"Your wallet never confirmed the purchase and its deadline has passed. Refresh positions to see whether it went through.",
   BATCH_FAILED:"The wallet batch failed. Review its status before retrying.",BATCH_NOT_ATOMIC:"The wallet did not confirm atomic execution. Review the batch before proceeding.",
-  INVALID_SEED_PRICE:"Enter an opening PT price above 0 and at most 1 USDC.",INSUFFICIENT_SEED_FUNDS:"This wallet needs the PT budget plus the USDC budget in USDC before seeding.",
+  SEED_RATE_TOO_LOW:"At this rate and maturity the pool fee is larger than the discount. Use a higher rate or a longer maturity.",INSUFFICIENT_SEED_FUNDS:"This wallet needs the PT budget plus the USDC budget in USDC before seeding.",
   ACCOUNT_CHANGED:"Your wallet account changed. Reconnect and review the transaction.",ACTION_REJECTED:"You cancelled the wallet request.",
 };
 export function humanError(error,interfaces=[]) {

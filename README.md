@@ -89,6 +89,7 @@ npm run dev        # http://127.0.0.1:4173
 | `npm test` | Full contract, backend and agent suite. |
 | `npm run test:browser` | Headless Chromium end-to-end run against a live local deployment. |
 | `npm run test:system` | Security and invariant suite. |
+| `npm run keeper:once` | Settle any matured series once and exit (what the scheduled workflow runs). |
 | `npm run typecheck` | `tsc --noEmit`; type-checks without executing. |
 | `npm run security` | Static analysis and coverage gates. |
 | `npm run agent:connect` | Connect Claude Desktop: agent wallet, browser approval, Claude config. |
@@ -133,6 +134,17 @@ other side of the liquidity. Both remain owner-controlled as an LP position.
 Seed meaningfully below par. Pools seeded close to 1.00 leave little room before
 the market's par-price guard rejects a fill.
 
+A flat price is a different rate on every maturity: 0.99 is roughly 53% a year on a seven-day
+series and 368% on a one-day one. Set a rate instead and each pool is priced for its own length:
+
+```sh
+PT_TARGET_RATE_PERCENT=8 npm run seed:testnet
+```
+
+The 0.05% pool fee is paid on top of the price, so a maturity too short for the chosen rate to
+out-earn the fee is refused. The pool price does not drift toward par on its own as maturity
+approaches; only trades move it.
+
 ## Web app and API
 
 `backend/server.ts` serves a **read-only** HTTP API plus the static frontend. It
@@ -144,10 +156,11 @@ approve/act/revoke fallback.
 `/` serves the landing page; `/app` serves the operational app.
 
 When the connected wallet is the registry's on-chain `owner()`, the app adds an **Owner** page:
-register a deployed maturity and attach its pool, seed a pool at an opening price, and pause or
-resume entries. No other wallet is shown the page, and the contracts reject the calls regardless.
-The page signs from the browser and cannot write the manifest, so `seed:testnet` does not know
-about a pool seeded there.
+register a deployed maturity and attach its pool, seed a pool at an opening fixed rate, withdraw
+liquidity and fees, and pause or resume entries. No other wallet is shown the page, and the
+contracts reject the calls regardless. The page signs from the browser and cannot write the
+manifest, so `seed:testnet` does not know about a pool seeded there, and the range of a pool
+seeded there is remembered only in that browser.
 
 | Route | Returns |
 | --- | --- |
@@ -195,6 +208,14 @@ npm run agent:http   # Streamable HTTP on 127.0.0.1:4174, for everything else
 `agent:http` requires `AGENT_HTTP_TOKEN` (32+ characters) and binds to loopback.
 It holds the agent key and signs, so run it yourself rather than delegating it.
 
+## Operations
+
+`.github/workflows/ci.yml` runs the compile, type-check, contract, backend, agent and browser
+suites on every push. `.github/workflows/keeper.yml` runs the keeper every five minutes once a
+`KEEPER_PRIVATE_KEY` repository secret holds a dedicated, funded wallet; without the secret it
+does nothing. GitHub's scheduler is best-effort, so for settlement on the minute run
+`npm run keeper:testnet` on a host of your own (`examples/pakka-keeper.service`).
+
 ## Security notes
 
 - Read path and write path are separated: the backend holds no keys and cannot sign.
@@ -206,7 +227,8 @@ It holds the agent key and signs, so run it yourself rather than delegating it.
 - Entries close one hour before maturity (`SeriesRegistry.MIN_ENTRY_WINDOW`); exits never close.
 - The registry owner is immutable. It can register series, attach one pool per series, pause
   entries and manage its own liquidity. It cannot move backing, block exits or alter a series.
-- Per-payee rolling windows and daily caps are enforced on-chain and cannot reset at a boundary.
+- Per-payee limits are exact rolling 30-day windows enforced on-chain. The daily cap is per UTC
+  day, so two days' worth can be paid either side of midnight.
 - `.env` is gitignored and excluded from deploy uploads. Never commit a key.
 
 Still open before real size: the contracts are unreviewed, the owner is a single key with no

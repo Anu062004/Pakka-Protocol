@@ -185,16 +185,31 @@ test("only the registry owner sees the owner page, and can pause, register and s
     assert.equal(await system.registry.seriesIdByYieldToken(yt.target),4n);
     await expect(page.locator("#owner-series .position-row",{hasText:"Series 4 "})).toContainText("not opened");
 
-    await page.locator("#seed-series").selectOption("4");await page.locator("#seed-price").fill("0.97");
+    await page.locator("#seed-series").selectOption("4");await page.locator("#seed-rate").fill("0.01");
+    await expect(page.locator("#seed-price-note")).toContainText("fee is larger than the discount");
+    // 200% a year over two days is a little over 1% off face.
+    await page.locator("#seed-rate").fill("200");await expect(page.locator("#seed-price-note")).toContainText("Opens PT at 0.98");
     await page.locator("#seed-pt").fill("5");await page.locator("#seed-usdc").fill("5");await page.locator("#seed-form button").click();
     await expect.poll(async()=>(await system.market.poolState(4)).liquidity>0n,{timeout:60000}).toBe(true);
-    await expect(page.locator("#owner-series .position-row",{hasText:"Series 4 "})).toContainText("Seeded · PT at 0.97",{timeout:30000});
+    await expect(page.locator("#owner-series .position-row",{hasText:"Series 4 "})).toContainText("Seeded · PT at 0.98",{timeout:30000});
     await expect(page.locator("#notice")).toHaveText("Transaction confirmed.",{timeout:30000});
     const pt=await (yt as any).principalToken() as string;
     assert.equal(await system.asset.allowance(owner,system.seeder.target),0n);
     assert.equal(await (system.series[0]!.pt.attach(pt) as any).allowance(owner,system.seeder.target),0n);
     // What the owner opened is what everyone else can now buy.
     await page.locator("nav a[href='#rates']").click();await expect(page.locator("#rates-list")).toContainText("Series 4");
+    // The owner's liquidity comes back out, including after the series has matured.
+    await page.locator("#owner-link").click();
+    const row=page.locator("#owner-series .position-row",{hasText:"Series 4 "}),held=await system.asset.balanceOf(owner);
+    await row.getByRole("button",{name:"Withdraw liquidity"}).click();
+    await expect.poll(async()=>(await system.market.poolState(4)).liquidity,{timeout:30000}).toBe(0n);
+    assert(await system.asset.balanceOf(owner)>held);
+    await expect(row.getByRole("button",{name:/Withdraw liquidity/})).toHaveCount(0);
+    await hre.network.provider.send("evm_setNextBlockTimestamp",[system.series[0]!.expiry+1]);await hre.network.provider.send("evm_mine");
+    await page.locator("#refresh-owner").click();
+    const matured=page.locator("#owner-series .position-row",{hasText:"Series 1 "});
+    await matured.getByRole("button",{name:"Withdraw liquidity and fees"}).click();
+    await expect.poll(async()=>(await system.market.poolState(1)).liquidity,{timeout:30000}).toBe(0n);
   }finally{system.manifest.series.pop();}
 });
 

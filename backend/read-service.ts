@@ -78,6 +78,10 @@ export class ReadService {
   market: Contract;
   router: Contract;
   factory: Contract;
+  // Addresses are immutable once deployed, so the wiring is checked once per process, and a
+  // block's rates are computed once however many visitors ask for them.
+  private wired = false;
+  private ratesAt: { blockNumber: number; result: Promise<RatesResult> } | null = null;
 
   constructor({ provider, manifest }: { provider: JsonRpcApiProvider; manifest: Manifest }) {
     this.provider = provider; this.manifest = manifest;
@@ -89,10 +93,13 @@ export class ReadService {
 
   async block(): Promise<Block> {
     if (BigInt(await this.provider.send("eth_chainId", []) as string) !== BigInt(this.manifest.chainId)) throw new Error("WRONG_RPC_CHAIN");
-    if (getAddress(await this.registry.assetToken() as string) !== getAddress(this.manifest.usdc) ||
-      getAddress(await this.market.registry() as string) !== getAddress(this.manifest.registry) ||
-      getAddress(await this.market.poolManager() as string) !== getAddress(this.manifest.poolManager) ||
-      getAddress(await this.router.market() as string) !== getAddress(this.manifest.market)) throw new Error("DEPLOYMENT_MISMATCH");
+    if (!this.wired) {
+      if (getAddress(await this.registry.assetToken() as string) !== getAddress(this.manifest.usdc) ||
+        getAddress(await this.market.registry() as string) !== getAddress(this.manifest.registry) ||
+        getAddress(await this.market.poolManager() as string) !== getAddress(this.manifest.poolManager) ||
+        getAddress(await this.router.market() as string) !== getAddress(this.manifest.market)) throw new Error("DEPLOYMENT_MISMATCH");
+      this.wired = true;
+    }
     const b = await this.provider.getBlock("latest");
     if (!b || (this.manifest.chainId !== 31337 && Date.now() / 1000 - b.timestamp > 120)) throw new Error("STALE_RPC_BLOCK");
     return b;
@@ -100,6 +107,16 @@ export class ReadService {
 
   async rates(): Promise<RatesResult> {
     const block = await this.block();
+    if (this.ratesAt?.blockNumber !== block.number) {
+      const result = this.computeRates(block);
+      this.ratesAt = { blockNumber: block.number, result };
+      // A failed read must not be served to the next caller for the rest of the block.
+      result.catch(() => { if (this.ratesAt?.result === result) this.ratesAt = null; });
+    }
+    return this.ratesAt.result;
+  }
+
+  private async computeRates(block: Block): Promise<RatesResult> {
     const count = Number(await this.registry.seriesCount());
     if (count > 1000) throw new Error("REGISTRY_SCAN_LIMIT");
     const pastBlock = await blockAtOrBefore((n) => this.provider.getBlock(n), block.timestamp - VARIABLE_RATE_WINDOW_SECONDS, block);
