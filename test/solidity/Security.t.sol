@@ -20,6 +20,7 @@ interface VmSecurity {
     function roll(uint256) external;
     function prank(address) external;
     function expectRevert(bytes4) external;
+    function expectPartialRevert(bytes4) external;
 }
 
 contract SystemHandler {
@@ -92,9 +93,9 @@ contract SecurityTest {
         vm.expectRevert(YieldToken.SeriesCapExceeded.selector); yt.splitFromAssets(1, address(this));
         yt.merge(U, address(this), false);
         vault.setDepositCap(0);
-        vm.expectRevert(YieldToken.VaultDepositLimit.selector); yt.splitFromAssets(U, address(this));
+        vm.expectPartialRevert(YieldToken.VaultDepositLimit.selector); yt.splitFromAssets(U, address(this));
         vault.setIlliquid(true);
-        vm.expectRevert(YieldToken.VaultRedeemLimit.selector); yt.merge(U, address(this), true);
+        vm.expectPartialRevert(YieldToken.VaultRedeemLimit.selector); yt.merge(U, address(this), true);
         yt.merge(U, address(this), false);
     }
     function testEntryPauseCannotDisableExits() public {

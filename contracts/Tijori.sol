@@ -145,7 +145,7 @@ contract Tijori is ReentrancyGuard {
     /// @notice Payments counted against the daily cap right now.
     function dailySpent() public view returns (uint256 spent) {
         uint256 hour = block.timestamp / 1 hours;
-        for (uint256 i; i <= 24; ++i) spent += _hourlySpent[hour - i];
+        for (uint256 i; i <= 24 && i <= hour; ++i) spent += _hourlySpent[hour - i];
     }
 
     /// @notice Current payment allowance, excluding available USDC balance.
