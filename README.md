@@ -143,6 +143,12 @@ approve/act/revoke fallback.
 
 `/` serves the landing page; `/app` serves the operational app.
 
+When the connected wallet is the registry's on-chain `owner()`, the app adds an **Owner** page:
+register a deployed maturity and attach its pool, seed a pool at an opening price, and pause or
+resume entries. No other wallet is shown the page, and the contracts reject the calls regardless.
+The page signs from the browser and cannot write the manifest, so `seed:testnet` does not know
+about a pool seeded there.
+
 | Route | Returns |
 | --- | --- |
 | `GET /api/deployment` | Public addresses and registered series. Never keys or RPC URLs. |

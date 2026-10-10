@@ -49,7 +49,7 @@ export function createHandler({ getService, manifest, port = 4173, allowedHosts 
           if (!manifest) return json(res, 503, { error: "TESTNET_DEPLOYMENT_MISSING" });
           return json(res, 200, publicDeployment(manifest));
         }
-        if (url.pathname === "/api/abis") return json(res, 200, Object.fromEntries(["PakkaRouter", "YieldToken", "PrincipalToken", "Tijori", "TijoriFactory", "SeriesRegistry", "UniswapV4Market"].map((n) => [n, abi(n)])));
+        if (url.pathname === "/api/abis") return json(res, 200, Object.fromEntries(["PakkaRouter", "YieldToken", "PrincipalToken", "Tijori", "TijoriFactory", "SeriesRegistry", "UniswapV4Market", "PoolSeeder"].map((n) => [n, abi(n)])));
         if (url.pathname === "/api/agent-config") return json(res, 200, { mcpServers: { pakka: { command: process.execPath,
           args: [`--env-file-if-exists=${path.join(projectRoot, ".env")}`, path.join(projectRoot, "agent/mcp-server.ts")],
           env: { AGENT_TIJORI_ADDRESS: getAddress(url.searchParams.get("tijori") ?? ""), AGENT_PRIVATE_KEY: "REPLACE_ONLY_IN_YOUR_LOCAL_CONFIG" } } } });

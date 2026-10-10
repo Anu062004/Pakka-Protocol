@@ -4,7 +4,7 @@ import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { before,after,beforeEach,afterEach,test } from "node:test";
 import hre from "hardhat";
-import { BrowserProvider, Wallet } from "ethers";
+import { BrowserProvider, ContractFactory, Wallet } from "ethers";
 import { chromium,expect } from "@playwright/test";
 import type { Browser, BrowserContext, Page } from "@playwright/test";
 import { createApp } from "../backend/server.ts";
@@ -153,6 +153,49 @@ test("a malformed agent in the link is ignored rather than offered for approval"
   await page.locator("#connect").click();await expect(page.locator("#create-form")).toBeVisible();
   await expect(page.locator("#initial-agent")).toHaveValue("");await expect(page.locator("#generate-agent")).toBeVisible();
   await expect(page.locator("#setup-fields")).toBeHidden();
+});
+
+test("only the registry owner sees the owner page, and can pause, register and seed from it",async()=>{
+  const owner=(system.owner as any).address as string;
+  await page.locator("#connect").click();await expect(page.locator("#notice")).toHaveText("Wallet connected.");
+  // Any other wallet gets neither the link nor the page, even by typing its address.
+  await expect(page.locator("#owner-link")).toBeHidden();
+  await page.evaluate(()=>{location.hash="owner";});await expect(page.locator("#owner")).toBeHidden();await expect(page.locator("#rates")).toBeVisible();
+  // A maturity the deployer has published but the owner has not approved yet.
+  const expiry=(await provider.getBlock("latest"))!.timestamp+172800,artifact=system.artifacts.YieldToken!;
+  const yt=await new ContractFactory(artifact.abi,artifact.bytecode!,system.deployer).deploy(system.vault.target,expiry,"E2E-NEW",system.registry.target);
+  await yt.waitForDeployment();
+  system.manifest.series.push({expiry,yieldToken:yt.target as string,principalToken:await (yt as any).principalToken() as string});
+  try{
+    await page.reload();await expect(page.locator("#notice")).toContainText("Rates refreshed",{timeout:30000});
+    await page.evaluate((address: string)=>(window as any).pakkaSelectAccount(address),owner);
+    await page.locator("#connect").click();await expect(page.locator("#notice")).toHaveText("Wallet connected.");
+    await expect(page.locator("#owner-link")).toBeVisible();await expect(page.locator("#owner")).toBeVisible();
+    assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+
+    await page.locator("#owner-series .position-row",{hasText:"Series 1 "}).getByRole("button",{name:"Pause entries"}).click();
+    await expect.poll(()=>system.registry.seriesEntriesPaused(1),{timeout:30000}).toBe(true);
+    await expect(page.locator("#owner-series .position-row",{hasText:"Series 1 "})).toContainText("Entries paused");
+    await page.locator("#owner-pause-all").click();await expect.poll(()=>system.registry.entriesPaused(),{timeout:30000}).toBe(true);
+    await expect(page.locator("#owner-pause-all")).toHaveText("Resume all entries");
+    await page.locator("#owner-pause-all").click();await expect.poll(()=>system.registry.entriesPaused(),{timeout:30000}).toBe(false);
+
+    await page.getByRole("button",{name:"Register series"}).click();
+    await expect.poll(async()=>(await system.registry.getSeries(4).catch(()=>null))?.hasPool,{timeout:30000}).toBe(true);
+    assert.equal(await system.registry.seriesIdByYieldToken(yt.target),4n);
+    await expect(page.locator("#owner-series .position-row",{hasText:"Series 4 "})).toContainText("not opened");
+
+    await page.locator("#seed-series").selectOption("4");await page.locator("#seed-price").fill("0.97");
+    await page.locator("#seed-pt").fill("5");await page.locator("#seed-usdc").fill("5");await page.locator("#seed-form button").click();
+    await expect.poll(async()=>(await system.market.poolState(4)).liquidity>0n,{timeout:60000}).toBe(true);
+    await expect(page.locator("#owner-series .position-row",{hasText:"Series 4 "})).toContainText("Seeded · PT at 0.97",{timeout:30000});
+    await expect(page.locator("#notice")).toHaveText("Transaction confirmed.",{timeout:30000});
+    const pt=await (yt as any).principalToken() as string;
+    assert.equal(await system.asset.allowance(owner,system.seeder.target),0n);
+    assert.equal(await (system.series[0]!.pt.attach(pt) as any).allowance(owner,system.seeder.target),0n);
+    // What the owner opened is what everyone else can now buy.
+    await page.locator("nav a[href='#rates']").click();await expect(page.locator("#rates-list")).toContainText("Series 4");
+  }finally{system.manifest.series.pop();}
 });
 
 test("atomic wallet request requires atomicity and preserves an ambiguous batch instead of resending",async()=>{

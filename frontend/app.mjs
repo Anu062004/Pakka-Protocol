@@ -3,13 +3,13 @@ import { AppWallet } from "/wallet.mjs";
 import { humanError } from "/errors.mjs";
 
 const $=id=>document.getElementById(id);
-const state={manifest:null,abis:null,wallet:null,rates:[],quote:null,yieldQuote:null,treasury:null,busy:false};
-const pages=["rates","lock","yield","positions","tijori"];
+const state={manifest:null,abis:null,wallet:null,rates:[],quote:null,yieldQuote:null,treasury:null,owner:false,busy:false};
+const pages=["rates","lock","yield","positions","tijori","owner"];
 // The terminal setup command keeps the agent key on the user's machine and passes only its
 // address here, so the owner's wallet can approve it without the key ever reaching a browser.
 const setupAgent=(()=>{try{return getAddress(new URLSearchParams(location.search).get("agent")??"");}catch{return null;}})();
 const agentGas=parseUnits("1",18);
-const tokenAbi=["function balanceOf(address) view returns(uint256)","function approve(address,uint256) returns(bool)"];
+const tokenAbi=["function balanceOf(address) view returns(uint256)","function approve(address,uint256) returns(bool)","function allowance(address,address) view returns(uint256)"];
 const short=a=>`${a.slice(0,6)}…${a.slice(-4)}`;
 const date=t=>new Date(t*1000).toLocaleString(undefined,{dateStyle:"medium",timeStyle:"short"});
 const usdc=n=>`${Number(n).toLocaleString(undefined,{maximumFractionDigits:6})} USDC`;
@@ -33,11 +33,12 @@ async function run(action){
   finally{state.busy=false;buttons.forEach(([e,was])=>{e.disabled=was;e.removeAttribute("aria-busy");});$("lock-submit").disabled=!state.quote;$("yield-submit").disabled=!state.yieldQuote;$("show-key").disabled=!$("one-time-key").value||$("one-time-key").type==="text";}
 }
 function navigate(){
-  const id=pages.includes(location.hash.slice(1))?location.hash.slice(1):"rates";
+  const hash=location.hash.slice(1),id=pages.includes(hash)&&(hash!=="owner"||state.owner)?hash:"rates";
   for(const p of pages)$(p).hidden=p!==id;
   for(const link of document.querySelectorAll("nav a")){if(link.hash===`#${id}`)link.setAttribute("aria-current","page");else link.removeAttribute("aria-current");}
   if(state.wallet&&id==="positions")void run(refreshPositions);
   if(state.wallet&&id==="tijori")void run(refreshTreasury);
+  if(state.owner&&id==="owner")void run(refreshOwner);
 }
 async function showReceipt(receipt,wallet=state.wallet){
   if(!receipt)return;
@@ -251,12 +252,94 @@ function renderBills(){
     row.append(button("Pay bill",async()=>{await treasuryWrite("pay",[getAddress(bill.payee),amount(bill.amount)]);localStorage.setItem(billsKey(),JSON.stringify(readBills().filter(b=>b.id!==bill.id)));renderBills();}),button("Remove bill",async()=>{localStorage.setItem(billsKey(),JSON.stringify(readBills().filter(b=>b.id!==bill.id)));renderBills();}));$("bills").append(row);}
   if(!bills.length)$("bills").append(node("p","No upcoming bills. Add a date, amount and approved payee."));
 }
+// Owner tools. Hiding them is a convenience only: every call below is onlyOwner on-chain.
+async function detectOwner(){
+  state.owner=getAddress(await contract("SeriesRegistry",state.manifest.registry).owner())===state.wallet.account;
+  $("owner-link").hidden=!state.owner;
+}
+function dropOwner(){state.owner=false;$("owner-link").hidden=true;navigate();}
+// Same static-fee, hook-free key the registration script attaches.
+const poolKey=pt=>{const usdc0=BigInt(state.manifest.usdc)<BigInt(pt);return {currency0:usdc0?state.manifest.usdc:pt,currency1:usdc0?pt:state.manifest.usdc,fee:500,tickSpacing:10,hooks:ZeroAddress};};
+function sqrtPrice(usdc0,price){
+  const unit=1_000000n,value=(1n<<192n)*(usdc0?unit:price)/(usdc0?price:unit);
+  let x=value,y=(x+1n)/2n;while(y<x){x=y;y=(x+value/x)/2n;}return x;
+}
+async function refreshOwner(){
+  const wallet=requireWallet(),registry=contract("SeriesRegistry",state.manifest.registry),market=contract("UniswapV4Market",state.manifest.market);
+  const now=(await wallet.provider.getBlock("latest")).timestamp,count=Number(await registry.seriesCount()),allPaused=await registry.entriesPaused();
+  $("owner-entries").textContent=allPaused?"New entries are paused for every series.":"New entries are open.";
+  $("owner-pause-all").textContent=allPaused?"Resume all entries":"Pause all entries";
+  $("owner-series").replaceChildren();$("seed-series").replaceChildren(node("option","Choose a series",{value:""}));
+  for(const m of state.manifest.series){
+    if(m.expiry<=now||await registry.seriesIdByYieldToken(m.yieldToken)!==0n)continue;
+    const row=node("div",undefined,{class:"position-row"}),actions=node("div",undefined,{class:"actions"});
+    row.append(node("h3",`New maturity · ${date(m.expiry)}`),node("p",`Deployed at ${short(m.yieldToken)} · not registered, so nobody can buy it yet`));
+    actions.append(button("Register series",()=>registerSeries(m),{class:"cta"}));row.append(actions);$("owner-series").append(row);
+  }
+  for(let id=1;id<=count;id++){
+    const s=await registry.getSeries(id),live=Number(s.expiry)>now,paused=await registry.seriesEntriesPaused(id);
+    const pool=s.hasPool?await market.poolState(id):null;
+    let status="Matured";
+    if(live&&!s.hasPool)status="Registered · no pool attached";
+    else if(live&&pool.sqrtPriceX96===0n)status="Pool attached · not opened";
+    else if(live){
+      const ratio=(Number(pool.sqrtPriceX96)/2**96)**2,price=BigInt(state.manifest.usdc)<BigInt(s.principalToken)?1/ratio:ratio;
+      status=`${pool.liquidity===0n?"Pool opened · no liquidity":"Seeded"} · PT at ${price.toLocaleString(undefined,{maximumFractionDigits:4})} USDC`;
+    }
+    const row=node("div",undefined,{class:"position-row"}),actions=node("div",undefined,{class:"actions"});
+    row.append(node("h3",`Series ${id} · ${date(Number(s.expiry))}`),node("p",live?`${status} · ${allPaused||paused?"Entries paused":"Entries open"}`:status));
+    if(live&&!s.hasPool)actions.append(button("Attach pool",()=>ownerWrite("setPoolKey",[id,poolKey(s.principalToken)]),{class:"cta"}));
+    if(live)actions.append(button(paused?"Resume entries":"Pause entries",()=>ownerWrite("setSeriesEntriesPaused",[id,!paused])));
+    if(live&&s.hasPool)$("seed-series").append(node("option",`Series ${id} · ${date(Number(s.expiry))}`,{value:id}));
+    row.append(actions);$("owner-series").append(row);
+  }
+  if(!$("owner-series").children.length)$("owner-series").append(node("p","No series yet. Deploy a maturity with the add:series command, then register it here."));
+}
+// The public pages read the same registry, so they are refreshed before the receipt is shown.
+async function ownerDone(receipt){try{await refreshRates();}catch{}await refreshOwner();await showReceipt(receipt);}
+async function ownerWrite(method,args){const wallet=requireWallet();await ownerDone(await wallet.write(contract("SeriesRegistry",state.manifest.registry),method,args));}
+async function registerSeries(m){
+  const wallet=requireWallet(),registry=contract("SeriesRegistry",state.manifest.registry);let receipt;
+  try{
+    receipt=await wallet.write(registry,"registerSeries",[m.yieldToken]);
+    receipt=await wallet.write(registry,"setPoolKey",[await registry.seriesIdByYieldToken(m.yieldToken),poolKey(m.principalToken)]);
+  }finally{await ownerDone(receipt);}
+}
+// Exact approval for one call, cleared afterwards whether or not the call lands.
+async function spend(wallet,token,spender,value,action){
+  await wallet.write(token,"approve",[spender,value]);
+  try{return await action();}
+  finally{if(await token.allowance(wallet.account,spender)>0n)await wallet.write(token,"approve",[spender,0]);}
+}
+async function seedPool(){
+  const wallet=requireWallet(),id=Number($("seed-series").value);if(!id)throw new Error("UnknownSeries");
+  const price=amount($("seed-price").value),maxPt=amount($("seed-pt").value),maxUsdc=amount($("seed-usdc").value);
+  if(price>1_000000n)throw new Error("INVALID_SEED_PRICE");
+  const registry=contract("SeriesRegistry",state.manifest.registry),market=contract("UniswapV4Market",state.manifest.market),seeder=contract("PoolSeeder",state.manifest.poolSeeder);
+  const s=await registry.getSeries(id),usdc0=BigInt(state.manifest.usdc)<BigInt(s.principalToken);
+  const asset=new Contract(state.manifest.usdc,tokenAbi,wallet.provider),pt=new Contract(s.principalToken,tokenAbi,wallet.provider),yt=contract("YieldToken",s.yieldToken);
+  const held=await pt.balanceOf(wallet.account),needed=held<maxPt?maxPt-held:0n;
+  if(await asset.balanceOf(wallet.account)<needed+maxUsdc)throw new Error("INSUFFICIENT_SEED_FUNDS");
+  let receipt;
+  try{
+    if((await market.poolState(id)).sqrtPriceX96===0n)receipt=await wallet.write(seeder,"initializePool",[id,sqrtPrice(usdc0,price)]);
+    if(needed>0n)receipt=await spend(wallet,asset,yt.target,needed,()=>wallet.write(yt,"splitFromAssets",[needed,wallet.account]));
+    // A 1,200-tick band around the current price, as the seeding script uses.
+    const lower=Math.floor(Number((await market.poolState(id)).tick)/10)*10-600,upper=lower+1200;
+    const [max0,max1]=usdc0?[maxUsdc,maxPt]:[maxPt,maxUsdc];
+    const liquidity=await seeder.liquidityForAmounts(id,lower,upper,max0,max1);if(liquidity===0n)throw new Error("InvalidAmount");
+    const deadline=Math.min((await wallet.provider.getBlock("latest")).timestamp+600,Number(s.expiry)-1);
+    receipt=await spend(wallet,asset,seeder.target,maxUsdc,()=>spend(wallet,pt,seeder.target,maxPt,
+      ()=>wallet.write(seeder,"addLiquidity",[id,lower,upper,liquidity,max0,max1,deadline])));
+  }finally{await ownerDone(receipt);}
+}
 function form(id,action){$(id).addEventListener("submit",e=>{e.preventDefault();void run(action);});}
 $("connect").addEventListener("click",()=>run(async()=>{
   if(!window.ethereum)throw new Error("WALLET_REQUIRED");if(!state.manifest)throw new Error("TESTNET_DEPLOYMENT_MISSING");
   const wallet=new AppWallet(window.ethereum,state.manifest);await wallet.connect();state.wallet=wallet;$("connect").textContent=short(wallet.account);$("connect").classList.add("account");$("tijori-intro").hidden=true;
+  await detectOwner();navigate();
   if(await wallet.pending()){const receipt=await wallet.status();await showReceipt(receipt,wallet);}
-  await refreshPositions();await refreshTreasury();notice("Wallet connected.");
+  await refreshPositions();await refreshTreasury();if(state.owner)await refreshOwner();notice("Wallet connected.");
 }));
 $("tijori-connect").onclick=()=>$("connect").click();
 $("refresh-rates").onclick=()=>run(refreshRates);$("get-quote").onclick=()=>run(getQuote);form("lock-form",lock);
@@ -274,11 +357,13 @@ $("generate-agent").onclick=()=>run(async()=>generateAgent());
 $("show-new-key").onclick=()=>{$("new-agent-key").type="text";$("show-new-key").disabled=true;};
 $("copy-new-key").onclick=()=>run(async()=>{if(!$("new-agent-key").value)return;await navigator.clipboard.writeText($("new-agent-key").value);notice("Agent key copied. Save it before creating the treasury.");});
 $("copy-key").onclick=()=>run(async()=>{if(!$("one-time-key").value)return;await navigator.clipboard.writeText($("one-time-key").value);$("one-time-key").value="";notice("Key copied and cleared from the field. Save it in your local configuration.");});
+$("refresh-owner").onclick=()=>run(async()=>{await refreshOwner();notice("Owner view refreshed.");});form("seed-form",seedPool);
+$("owner-pause-all").onclick=()=>run(async()=>ownerWrite("setEntriesPaused",[!await contract("SeriesRegistry",state.manifest.registry).entriesPaused()]));
 $("copy-config").onclick=()=>run(async()=>{await navigator.clipboard.writeText($("mcp-config").value);notice("MCP config copied. Replace the key placeholder only in your local file.");});
 form("bill-form",async()=>{const bills=readBills();if(bills.length>=100)throw new Error("InvalidAmount");const bill={id:crypto.randomUUID(),payee:getAddress($("bill-payee").value),amount:formatUnits(amount($("bill-amount").value),6),date:$("bill-date").value};localStorage.setItem(billsKey(),JSON.stringify([...bills,bill]));renderBills();notice("Bill added to this device's calendar.");});
 window.addEventListener("hashchange",navigate);window.addEventListener("pagehide",clearKey);
-window.ethereum?.on?.("accountsChanged",()=>{clearKey();state.wallet=null;state.treasury=null;$("connect").textContent="Connect wallet";$("connect").classList.remove("account");$("tijori-intro").hidden=false;$("treasury-controls").hidden=true;$("create-form").hidden=true;$("setup-authorize").hidden=true;$("positions-list").replaceChildren(node("p","Wallet changed. Reconnect to refresh positions."));notice("Wallet changed. Reconnect before continuing.");});
-window.ethereum?.on?.("chainChanged",()=>{clearKey();state.wallet=null;$("connect").textContent="Connect wallet";$("connect").classList.remove("account");$("tijori-intro").hidden=false;invalidateQuote();invalidateYield();notice("Network changed. Reconnect on the Arc network this app uses.");});
+window.ethereum?.on?.("accountsChanged",()=>{clearKey();state.wallet=null;state.treasury=null;$("connect").textContent="Connect wallet";$("connect").classList.remove("account");$("tijori-intro").hidden=false;$("treasury-controls").hidden=true;$("create-form").hidden=true;$("setup-authorize").hidden=true;$("positions-list").replaceChildren(node("p","Wallet changed. Reconnect to refresh positions."));dropOwner();notice("Wallet changed. Reconnect before continuing.");});
+window.ethereum?.on?.("chainChanged",()=>{clearKey();state.wallet=null;$("connect").textContent="Connect wallet";$("connect").classList.remove("account");$("tijori-intro").hidden=false;invalidateQuote();invalidateYield();dropOwner();notice("Network changed. Reconnect on the Arc network this app uses.");});
 navigate();
 if(setupAgent)$("treasury-status").textContent="Connect your wallet to approve the agent from your terminal setup.";
 try{

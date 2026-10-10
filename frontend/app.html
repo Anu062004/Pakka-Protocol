@@ -6,7 +6,7 @@
 <a class="skip" href="#main">Skip to content</a>
 <div class="shell">
   <aside class="rail"><a class="brand" href="/"><svg viewBox="0 0 26 30" fill="none" aria-hidden="true"><circle cx="13" cy="11" r="8.5" stroke="#fff" stroke-width="3"></circle><circle cx="13" cy="11" r="2.8" fill="#fff"></circle><path d="M4.5 11V27.5" stroke="#fff" stroke-width="3" stroke-linecap="round"></path></svg>pakka<span>USDC, with a date.</span></a>
-    <nav aria-label="Main"><a href="#rates">Rates</a><a href="#lock">Buy PT</a><a href="#yield">Buy YT</a><a href="#positions">Positions</a><a href="#tijori">Tijori</a></nav>
+    <nav aria-label="Main"><a href="#rates">Rates</a><a href="#lock">Buy PT</a><a href="#yield">Buy YT</a><a href="#positions">Positions</a><a href="#tijori">Tijori</a><a id="owner-link" href="#owner" hidden>Owner</a></nav>
     <div class="rail-foot"><p class="network"><span id="network-name">Arc</span><span id="network-note">Unaudited software</span></p>
       <a class="home-link" href="/docs">Guide and glossary ↗</a><a class="home-link" href="/">About Pakka</a></div>
   </aside>
@@ -83,6 +83,18 @@
             <form id="bill-form" class="bill-form"><label for="bill-payee">Payee address<input id="bill-payee" required placeholder="0x…"></label><label for="bill-amount">USDC<input id="bill-amount" inputmode="decimal" value="1" required></label><label for="bill-date">Due date<input id="bill-date" type="date" required></label><button>Add bill</button></form><div id="bills"></div></section>
           <h2>Activity</h2><div id="activity" class="list"></div><button id="refresh-treasury" class="text-button">Refresh Tijori</button>
         </div>
+      </section>
+      <section id="owner" class="page" hidden><div class="kicker">06 · Owner</div><h1>Run the protocol.</h1><p>Only the registry owner wallet sees this page. Open maturities, seed their pools and pause new entries. Exits always stay open.</p>
+        <div class="duo"><div class="card"><h2>New entries</h2><p id="owner-entries">Loading…</p><button id="owner-pause-all" type="button">Pause all entries</button>
+            <p class="helper">Pausing stops new purchases only. Selling early, cashing out and claiming interest keep working.</p></div>
+          <form id="seed-form" class="card"><h2>Seed a pool</h2>
+            <label for="seed-series">Series</label><select id="seed-series" required><option value="">Choose a series</option></select>
+            <label for="seed-price">Opening PT price · USDC</label><input id="seed-price" inputmode="decimal" value="0.99" required pattern="[0-9]+(\.[0-9]{1,6})?">
+            <label for="seed-pt">PT budget</label><input id="seed-pt" inputmode="decimal" value="10" required pattern="[0-9]+(\.[0-9]{1,6})?">
+            <label for="seed-usdc">USDC budget</label><input id="seed-usdc" inputmode="decimal" value="10" required pattern="[0-9]+(\.[0-9]{1,6})?">
+            <button class="cta">Seed pool</button>
+            <p class="helper">The opening price sets the first fixed rate and applies only to a pool that has never been opened. This wallet needs both budgets in USDC; the PT budget is split from it. Your wallet will ask several times.</p></form></div>
+        <h2>Series</h2><div id="owner-series" class="list"></div><button id="refresh-owner" class="text-button">Refresh owner view</button>
       </section>
     </main><footer><span>Pakka · <span id="build-note">Unaudited build</span></span><span>500 USDC maximum new-entry TVL per series</span></footer>
   </div>
