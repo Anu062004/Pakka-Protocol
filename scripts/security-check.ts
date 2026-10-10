@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { projectRoot } from "../backend/project.ts";
 import { writeJson } from "./expiry-keeper.ts";
 
-export const coreSources = ["PrincipalToken", "YieldToken", "SeriesRegistry", "UniswapV4Market", "PakkaRouter", "Tijori", "TijoriFactory", "PoolSeeder", "V4Client"]
+export const coreSources = ["PrincipalToken", "YieldToken", "SeriesRegistry", "UniswapV4Market", "PakkaRouter", "Tijori", "TijoriFactory", "PoolSeeder", "V4Client", "SeriesFactory"]
   .map((n) => `contracts/${n}.sol`);
 
 export interface FileCoverage {

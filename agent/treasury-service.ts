@@ -278,7 +278,10 @@ export class TreasuryService {
         interestSharesRaw: interest.toString(), indexAtExpiry: (await yt.indexAtExpiry() as bigint).toString() });
     }
     const dailyCap = await t.dailyCap() as bigint;
-    const spent = await t.dailyWindow() === BigInt(Math.floor(block.timestamp / 86400)) ? await t.dailySpent() as bigint : 0n;
+    // Treasuries created before the rolling cap reset per UTC day and only then report a stale total.
+    const legacyDay = await new Contract(t.target as string, ["function dailyWindow() view returns(uint256)"], this.provider)
+      .dailyWindow!().catch(() => null) as bigint | null;
+    const spent = legacyDay !== null && legacyDay !== BigInt(Math.floor(block.timestamp / 86400)) ? 0n : await t.dailySpent() as bigint;
     return { chainId: this.chainId, tijori: t.target, owner: await t.owner(), agent: await t.agent(),
       signerConfigured: Boolean(this.signer), paused: await t.paused(), blockNumber: block.number,
       usdc: money(await this.asset.balanceOf(t.target) as bigint), dailyRemaining: money(dailyCap > spent ? dailyCap - spent : 0n),

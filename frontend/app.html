@@ -87,6 +87,10 @@
       <section id="owner" class="page" hidden><div class="kicker">06 · Owner</div><h1>Run the protocol.</h1><p>Only the registry owner wallet sees this page. Open maturities, seed their pools and pause new entries. Exits always stay open.</p>
         <div class="duo"><div class="card"><h2>New entries</h2><p id="owner-entries">Loading…</p><button id="owner-pause-all" type="button">Pause all entries</button>
             <p class="helper">Pausing stops new purchases only. Selling early, cashing out and claiming interest keep working.</p></div>
+          <form id="open-form" class="card" hidden><h2>Open a maturity</h2>
+            <label for="open-days">Length · days</label><input id="open-days" inputmode="numeric" value="30" required pattern="[0-9]{1,4}">
+            <button class="cta">Open maturity</button>
+            <p class="helper">One transaction deploys the series, registers it and attaches its pool. Seed it next so it can be bought.</p></form>
           <form id="seed-form" class="card"><h2>Seed a pool</h2>
             <label for="seed-series">Series</label><select id="seed-series" required><option value="">Choose a series</option></select>
             <label for="seed-rate">Opening fixed rate · % a year</label><input id="seed-rate" inputmode="decimal" value="8" required pattern="[0-9]+(\.[0-9]{1,6})?">

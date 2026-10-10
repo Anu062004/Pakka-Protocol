@@ -1,6 +1,22 @@
 import { Contract, ZeroAddress, getAddress } from "ethers";
 import type { Signer } from "ethers";
-import type { SeriesManifestEntry, SeriesPool } from "../backend/types.ts";
+import type { Manifest, SeriesManifestEntry, SeriesPool } from "../backend/types.ts";
+
+// Adds every registered series the manifest does not know yet. The registry is the source of
+// truth; the manifest is only where the scripts keep their notes. Returns whether it changed.
+export async function syncSeries(manifest: Manifest, registry: Contract): Promise<boolean> {
+  const known = new Set(manifest.series.map((s) => getAddress(s.yieldToken)));
+  let changed = false;
+  for (let id = 1; id <= Number(await registry.seriesCount()); id++) {
+    const s = await registry.getSeries(id);
+    if (known.has(getAddress(s.yieldToken))) continue;
+    manifest.series.push({ expiry: Number(s.expiry), yieldToken: s.yieldToken, principalToken: s.principalToken, seriesId: id,
+      ...(s.hasPool ? { poolKey: { currency0: s.poolKey.currency0, currency1: s.poolKey.currency1, fee: Number(s.poolKey.fee),
+        tickSpacing: Number(s.poolKey.tickSpacing), hooks: s.poolKey.hooks } } : {}) });
+    changed = true;
+  }
+  return changed;
+}
 
 export function initialSqrtPrice(asset: string, pt: string, priceUsdc: bigint): bigint {
   const unit = 1_000_000n;

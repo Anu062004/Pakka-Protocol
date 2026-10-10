@@ -63,7 +63,7 @@ contract SecurityTest {
 
     function setUp() public {
         asset = new MockUSDC(); vault = new MockVault(asset, 12);
-        registry = new SeriesRegistry(asset, address(this));
+        registry = new SeriesRegistry(asset, address(this), address(0));
         TestnetPoolManager manager = new TestnetPoolManager(address(this));
         market = new UniswapV4Market(manager, registry); router = new PakkaRouter(market);
         PoolSeeder seeder = new PoolSeeder(manager, registry);

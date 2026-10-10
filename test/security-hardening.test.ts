@@ -33,7 +33,7 @@ before(async () => {
   [owner, agent, payee, other] = await Promise.all([0,1,2,3].map(i=>provider.getSigner(i)));
   const asset = await deploy("MockUSDC");
   const vault = await deploy("MockVault", [asset.target,12]);
-  const registry = await deploy("SeriesRegistry", [asset.target,owner.address]);
+  const registry = await deploy("SeriesRegistry", [asset.target,owner.address,ZeroAddress]);
   const manager = await deploy("TestnetPoolManager", [owner.address]);
   const market = await deploy("UniswapV4Market", [manager.target,registry.target]);
   const router = await deploy("PakkaRouter", [market.target]);

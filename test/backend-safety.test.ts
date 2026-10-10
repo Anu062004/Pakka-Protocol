@@ -162,7 +162,7 @@ test("fork write destinations reject public RPCs and all application custom erro
   assert.equal(localForkUrl("http://127.0.0.1:8545"), "http://127.0.0.1:8545/");
   for (const url of ["https://rpc.mainnet.arc.io", "http://example.com", "http://user:secret@localhost:8545"])
     assert.throws(() => localForkUrl(url), /FORK_WRITES_REQUIRE_LOCALHOST/);
-  for (const name of ["PrincipalToken", "YieldToken", "SeriesRegistry", "UniswapV4Market", "PakkaRouter", "Tijori", "TijoriFactory"])
+  for (const name of ["PrincipalToken", "YieldToken", "SeriesRegistry", "UniswapV4Market", "PakkaRouter", "Tijori", "TijoriFactory", "SeriesFactory", "PoolSeeder"])
     for (const error of (abi(name) as { type: string; name: string }[]).filter((e) => e.type === "error")) assert(messages[error.name], `${name}.${error.name}`);
   const iface = new Interface(abi("YieldToken"));
   assert.match(humanError({ data: iface.encodeErrorResult("VaultRedeemLimit", [10, 0]) }, [iface]), /shares/);

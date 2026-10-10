@@ -54,7 +54,7 @@ export function loadDeployment(file: string = deploymentFile, { chainId = networ
     m[key] = getAddress(m[key]);
   }
   if (chainId !== 31337 && m.usdc !== canonicalUsdc) throw new Error("WRONG_DEPLOYMENT_ASSET");
-  for (const key of ["owner", "deployer", "quoter"] as const) {
+  for (const key of ["owner", "deployer", "quoter", "seriesFactory"] as const) {
     const value = m[key];
     if (value) m[key] = getAddress(value);
   }
@@ -65,13 +65,13 @@ export function loadDeployment(file: string = deploymentFile, { chainId = networ
 // Public addresses only. Never include RPC credentials, environment values or wallet keys.
 export function publicDeployment(m: Manifest): PublicManifest {
   const { chainId, usdc, vault, registry, poolManager, market, router, tijoriFactory,
-    poolSeeder, quoter, demoVault, selfHostedManager, deployedAtBlock, series } = m;
+    poolSeeder, seriesFactory, quoter, demoVault, selfHostedManager, deployedAtBlock, series } = m;
   const net = networkFor(chainId);
   return {
     // Public defaults only; an operator's own RPC URL may carry a credential and is never exposed.
     network: net ? { name: net.name, label: net.label, rpcUrl: net.rpcUrl, explorer: net.explorer } : undefined,
     chainId, usdc, vault, registry, poolManager, market, router, tijoriFactory,
-    poolSeeder, quoter, demoVault, selfHostedManager, deployedAtBlock,
+    poolSeeder, seriesFactory, quoter, demoVault, selfHostedManager, deployedAtBlock,
     series: series.map(({ seriesId, expiry, principalToken, yieldToken, poolKey, pool }) =>
       ({ seriesId, expiry, principalToken, yieldToken, poolKey, pool })),
   };

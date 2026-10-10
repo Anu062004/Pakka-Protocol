@@ -1,6 +1,6 @@
 import { Contract, Wallet, getAddress, parseUnits } from "ethers";
 import { compile } from "./compile.ts";
-import { priceForRate, seedSeries } from "./seed-v4.ts";
+import { priceForRate, seedSeries, syncSeries } from "./seed-v4.ts";
 import { canonicalUsdc, deploymentFile, loadDeployment, network } from "../backend/project.ts";
 import { rpcProvider } from "../backend/rpc.ts";
 import { writeJson } from "./expiry-keeper.ts";
@@ -41,6 +41,7 @@ try {
   const floor = parseUnits("25", "gwei");
   const overrides = { gasPrice: fees.gasPrice && fees.gasPrice > floor ? fees.gasPrice : floor };
   const save = () => writeJson(manifestPath, manifest);
+  if (await syncSeries(manifest, registry)) save();
   for (const item of manifest.series) {
     const block = await provider.getBlock("latest");
     if (!block) throw new Error("BLOCK_UNAVAILABLE");

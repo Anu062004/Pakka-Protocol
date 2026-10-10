@@ -35,7 +35,7 @@ function sqrt(value: bigint): bigint {
 async function setup({ seed = true }: { seed?: boolean } = {}) {
   const asset = await deploy("MockUSDC");
   const vault = await deploy("MockVault", [asset.target, 12]);
-  const registry = await deploy("SeriesRegistry", [asset.target, owner.address]);
+  const registry = await deploy("SeriesRegistry", [asset.target, owner.address, ZeroAddress]);
   const manager = await deploy("TestnetPoolManager", [owner.address]);
   const market = await deploy("UniswapV4Market", [manager.target, registry.target]);
   const seeder = await deploy("PoolSeeder", [manager.target, registry.target]);

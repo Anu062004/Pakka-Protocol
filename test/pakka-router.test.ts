@@ -34,7 +34,7 @@ interface SeriesFixture {
 async function setup({ count = 1, seed = true, assetName = "MockUSDC" }: { count?: number; seed?: boolean; assetName?: string } = {}) {
   const asset = await deploy(assetName);
   const vault = await deploy("MockVault", [asset.target, 12]);
-  const registry = await deploy("SeriesRegistry", [asset.target, owner.address]);
+  const registry = await deploy("SeriesRegistry", [asset.target, owner.address, ZeroAddress]);
   const manager = await deploy("TestnetPoolManager", [owner.address]);
   const market = await deploy("UniswapV4Market", [manager.target, registry.target]);
   const seeder = await deploy("PoolSeeder", [manager.target, registry.target]);

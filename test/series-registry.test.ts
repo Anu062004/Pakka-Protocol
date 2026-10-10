@@ -25,7 +25,7 @@ async function deploy(name: string, args: unknown[] = []): Promise<Contract> {
 async function setup() {
   const asset = await deploy("MockUSDC");
   const vault = await deploy("MockVault", [asset.target, 12]);
-  const registry = await deploy("SeriesRegistry", [asset.target, owner.address]);
+  const registry = await deploy("SeriesRegistry", [asset.target, owner.address, ZeroAddress]);
   const expiry = (await provider.getBlock("latest"))!.timestamp + 100_000;
   const yt = await deploy("YieldToken", [vault.target, expiry, "REGISTRY", registry.target]);
   const pt = await yt.principalToken();
@@ -111,9 +111,9 @@ test("different vaults may share a maturity without colliding", async () => {
 
 test("constructor rejects zero owner and unsupported asset addresses/decimals", async () => {
   const f = await setup();
-  await rejects(deploy("SeriesRegistry", [f.asset.target, ZeroAddress]), f.registry, "InvalidOwner");
+  await rejects(deploy("SeriesRegistry", [f.asset.target, ZeroAddress, ZeroAddress]), f.registry, "InvalidOwner");
   for (const asset of [ZeroAddress, stranger.address, f.vault.target]) {
-    await rejects(deploy("SeriesRegistry", [asset, owner.address]), f.registry, "InvalidAsset");
+    await rejects(deploy("SeriesRegistry", [asset, owner.address, ZeroAddress]), f.registry, "InvalidAsset");
   }
 });
 

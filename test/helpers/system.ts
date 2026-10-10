@@ -35,6 +35,7 @@ export interface System {
   asset: Contract;
   vault: Contract;
   registry: Contract;
+  seriesFactory: Contract;
   manager: Contract;
   market: Contract;
   router: Contract;
@@ -61,7 +62,9 @@ export async function deploySystem({ provider, signers, realVault = null, realAs
   };
   const asset = realAsset ?? await deploy("MockUSDC");
   const vault = realVault ?? await deploy("MockVault", [asset.target, 12]);
-  const registry = await deploy("SeriesRegistry", [asset.target, await owner.getAddress()]);
+  // As deployed for real: the factory creates the registry and is its only source of series.
+  const seriesFactory = await deploy("SeriesFactory", [asset.target, await owner.getAddress(), vault.target]);
+  const registry = new Contract(await seriesFactory.registry() as string, artifacts.SeriesRegistry!.abi, deployer);
   const manager = await deploy("TestnetPoolManager", [await owner.getAddress()]);
   const market = await deploy("UniswapV4Market", [manager.target, registry.target]);
   const router = await deploy("PakkaRouter", [market.target]);
@@ -74,9 +77,9 @@ export async function deploySystem({ provider, signers, realVault = null, realAs
   const start = startBlock!.timestamp, series: SystemSeries[] = [];
   for (const [i, duration] of durations.entries()) {
     const expiry = start + duration;
-    const yt = await deploy("YieldToken", [vault.target, expiry, `E2E-${i}`, registry.target]);
+    await sent((seriesFactory.connect(owner) as Contract).create(expiry, `E2E-${i}`));
+    const yt = new Contract((await registry.getSeries(i + 1)).yieldToken as string, artifacts.YieldToken!.abi, deployer);
     const pt = new Contract(await yt.principalToken() as string, artifacts.PrincipalToken!.abi, owner);
-    await sent((registry.connect(owner) as Contract).registerSeries(yt.target));
     const item = { seriesId: i + 1, expiry, yieldToken: yt.target as string, principalToken: pt.target as string };
     await seedSeries({ asset: asset.connect(owner) as Contract, pt, yt: yt.connect(owner) as Contract, registry: registry.connect(owner) as Contract, market, seeder,
       signer: owner as Signer & { address: string }, item, priceUsdc: 990000n, maxUsdc: 100_000000n, maxPt: 100_000000n, deadline: expiry - 1 });
@@ -90,8 +93,8 @@ export async function deploySystem({ provider, signers, realVault = null, realAs
   await sent(tijori.setPayeeCap(await payee.getAddress(), 10_000000n));
   const manifest: Manifest = { version: 1, chainId, usdc: asset.target as string, vault: vault.target as string, registry: registry.target as string,
     poolManager: manager.target as string, market: market.target as string, router: router.target as string, tijoriFactory: factory.target as string,
-    poolSeeder: seeder.target as string, deployer: await deployer.getAddress(), owner: await owner.getAddress(),
+    poolSeeder: seeder.target as string, seriesFactory: seriesFactory.target as string, deployer: await deployer.getAddress(), owner: await owner.getAddress(),
     deployedAtBlock: 1, demoVault: !realVault, selfHostedManager: true,
     series: series.map(({ yt, pt, ...item }) => item) };
-  return { provider, artifacts, manifest, owner, deployer, priya, treasuryOwner, agent, keeper, payee, asset, vault, registry, manager, market, router, factory, seeder, tijori, series };
+  return { provider, artifacts, manifest, owner, deployer, priya, treasuryOwner, agent, keeper, payee, asset, vault, registry, seriesFactory, manager, market, router, factory, seeder, tijori, series };
 }

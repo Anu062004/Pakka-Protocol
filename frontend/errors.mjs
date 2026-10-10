@@ -30,7 +30,7 @@ export const messages={
   InvalidVault:"This address is not a supported USDC vault.",InvalidAsset:"The vault or registry has the wrong USDC asset.",
   InvalidExpiry:"Choose a maturity in the future.",UnsupportedShareDecimals:"This vault's share decimals are not supported.",
   ZeroIndex:"The vault reported an invalid share price. Stop and check the vault.",
-  InvalidOwner:"Choose a valid owner wallet.",InvalidSeries:"This contract is not a valid registered series.",
+  InvalidOwner:"Choose a valid owner wallet.",InvalidFactory:"The registry must be created by its series factory.",InvalidSeries:"This contract is not a valid registered series.",
   UnknownSeries:"This maturity is not registered.",SeriesAlreadyRegistered:"This series is already registered.",
   VaultExpiryAlreadyRegistered:"A series for this vault and date already exists.",PoolAlreadySet:"This series already has an immutable pool key.",
   InvalidPoolKey:"The pool currencies or settings do not match this series.",UnauthorizedCallback:"The pool callback could not be verified. The transaction was stopped.",

@@ -17,12 +17,13 @@ not a parameter anyone controls.
 | --- | --- |
 | `PrincipalToken.sol` | ERC-20 principal in asset units; only its YieldToken mints or burns. |
 | `YieldToken.sol` | Custodies vault shares, splits and merges, settles accrued interest before balance changes, freezes the index at expiry, redeems PT. |
-| `SeriesRegistry.sol` | Owner-approved directory of series. Validates token/vault relationships, rejects duplicates, records one PT/USDC pool key per series. |
+| `SeriesFactory.sol` | Creates the registry and is the only source of series it accepts: its own YieldToken bytecode over one vault fixed at deployment. Opens a maturity (deploy, register, attach pool key) in one owner call. |
+| `SeriesRegistry.sol` | Directory of series. Accepts only factory-created series, validates token/vault relationships, rejects duplicates, records one PT/USDC pool key per series. Ownership transfers in two steps. |
 | `UniswapV4Market.sol` | Real v4 swaps: exact-output PT purchases, exact-input early sales, rollback-based quoting, pool-state reads. |
 | `PakkaRouter.sol` | Atomic locks, early sales, maturity cash-outs, multi-maturity ladders with budget refunds. |
 | `Tijori.sol` | User-owned treasury that restricts an agent to capped purchases, redemptions, interest claims and payments to approved payees. |
 | `TijoriFactory.sol` | One minimal clone per owner, over a locked shared implementation. |
-| `PoolSeeder.sol` | Owner-operated pool initialization, bounded liquidity adds, fee collection, post-expiry withdrawal. |
+| `PoolSeeder.sol` | Owner-operated pool initialization, bounded liquidity adds, fee collection, post-expiry withdrawal. Records every range it holds and pays the registry's current owner. |
 | `TestnetPoolManager.sol` | Self-hosted wrapper around the vendored Uniswap v4 PoolManager, used when no existing manager is configured. |
 | `DemoVault.sol` | Demo ERC-4626 vault. Yield is simulated by direct donation; it does not lend. Never deployed on mainnet unless explicitly allowed. |
 
@@ -37,7 +38,7 @@ Testnet is the default everywhere. Mainnet is selected with `PAKKA_NETWORK=mainn
 the `*:mainnet` npm scripts set:
 
 ```sh
-VAULT_ADDRESS=0x… npm run deploy:mainnet   # then register:mainnet and seed:mainnet
+VAULT_ADDRESS=0x… npm run deploy:mainnet   # then add:series:mainnet and seed:mainnet
 npm run keeper:mainnet                      # settles maturities on time
 npm run dev:mainnet                         # serve the app against the mainnet manifest
 ```
@@ -55,7 +56,7 @@ contracts/      Solidity sources (contracts/test/ holds local-only harnesses)
 backend/        Read-only HTTP API and chain read services
 frontend/       Browser app, served as-is (plain JS, no build step)
 agent/          MCP server exposing scoped treasury tools
-scripts/        Compile, deploy, register, seed, keeper, security checks
+scripts/        Compile, deploy, open series, seed, keeper, security checks
 test/           Contract, backend, agent and browser end-to-end tests
 api/            Serverless entrypoint for platform deploys
 docs/           Agent connection guide and deployed addresses
@@ -105,21 +106,22 @@ verification against a live vault has been performed.
 ## Deploying to Arc Testnet
 
 Deployment separates two wallets by design. The **deployer** funds and publishes
-contracts; a distinct **owner** holds registry and seeder admin rights. The
-deploy script refuses to proceed if they are the same address, and the register
-and seed scripts reject the deployer key.
+contracts; a distinct **owner** opens maturities and holds registry and seeder admin
+rights. The deploy script refuses to proceed if they are the same address, and the
+series and seed scripts reject the deployer key.
 
 Configure `.env` from `.env.example`, then:
 
 ```sh
-npm run deploy:testnet     # deployer: publishes contracts and series
-npm run register:testnet   # owner: registers series, attaches pool keys
+npm run deploy:testnet     # deployer: publishes the contracts, no maturities yet
+npm run add:series         # owner: opens the SERIES_DURATIONS maturities through the factory
 npm run seed:testnet       # owner: initializes pools and adds liquidity
 ```
 
 `deploy:testnet` refuses to overwrite an existing manifest. To add a maturity to
-a live deployment, use `SERIES_DURATION=86400 npm run add:series`, then register
-and seed again — both scripts skip anything already done or expired.
+a live deployment, use `SERIES_DURATION=2592000 npm run add:series` and seed again, or
+open and seed it from the app's Owner page. Both scripts first pick up any maturity
+opened from the app, and skip anything already done or expired.
 
 Seeding budgets are per series and default to 10 USDC each:
 
@@ -156,11 +158,12 @@ approve/act/revoke fallback.
 `/` serves the landing page; `/app` serves the operational app.
 
 When the connected wallet is the registry's on-chain `owner()`, the app adds an **Owner** page:
-register a deployed maturity and attach its pool, seed a pool at an opening fixed rate, withdraw
-liquidity and fees, and pause or resume entries. No other wallet is shown the page, and the
-contracts reject the calls regardless. The page signs from the browser and cannot write the
-manifest, so `seed:testnet` does not know about a pool seeded there, and the range of a pool
-seeded there is remembered only in that browser.
+open a maturity, seed its pool at an opening fixed rate, withdraw liquidity and fees, and pause
+or resume entries. No other wallet is shown the page, and the contracts reject the calls
+regardless. The page signs from the browser and cannot write the manifest, so `seed:testnet`
+does not know about a pool seeded there. On a deployment made before the series factory the
+page registers script-deployed maturities instead, and remembers its own liquidity ranges only
+in that browser.
 
 | Route | Returns |
 | --- | --- |
@@ -225,12 +228,19 @@ does nothing. GitHub's scheduler is best-effort, so for settlement on the minute
   band is 1% plus 0.25% per day since the last accepted observation, so ordinary growth never
   trips it and a persistent move is accepted later rather than freezing the series.
 - Entries close one hour before maturity (`SeriesRegistry.MIN_ENTRY_WINDOW`); exits never close.
-- The registry owner is immutable. It can register series, attach one pool per series, pause
-  entries and manage its own liquidity. It cannot move backing, block exits or alter a series.
-- Per-payee limits are exact rolling 30-day windows enforced on-chain. The daily cap is per UTC
-  day, so two days' worth can be paid either side of midnight.
+- The owner can open maturities, pause entries and manage its own liquidity. It cannot move
+  backing, block exits or alter a series, and it cannot choose a series' code or vault: the
+  registry accepts only what its factory deployed. Ownership moves to another address (a Safe,
+  a hardware wallet) in two steps, and the protocol liquidity follows it.
+- Settlement falls back to the last accepted index if the vault's conversion reverts, so a
+  failing vault cannot keep matured principal from being redeemed as vault shares.
+- Per-payee limits are exact rolling 30-day windows enforced on-chain. The daily cap covers the
+  current clock hour and the 24 before it, so no 24-hour period can exceed it. An agent's PT
+  purchases are bounded by face value per ticket but not by the daily cap.
 - `.env` is gitignored and excluded from deploy uploads. Never commit a key.
 
-Still open before real size: the contracts are unreviewed, the owner is a single key with no
-timelock, maturity settles on the first call after expiry (run the keeper), and the target
-vault and market infrastructure have not been validated against a fork.
+Still open before real size: the contracts are unreviewed; the owner starts as a single key with
+no timelock until it is transferred; maturity settles on the first call after expiry (run the
+keeper); the index guard limits how far a vault's share price can move per block, not in total,
+so the vault chosen at deployment must not be one whose price can be pushed up temporarily; and
+the target vault and market infrastructure have not been validated against a fork.

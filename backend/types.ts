@@ -78,6 +78,8 @@ export interface Manifest {
   market: string;
   router: string;
   poolSeeder: string;
+  // Absent on deployments made before series had to come from the factory.
+  seriesFactory?: string;
   quoter?: string;
 }
 
@@ -101,6 +103,7 @@ export interface PublicManifest {
   router: string;
   tijoriFactory: string;
   poolSeeder: string;
+  seriesFactory?: string;
   quoter?: string;
   demoVault: boolean;
   selfHostedManager: boolean;

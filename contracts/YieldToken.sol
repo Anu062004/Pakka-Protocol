@@ -107,12 +107,19 @@ contract YieldToken is ERC20, ReentrancyGuard {
 
     /// @notice The current high-water mark, including an uncheckpointed vault gain.
     function pyIndexCurrent() public view returns (uint256) {
-        uint256 live = vault.convertToAssets(INDEX_UNIT);
-        return _indexHealthy(live) ? Math.max(pyIndexStored, live) : pyIndexStored;
+        uint256 live = _liveIndex();
+        return live != 0 && _indexHealthy(live) ? Math.max(pyIndexStored, live) : pyIndexStored;
     }
 
     function indexHealthy() public view returns (bool) {
-        return _indexHealthy(vault.convertToAssets(INDEX_UNIT));
+        uint256 live = _liveIndex();
+        return live != 0 && _indexHealthy(live);
+    }
+
+    /// @dev Zero when the vault cannot answer. That is handled like any other anomalous reading,
+    /// so settlement and share exits never depend on the vault's conversion still working.
+    function _liveIndex() private view returns (uint256 live) {
+        try vault.convertToAssets(INDEX_UNIT) returns (uint256 value) { live = value; } catch {}
     }
 
     function tvl() public view returns (uint256) {
@@ -256,8 +263,8 @@ contract YieldToken is ERC20, ReentrancyGuard {
         // Stop consulting the live vault after expiry is frozen. Share exits remain
         // usable even if the vault's conversion/redeem interface later fails.
         if (indexAtExpiry != 0) return indexAtExpiry;
-        uint256 live = vault.convertToAssets(INDEX_UNIT);
-        if (_indexHealthy(live)) {
+        uint256 live = _liveIndex();
+        if (live != 0 && _indexHealthy(live)) {
             if (indexReferenceBlock != block.number) {
                 indexReference = lastSafeVaultIndex;
                 indexReferenceBlock = block.number;

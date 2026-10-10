@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 import hre from "hardhat";
-import { BrowserProvider, Contract, ContractFactory, Wallet } from "ethers";
+import { BrowserProvider, Contract, ContractFactory, Wallet, ZeroAddress } from "ethers";
 import { compile } from "../scripts/compile.ts";
 import { approvalUrl, claudeConfigPath, claudeEntry, CLIENTS, clientConfigPath, clientSnippet, findAuthorization, isAuthorized, parseArgs, updateClaudeConfig, writeWallet } from "../scripts/agent-cli.ts";
 import { createRuntime } from "../agent/mcp-server.ts";
@@ -113,7 +113,7 @@ test("the terminal finds its treasury from the chain, and only while its key is 
   };
   const sent = async (tx: Promise<{ wait: () => Promise<unknown> }>) => (await tx).wait();
   const asset = await deploy("MockUSDC");
-  const registry = await deploy("SeriesRegistry", [asset.target, await deployer.getAddress()]);
+  const registry = await deploy("SeriesRegistry", [asset.target, await deployer.getAddress(), ZeroAddress]);
   const manager = await deploy("TestnetPoolManager", [await deployer.getAddress()]);
   const market = await deploy("UniswapV4Market", [manager.target, registry.target]);
   const router = await deploy("PakkaRouter", [market.target]);

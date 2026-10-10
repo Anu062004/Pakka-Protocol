@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import hre from "hardhat";
-import { BrowserProvider, ContractFactory, Interface } from "ethers";
+import { BrowserProvider, ContractFactory, Interface, ZeroAddress } from "ethers";
 import type { ContractArtifact } from "../backend/types.ts";
 
 // Simulate a chain Pakka does not support. This script never contacts a public RPC.
@@ -20,7 +20,7 @@ const vault = await deploy("MockVault", [usdc.target, 12]);
 const block = await provider.getBlock("latest");
 const specs: [string, unknown[]][] = [
   ["DemoVault", [usdc.target]], ["YieldToken", [vault.target, block!.timestamp + 3600, "TEST", "0x0000000000000000000000000000000000000000"]],
-  ["SeriesRegistry", [usdc.target, signer.address]], ["TestnetPoolManager", [signer.address]],
+  ["SeriesRegistry", [usdc.target, signer.address, ZeroAddress]], ["SeriesFactory", [usdc.target, signer.address, vault.target]], ["TestnetPoolManager", [signer.address]],
   ["UniswapV4Market", [usdc.target, vault.target]], ["PoolSeeder", [usdc.target, vault.target]],
   ["PakkaRouter", [usdc.target]],
   ["Tijori", [usdc.target]], ["TijoriFactory", [usdc.target]],

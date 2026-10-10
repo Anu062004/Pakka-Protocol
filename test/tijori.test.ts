@@ -47,7 +47,7 @@ interface SeriesFixture {
 async function setup({ count = 1, seed = true, assetName = "MockUSDC" }: { count?: number; seed?: boolean; assetName?: string } = {}) {
   const asset = await deploy(assetName);
   const vault = await deploy("MockVault", [asset.target, 12]);
-  const registry = await deploy("SeriesRegistry", [asset.target, owner.address]);
+  const registry = await deploy("SeriesRegistry", [asset.target, owner.address, ZeroAddress]);
   const manager = await deploy("TestnetPoolManager", [owner.address]);
   const market = await deploy("UniswapV4Market", [manager.target, registry.target]);
   const router = await deploy("PakkaRouter", [market.target]);
@@ -193,17 +193,22 @@ test("approved payments obey per-payee and aggregate daily caps with exact accou
   assert.equal(event!.args.payee, payee.address);
 });
 
-test("UTC day rollover restores daily capacity but preserves the 30-day payee spend", async () => {
+test("the daily cap rolls over 24 hours, midnight does not reset it, and the 30-day payee spend is preserved", async () => {
   const f = await setup({ seed: false });
   await sent(f.tijori.setDailyCap(unit));
   await sent(f.tijori.setPayeeCap(payee.address, 2n * unit));
-  // Choose a day well inside a payee period so this tests only a day rollover.
+  // Choose a day well inside a payee period so this tests only the daily window.
   const now = (await provider.getBlock("latest"))!.timestamp;
   const period = Math.floor(now / (30 * day)) + 1;
   await advance(period * 30 * day + 3 * day + 100);
   await sent((f.tijori.connect(agent) as Contract).pay(payee.address, unit));
   assert.equal(await f.tijori.paymentRemaining(payee.address), 0n);
+  // UTC midnight is 100 seconds short of 24 hours later: a calendar-day cap would pay again here.
   await advance(period * 30 * day + 4 * day);
+  assert.equal(await f.tijori.paymentRemaining(payee.address), 0n);
+  await rejects(() => (f.tijori.connect(agent) as Contract).pay(payee.address, 1), f.tijori, "PaymentCapExceeded");
+  await advance(period * 30 * day + 4 * day + 3600);
+  assert.equal(await f.tijori.dailySpent(), 0n);
   assert.equal(await f.tijori.paymentRemaining(payee.address), unit);
   await sent((f.tijori.connect(agent) as Contract).pay(payee.address, unit));
   await advance(period * 30 * day + 5 * day);

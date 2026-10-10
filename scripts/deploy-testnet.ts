@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { Contract, ContractFactory, Wallet, getAddress, parseUnits } from "ethers";
 import { compile } from "./compile.ts";
-import { canonicalUsdc, deploymentFile, network, seriesLabel } from "../backend/project.ts";
+import { canonicalUsdc, deploymentFile, network } from "../backend/project.ts";
 import { rpcProvider } from "../backend/rpc.ts";
 import { writeJson } from "./expiry-keeper.ts";
 import type { Manifest } from "../backend/types.ts";
@@ -15,17 +15,11 @@ const ownerAddress = getAddress(process.env.PROTOCOL_OWNER_ADDRESS || "0x0000000
 if (ownerAddress === "0x0000000000000000000000000000000000000000" || ownerAddress === new Wallet(key).address) {
   throw new Error("Set PROTOCOL_OWNER_ADDRESS to a separate owner wallet (hardware wallet or verified multisig), never the deployer.");
 }
-// Entries close one hour before maturity (SeriesRegistry.MIN_ENTRY_WINDOW), so a shorter series could never be bought.
-const durations = (process.env.SERIES_DURATIONS ?? "86400,604800,2592000").split(",").map(Number);
-if (!durations.length || durations.some((n) => !Number.isSafeInteger(n) || n <= 7200)) {
-  throw new Error("SERIES_DURATIONS must contain integer seconds greater than 7200.");
-}
 const configuredVault = process.env.VAULT_ADDRESS || process.env.TESTNET_VAULT_ADDRESS;
 // A vault with simulated yield holding real USDC must be a deliberate choice, never a default.
 if (net.name === "mainnet" && !configuredVault && process.env.ALLOW_DEMO_VAULT !== "1") {
   throw new Error("Set VAULT_ADDRESS to an ERC-4626 USDC vault on Arc, or ALLOW_DEMO_VAULT=1 to deploy the simulated-yield demo vault with real USDC.");
 }
-if (new Set(durations).size !== durations.length) throw new Error("SERIES_DURATIONS must not contain duplicates.");
 if (fs.existsSync(deploymentFile)) throw new Error("Deployment manifest already exists; preserve it before starting a new deployment.");
 const provider = rpcProvider();
 try {
@@ -60,9 +54,14 @@ try {
   manifest.vault = vaultAddress;
   const vault = new Contract(vaultAddress, artifacts.DemoVault!.abi, provider);
   if (getAddress(await vault.asset() as string) !== getAddress(usdc)) throw new Error("Vault must hold Arc USDC.");
-  const registry = await deploy("SeriesRegistry", [usdc, ownerAddress]);
+  // The factory creates the registry and is the only source of series it will accept.
+  const seriesFactory = await deploy("SeriesFactory", [usdc, ownerAddress, vaultAddress]);
+  const registry = new Contract(await seriesFactory.registry() as string, artifacts.SeriesRegistry!.abi, provider);
+  manifest.contracts!.push({ name: "SeriesRegistry", address: registry.target as string,
+    createdBy: seriesFactory.target as string, transactionHash: seriesFactory.deploymentTransaction()!.hash });
+  manifest.seriesFactory = seriesFactory.target as string;
   manifest.registry = registry.target as string;
-  manifest.registryTransactionHash = registry.deploymentTransaction()!.hash;
+  manifest.registryTransactionHash = seriesFactory.deploymentTransaction()!.hash;
   let managerAddress = process.env.UNISWAP_V4_POOL_MANAGER_ADDRESS;
   const selfHostedManager = !managerAddress;
   if (managerAddress) {
@@ -90,26 +89,9 @@ try {
     }
     manifest.quoter = quoter.target as string;
   }
-  const series = manifest.series;
+  manifest.status = "owner-series-required";
   saveDeployment();
-  for (const duration of durations) {
-    const block = await provider.getBlock("latest");
-    const expiry = block!.timestamp + duration;
-    const label = seriesLabel(expiry, net);
-    const yt = await deploy("YieldToken", [vaultAddress, expiry, label, registry.target]);
-    const item = { expiry, duration, yieldToken: yt.target as string, principalToken: await yt.principalToken() as string,
-      transactionHash: yt.deploymentTransaction()!.hash };
-    series.push(item);
-    // Persist each successful deployment so a later RPC failure cannot lose addresses.
-    saveDeployment();
-    manifest.ownerActions!.push({ description: `Register ${label}`, to: registry.target as string, value: "0",
-      data: registry.interface.encodeFunctionData("registerSeries", [yt.target]) });
-    saveDeployment();
-    console.log(`Series deployed; registration requires separate owner: ${yt.target}`);
-  }
-  manifest.status = "owner-registration-required";
-  saveDeployment();
-  console.log("Manifest and owner registration transactions saved. Complete the register step with the separate owner, then the seed step.");
+  console.log("Infrastructure deployed. The owner now opens maturities: run add:series, then the seed step, or use the Owner page.");
 } finally {
   provider.destroy();
 }

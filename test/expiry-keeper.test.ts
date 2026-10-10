@@ -5,7 +5,7 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { after, before, test } from "node:test";
 import hre from "hardhat";
-import { BrowserProvider, Contract, ContractFactory, HDNodeWallet, Transaction, keccak256, parseEther, parseUnits } from "ethers";
+import { BrowserProvider, Contract, ContractFactory, HDNodeWallet, Transaction, ZeroAddress, keccak256, parseEther, parseUnits } from "ethers";
 import type { JsonRpcApiProvider, JsonRpcSigner } from "ethers";
 import { compile } from "../scripts/compile.ts";
 import { ExpiryKeeper, lockKeeper, writeJson, type KeeperHealth } from "../scripts/expiry-keeper.ts";
@@ -50,7 +50,7 @@ interface SeriesFixture {
 async function setup({ count = 1 }: { count?: number } = {}) {
   const asset = await deploy("MockUSDC");
   const vault = await deploy("MockVault", [asset.target, 12]);
-  const registry = await deploy("SeriesRegistry", [asset.target, owner.address]);
+  const registry = await deploy("SeriesRegistry", [asset.target, owner.address, ZeroAddress]);
   await hre.network.provider.send("hardhat_setBalance", [wallet.address, "0x8ac7230489e80000"]);
   const expiry = (await provider.getBlock("latest"))!.timestamp + 10_000;
   const series: SeriesFixture[] = [];
@@ -356,17 +356,18 @@ test("reverted settlement receipts clear the journal and permit a later successf
   const f = await setup();
   await f.mature();
   await unbroadcast(f);
-  const code = await provider.getCode(f.vault.target);
-  // Change the vault after estimating/signing so the recorded settlement really reverts.
-  await hre.network.provider.send("hardhat_setCode", [f.vault.target, "0x60006000fd"]);
+  const code = await provider.getCode(f.yt.target);
+  // Break the series after estimating/signing so the recorded settlement really reverts. A broken
+  // vault no longer does it: settlement falls back to the last accepted index.
+  await hre.network.provider.send("hardhat_setCode", [f.yt.target, "0x60006000fd"]);
   // The keeper simulates before it broadcasts, so the simulation has to pass for a revert to be mined.
   const settle = f.yt.interface.getFunction("settleExpiry")!.selector;
   const k = f.keeper({ provider: wrapped({ call: async (tx: { data?: string }) => tx.data === settle ? "0x" : provider.call(tx) }) });
   await k.tick();
-  assert.equal(await f.yt.indexAtExpiry(), 0n);
   alert(await k.tick(), "SETTLEMENT_REVERTED");
   assert.equal(k.state!.pending, null);
-  await hre.network.provider.send("hardhat_setCode", [f.vault.target, code]);
+  await hre.network.provider.send("hardhat_setCode", [f.yt.target, code]);
+  assert.equal(await f.yt.indexAtExpiry(), 0n);
   assert.equal((await k.tick()).ok, true);
   assert(await f.yt.indexAtExpiry() > 0n);
   assert.equal(await provider.getTransactionCount(wallet.address, "latest"), f.nonce + 2);

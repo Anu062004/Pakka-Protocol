@@ -32,8 +32,9 @@ contract Tijori is ReentrancyGuard {
     bool public paused;
     bool public initialized;
     uint256 public dailyCap;
-    uint256 public dailySpent;
-    uint256 public dailyWindow;
+    /// @dev USDC paid per clock hour. The cap is measured over the current hour and the 24 before
+    /// it, a window of 24 to 25 hours, so no 24-hour period can exceed it at any boundary.
+    mapping(uint256 => uint256) private _hourlySpent;
     mapping(address => PayeeLimit) public payeeLimits;
     struct Payment { uint64 timestamp; uint192 amount; }
     mapping(address => Payment[]) private _payments;
@@ -141,6 +142,12 @@ contract Tijori is ReentrancyGuard {
         emit Withdrawn(address(token), owner, amount);
     }
 
+    /// @notice Payments counted against the daily cap right now.
+    function dailySpent() public view returns (uint256 spent) {
+        uint256 hour = block.timestamp / 1 hours;
+        for (uint256 i; i <= 24; ++i) spent += _hourlySpent[hour - i];
+    }
+
     /// @notice Current payment allowance, excluding available USDC balance.
     function paymentRemaining(address payee) public view returns (uint256) {
         PayeeLimit memory limit = payeeLimits[payee];
@@ -149,7 +156,7 @@ contract Tijori is ReentrancyGuard {
         for (uint256 i = _paymentHead[payee]; i < history.length; ++i) {
             if (uint256(history[i].timestamp) + PAYEE_PERIOD > block.timestamp) payeeSpent += history[i].amount;
         }
-        uint256 daySpent = dailyWindow == block.timestamp / 1 days ? dailySpent : 0;
+        uint256 daySpent = dailySpent();
         return Math.min(limit.cap > payeeSpent ? limit.cap - payeeSpent : 0,
             dailyCap > daySpent ? dailyCap - daySpent : 0);
     }
@@ -161,8 +168,6 @@ contract Tijori is ReentrancyGuard {
         if (_blacklisted(payee)) revert PayeeBlacklisted();
         if (_blacklisted(address(this))) revert TreasuryBlacklisted();
         if (amount > paymentRemaining(payee)) revert PaymentCapExceeded();
-        uint256 day = block.timestamp / 1 days;
-        if (dailyWindow != day) { dailyWindow = day; dailySpent = 0; }
         PayeeLimit storage limit = payeeLimits[payee];
         Payment[] storage history = _payments[payee];
         uint256 head = _paymentHead[payee];
@@ -172,7 +177,7 @@ contract Tijori is ReentrancyGuard {
         }
         _paymentHead[payee] = head;
         limit.window = block.timestamp;
-        dailySpent += amount;
+        _hourlySpent[block.timestamp / 1 hours] += amount;
         limit.spent += amount;
         if (history.length > head && history[history.length - 1].timestamp == block.timestamp) {
             uint256 combined = uint256(history[history.length - 1].amount) + amount;

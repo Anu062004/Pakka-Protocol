@@ -278,8 +278,27 @@ function seedNote(){
       :`Opens PT at ${formatUnits(price,6)} USDC. Buyers also pay the 0.05% pool fee.`;}}catch{}
   $("seed-price-note").textContent=text;
 }
-// Liquidity is held by the seeder under the range it was added with. The deployment manifest
-// records script-seeded ranges; ranges seeded from this page are remembered on this device.
+// Liquidity is held by the seeder under the range it was added with. A current seeder reports its
+// own positions. One deployed before that cannot, so for those the deployment manifest supplies
+// script-seeded ranges and ranges seeded from this page are remembered on this device.
+async function positions(id,poolId){
+  try{const [list,liquidity]=await contract("PoolSeeder",state.manifest.poolSeeder).positions(id);
+    return list.map((r,i)=>[Number(r.tickLower),Number(r.tickUpper),liquidity[i]]);}
+  catch{return Promise.all(ranges(id).map(async([lower,upper])=>[lower,upper,await positionLiquidity(poolId,lower,upper)]));}
+}
+const monthNames=["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+// Token symbols carry the maturity date on mainnet, e.g. PT-USDC-15OCT2026, as the scripts name them.
+function seriesLabel(expiry){
+  if(state.manifest.network?.name!=="mainnet")return `TEST-${expiry}`;
+  const d=new Date(expiry*1000);return `USDC-${String(d.getUTCDate()).padStart(2,"0")}${monthNames[d.getUTCMonth()]}${d.getUTCFullYear()}`;
+}
+async function openMaturity(){
+  const wallet=requireWallet(),days=Number($("open-days").value);if(!Number.isInteger(days)||days<1)throw new Error("InvalidExpiry");
+  const expiry=(await wallet.provider.getBlock("latest")).timestamp+days*86400;
+  const receipt=await wallet.write(contract("SeriesFactory",state.manifest.seriesFactory),"create",[expiry,seriesLabel(expiry)]);
+  await ownerDone(receipt);
+  $("seed-series").value=String(await contract("SeriesRegistry",state.manifest.registry).seriesCount());seedNote();
+}
 const rangesKey=()=>`pakka-lp-${state.manifest.chainId}-${state.manifest.poolSeeder.toLowerCase()}`;
 function savedRanges(){try{const r=JSON.parse(localStorage.getItem(rangesKey())??"[]");return Array.isArray(r)?r:[];}catch{return [];}}
 function ranges(id){
@@ -307,6 +326,7 @@ async function refreshOwner(){
   $("owner-entries").textContent=allPaused?"New entries are paused for every series.":"New entries are open.";
   $("owner-pause-all").textContent=allPaused?"Resume all entries":"Pause all entries";
   $("owner-series").replaceChildren();$("seed-series").replaceChildren(node("option","Choose a series",{value:""}));state.ownerSeries=new Map();
+  $("open-form").hidden=!state.manifest.seriesFactory;
   for(const m of state.manifest.series){
     if(m.expiry<=now||await registry.seriesIdByYieldToken(m.yieldToken)!==0n)continue;
     const row=node("div",undefined,{class:"position-row"}),actions=node("div",undefined,{class:"actions"});
@@ -328,14 +348,13 @@ async function refreshOwner(){
     if(live&&!s.hasPool)actions.append(button("Attach pool",()=>ownerWrite("setPoolKey",[id,poolKey(s.principalToken)]),{class:"cta"}));
     if(live)actions.append(button(paused?"Resume entries":"Pause entries",()=>ownerWrite("setSeriesEntriesPaused",[id,!paused])));
     if(live&&s.hasPool){$("seed-series").append(node("option",`Series ${id} · ${date(Number(s.expiry))}`,{value:id}));state.ownerSeries.set(id,Number(s.expiry));}
-    if(pool)for(const [lower,upper]of ranges(id)){
-      const liquidity=await positionLiquidity(pool.poolId,lower,upper);
+    if(pool)for(const [lower,upper,liquidity]of await positions(id,pool.poolId)){
       if(liquidity>0n)actions.append(button(live?"Withdraw liquidity":"Withdraw liquidity and fees",()=>withdrawLiquidity(id,lower,upper,liquidity),live?{}:{class:"cta"}));
     }
     row.append(actions);$("owner-series").append(row);
   }
   seedNote();
-  if(!$("owner-series").children.length)$("owner-series").append(node("p","No series yet. Deploy a maturity with the add:series command, then register it here."));
+  if(!$("owner-series").children.length)$("owner-series").append(node("p",state.manifest.seriesFactory?"No series yet. Open a maturity above.":"No series yet. Deploy a maturity with the add:series command, then register it here."));
 }
 // The public pages read the same registry, so they are refreshed before the receipt is shown.
 async function ownerDone(receipt){try{await refreshRates();}catch{}await refreshOwner();await showReceipt(receipt);}
@@ -401,7 +420,7 @@ $("generate-agent").onclick=()=>run(async()=>generateAgent());
 $("show-new-key").onclick=()=>{$("new-agent-key").type="text";$("show-new-key").disabled=true;};
 $("copy-new-key").onclick=()=>run(async()=>{if(!$("new-agent-key").value)return;await navigator.clipboard.writeText($("new-agent-key").value);notice("Agent key copied. Save it before creating the treasury.");});
 $("copy-key").onclick=()=>run(async()=>{if(!$("one-time-key").value)return;await navigator.clipboard.writeText($("one-time-key").value);$("one-time-key").value="";notice("Key copied and cleared from the field. Save it in your local configuration.");});
-$("refresh-owner").onclick=()=>run(async()=>{await refreshOwner();notice("Owner view refreshed.");});form("seed-form",seedPool);
+$("refresh-owner").onclick=()=>run(async()=>{await refreshOwner();notice("Owner view refreshed.");});form("seed-form",seedPool);form("open-form",openMaturity);
 $("seed-rate").oninput=seedNote;$("seed-series").onchange=seedNote;
 $("owner-pause-all").onclick=()=>run(async()=>ownerWrite("setEntriesPaused",[!await contract("SeriesRegistry",state.manifest.registry).entriesPaused()]));
 $("copy-config").onclick=()=>run(async()=>{await navigator.clipboard.writeText($("mcp-config").value);notice("MCP config copied. Replace the key placeholder only in your local file.");});
