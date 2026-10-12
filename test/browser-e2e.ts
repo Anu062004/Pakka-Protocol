@@ -52,16 +52,41 @@ test("five pages are usable at 320, 375, 414 and 768 px with no horizontal overf
   for(const width of [320,375,414,768]){
     await page.setViewportSize({width,height:850});
     for(const section of ["rates","lock","yield","positions","tijori"]){
+      await page.getByRole("button",{name:"Open navigation"}).click();
       await page.locator(`nav a[href='#${section}']`).click();
+      await expect(page.locator("#menu-toggle")).toHaveAttribute("aria-expanded","false");
       assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
       await expect(page.locator(`#${section}`)).toBeVisible();
-      const wrapping=await page.locator("nav a,button:visible").evaluateAll(items=>items.some(e=>{
-        const r=document.createRange();r.selectNodeContents(e);return r.getClientRects().length>1;
+      const wrapping=await page.locator("nav a:visible,button:visible").evaluateAll(items=>items.some(e=>{
+        const r=document.createRange();r.selectNodeContents(e.querySelector("span")??e);return r.getClientRects().length>1;
       }));assert.equal(wrapping,false,"Clickable labels must stay on one line");
     }
   }
   fs.mkdirSync("test-results",{recursive:true});await page.screenshot({path:"test-results/pakka-mobile.png",fullPage:true});
   assert.deepEqual(errors,[]);
+});
+
+test("mobile navigation supports dismissal, resizing and owner-only access",async()=>{
+  await page.setViewportSize({width:375,height:850});
+  const toggle=page.locator("#menu-toggle"),nav=page.getByRole("navigation",{name:"Main"});
+  await expect(nav).toBeHidden();
+  await toggle.focus();await page.keyboard.press("Enter");
+  await expect(nav).toBeVisible();await expect(page.locator("#owner-link")).toBeHidden();
+  await expect(page.getByRole("link",{name:"Guide and glossary"})).toBeVisible();
+  await page.keyboard.press("Tab");await page.keyboard.press("Escape");
+  await expect(nav).toBeHidden();await expect(toggle).toBeFocused();
+  await toggle.click();await page.locator("#rates h1").click();await expect(nav).toBeHidden();
+  await toggle.click();await page.locator("nav a[href='#rates']").click();await expect(nav).toBeHidden();
+  await toggle.click();await page.setViewportSize({width:1280,height:900});
+  await expect(toggle).toBeHidden();await expect(nav).toBeVisible();
+  await page.setViewportSize({width:375,height:850});await expect(nav).toBeHidden();
+  await page.evaluate((address: string)=>(window as any).pakkaSelectAccount(address),(system.owner as any).address);
+  await page.locator("#connect").click();await expect(page.locator("#notice")).toHaveText("Wallet connected.");
+  await toggle.click();await expect(page.locator("#owner-link")).toBeVisible();
+  await page.locator("#owner-link").click();await expect(page.locator("#owner")).toBeVisible();await expect(nav).toBeHidden();
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  await toggle.click();
+  fs.mkdirSync("test-results",{recursive:true});await page.screenshot({path:"test-results/pakka-mobile-menu.png",fullPage:true});
 });
 
 test("Priya reviews a shared quote, locks, reaches maturity, and cashes out with no standing approval",async()=>{

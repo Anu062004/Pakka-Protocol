@@ -5,6 +5,23 @@ import { humanError } from "/errors.mjs";
 const $=id=>document.getElementById(id);
 const state={manifest:null,abis:null,wallet:null,rates:[],quote:null,yieldQuote:null,treasury:null,owner:false,busy:false};
 const pages=["rates","lock","yield","positions","tijori","owner"];
+const rail=document.querySelector(".rail"),mobileNavigation=matchMedia("(max-width:63.999rem)");
+function closeMenu(){
+  if(mobileNavigation.matches&&$("rail-content").contains(document.activeElement))$("menu-toggle").focus();
+  rail.classList.remove("menu-open");
+  $("menu-toggle").setAttribute("aria-expanded","false");
+  $("menu-toggle").setAttribute("aria-label","Open navigation");
+}
+rail.classList.add("nav-ready");
+$("menu-toggle").addEventListener("click",()=>{
+  const open=rail.classList.toggle("menu-open");
+  $("menu-toggle").setAttribute("aria-expanded",String(open));
+  $("menu-toggle").setAttribute("aria-label",open?"Close navigation":"Open navigation");
+});
+$("rail-content").addEventListener("click",e=>{if(e.target.closest("a"))closeMenu();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&rail.classList.contains("menu-open")){closeMenu();$("menu-toggle").focus();}});
+document.addEventListener("click",e=>{if(!rail.contains(e.target))closeMenu();});
+mobileNavigation.addEventListener("change",closeMenu);
 // The terminal setup command keeps the agent key on the user's machine and passes only its
 // address here, so the owner's wallet can approve it without the key ever reaching a browser.
 const setupAgent=(()=>{try{return getAddress(new URLSearchParams(location.search).get("agent")??"");}catch{return null;}})();
@@ -26,13 +43,14 @@ async function api(url){const r=await fetch(url,{cache:"no-store"});const data=a
 function requireWallet(){if(!state.wallet)throw new Error("WALLET_REQUIRED");return state.wallet;}
 async function run(action){
   if(state.busy)return;state.busy=true;
-  const buttons=[...document.querySelectorAll("button")].map(e=>[e,e.disabled]);
+  const buttons=[...document.querySelectorAll("button:not(#menu-toggle)")].map(e=>[e,e.disabled]);
   buttons.forEach(([e])=>{e.disabled=true;e.setAttribute("aria-busy","true");});
   notice("Checking the latest state. Your wallet will ask before any transaction.");
   try{await action();}catch(e){notice(humanError(e,interfaces()),"error");}
   finally{state.busy=false;buttons.forEach(([e,was])=>{e.disabled=was;e.removeAttribute("aria-busy");});$("lock-submit").disabled=!state.quote;$("yield-submit").disabled=!state.yieldQuote;$("show-key").disabled=!$("one-time-key").value||$("one-time-key").type==="text";}
 }
 function navigate(){
+  closeMenu();
   const hash=location.hash.slice(1),id=pages.includes(hash)&&(hash!=="owner"||state.owner)?hash:"rates";
   for(const p of pages)$(p).hidden=p!==id;
   for(const link of document.querySelectorAll("nav a")){if(link.hash===`#${id}`)link.setAttribute("aria-current","page");else link.removeAttribute("aria-current");}
